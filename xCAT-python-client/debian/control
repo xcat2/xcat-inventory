@@ -1,0 +1,14 @@
+Source: xcat-python-client
+Section: admin
+Priority: extra
+Maintainer: xCAT <xcat-user@lists.sourceforge.net>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.4
+Homepage: https://xcat.org/
+
+Package: xcat-server
+Architecture: all
+Depends: 
+Description: xCAT command line tools
+ xCAT-python-client provides some useful CLI utils of xCAT.
+ This package should be installed on the xCAT management node.

@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
+# -*- coding: utf-8 -*-
+#
+
+import sys
+
+from xcclient.inventory.shell import main
+
+if __name__ == "__main__":
+    sys.exit(main())
