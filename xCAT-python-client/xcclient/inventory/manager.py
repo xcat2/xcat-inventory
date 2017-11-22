@@ -38,10 +38,8 @@ def export_all(location, fmt):
     Node.loadschema(dir_path + '/node.yaml')
     for node in Node.listobj():
         if fmt in ['yaml', 'YAML']:
-            print "==THIS IS YAML=="
             Node(node).dump2yaml()
         else:
-            print "==THIS IS JSON=="
             Node(node).dump2json()
 
 def import_by_type(objtype, name, location):
