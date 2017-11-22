@@ -5,6 +5,9 @@
 # -*- coding: utf-8 -*-
 #
 
+import dbsession
+from xcatobj import *
+
 """
 Command-line interface to xCAT inventory import/export
 """
@@ -23,6 +26,19 @@ def export_by_type(objtype, name, location, fmt):
 
 def export_all(location, fmt):
     print("export inventory to %s in %s format" % (location, fmt))
+    session = dbsession.loadSession()
+    nodelist = ['c910f03c17k41','c910f03c17k42']
+    nodelist_value = query_nodelist_by_key(session, nodelist)
+
+    Node.loaddb(nodelist_value)
+    Node.loadschema('./node.yml')
+    for node in Node.listobj():
+        if fmt in ['yaml', 'YAML']:
+            print "==THIS IS YAML=="
+            Node(node).dump2yaml()
+        else:
+            print "==THIS IS JSON=="
+            Node(node).dump2json()
 
 def import_by_type(objtype, name, location):
     print("import type of %s inventory from %s" % (objtype, location))
