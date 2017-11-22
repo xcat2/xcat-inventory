@@ -60,7 +60,7 @@ if __name__ == "__main__":
     nodelist_value = query_nodelist_by_key(session,nodelist)
 
     Node.loaddb(nodelist_value)
-    Node.loadschema('./node.yml')
+    Node.loadschema('./node.yaml')
     for node in Node.listobj():
 	print "==THIS IS YAML=="
     	Node(node).dump2yaml()
