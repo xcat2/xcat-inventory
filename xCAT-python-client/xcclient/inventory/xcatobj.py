@@ -47,7 +47,7 @@ class Node():
         def dump2yaml(self):
 		print yaml.dump(self.__mydict,default_flow_style=False)
 	def dump2json(self):
-		print json.dumps(self.__mydict)
+		print json.dumps(self.__mydict, sort_keys=True, indent=4, separators=(',', ': '))
         def load(self,filename):
 		self.__mydict=yaml.load(file(filename,'r'))			
 
