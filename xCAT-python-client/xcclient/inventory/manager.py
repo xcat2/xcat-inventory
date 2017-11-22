@@ -7,6 +7,7 @@
 
 import dbsession
 from xcatobj import *
+from xcclient.shell import CommandException
 
 import os
 
@@ -14,9 +15,13 @@ import os
 Command-line interface to xCAT inventory import/export
 """
 
+VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage']
+VALID_FORMAT = ['yaml', 'json']
+
 def validate_args(args, action):
-    #print(args)
-    pass
+    if args.type and args.type not in VALID_OBJ_TYPES:
+        raise CommandException("Invalid object type: %s", args.type)
+
 
 def check_inventory_type(objtype, name):
     pass
