@@ -23,8 +23,8 @@ def validate_args(args, action):
     if args.type and args.type.lower() not in VALID_OBJ_TYPES:
         raise CommandException("Invalid object type: %(t)s", t=args.type)
 
-	if args.name and not args.type:
-		raise CommandException("Missing object type for object: %(o)s", o=args.name)
+    if args.name and not args.type:
+        raise CommandException("Missing object type for object: %(o)s", o=args.name)
 
     if action == 'import': #extra validation for export
         if args.path and not os.path.exists(args.path):
@@ -44,7 +44,7 @@ def export_all(location, fmt):
     nodelist_value = query_nodelist_by_key(session, nodelist)
 
     Node.loaddb(nodelist_value)
-    Node.loadschema(os.path.join(os.path.dirname(__file__), node.yaml))
+    Node.loadschema(os.path.join(os.path.dirname(__file__), 'node.yaml'))
     for node in Node.listobj():
         if fmt in ['yaml', 'YAML']:
             Node(node).dump2yaml()
