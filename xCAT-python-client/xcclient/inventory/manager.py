@@ -32,10 +32,7 @@ def export_all(location, fmt):
     nodelist_value = query_nodelist_by_key(session, nodelist)
 
     Node.loaddb(nodelist_value)
-    #Node.loadschema('./node.yaml')
-    path = os.path.abspath(__file__)
-    dir_path = os.path.dirname(path)
-    Node.loadschema(dir_path + '/node.yaml')
+    Node.loadschema(os.path.join(os.path.dirname(__file__), node.yaml))
     for node in Node.listobj():
         if fmt in ['yaml', 'YAML']:
             Node(node).dump2yaml()
