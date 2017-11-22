@@ -69,5 +69,3 @@ if __name__ == "__main__":
 
     session.close()
 
-exit()
- 
