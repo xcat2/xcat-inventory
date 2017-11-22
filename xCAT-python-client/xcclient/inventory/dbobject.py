@@ -142,7 +142,8 @@ def query_nodelist_by_key(session, nodelist):
             for t in tlist:
                 v=t.name
                 for item in table_row:
-                    nodeattr[str(t)] = item.__dict__[v]
+                    if item.__dict__[v]:
+                         nodeattr[str(t)] = item.__dict__[v].encode()
 
         nodelist_value[node]=nodeattr
     return nodelist_value
