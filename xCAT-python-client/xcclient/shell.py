@@ -206,7 +206,7 @@ class XCHelpFormatter(argparse.HelpFormatter):
         super(XCHelpFormatter, self).start_section(heading)
 
 class CommandException(Exception):
-    """Abstract Command Exception."""
+    """Base Command Exception."""
 
     message = "An unknown error occurred."
 

@@ -16,18 +16,25 @@ Command-line interface to xCAT inventory import/export
 """
 
 VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage']
-VALID_FORMAT = ['yaml', 'json']
+VALID_OBJ_FORMAT = ['yaml', 'json']
 
 def validate_args(args, action):
-    if args.type and args.type not in VALID_OBJ_TYPES:
-        raise CommandException("Invalid object type: %s", args.type)
 
+    if args.type and args.type.lower() not in VALID_OBJ_TYPES:
+        raise CommandException("Invalid object type: %(t)s", t=args.type)
 
-def check_inventory_type(objtype, name):
-    pass
+	if args.name and not args.type:
+		raise CommandException("Missing object type for object: %(o)s", o=args.name)
+
+    if action == 'import': #extra validation for export
+        if args.path and not os.path.exists(args.path):
+            raise CommandException("The specified path does not exist: %(p)s", p=args.path)
+
+    if action == 'export': #extra validation for export
+        if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
+            raise CommandException("Invalid exporting format: %(f)s", f=args.format)
 
 def export_by_type(objtype, name, location, fmt):
-    print("export type of %s inventory to %s in %s format" % (objtype, location, fmt))
     if name:
         print("specified dedicate object: %s" % name)
 

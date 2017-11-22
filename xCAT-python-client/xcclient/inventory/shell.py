@@ -26,9 +26,7 @@ class InventoryShell(shell.ClusterShell):
         """Import the inventory based on the type or name from specified path"""
         mgr.validate_args(args, 'import')
         if args.type :
-            #1, validate and get the type
-            mgr.check_inventory_type(args.type, args.name)
-            #2, do export by type
+            #do export by type
             mgr.import_by_type(args.type, args.name, args.path)
         else :
             mgr.import_all(args.path)
@@ -41,9 +39,7 @@ class InventoryShell(shell.ClusterShell):
         """Export the inventory based on the type or name to specified path"""
         mgr.validate_args(args, 'export')
         if args.type :
-            #1, validate and get the type
-            mgr.check_inventory_type(args.type, args.name)
-            #2, do export by type
+            # do export by type
             mgr.export_by_type(args.type, args.name, args.path, args.format)
         else :
             mgr.export_all(args.path, args.format)
