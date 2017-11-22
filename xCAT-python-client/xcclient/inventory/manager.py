@@ -35,7 +35,7 @@ def export_all(location, fmt):
     #Node.loadschema('./node.yaml')
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
-    Node.loadschema('dir_path/node.yaml')
+    Node.loadschema(dir_path + '/node.yaml')
     for node in Node.listobj():
         if fmt in ['yaml', 'YAML']:
             print "==THIS IS YAML=="
