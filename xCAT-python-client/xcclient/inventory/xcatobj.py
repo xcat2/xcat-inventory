@@ -3,7 +3,7 @@ import yaml
 import json
 from copy import *
 
-from ormobject import *
+from dbobject import *
 from dbsession import *
 
 #dbhash={"node1":{"hosts.ip":"10.3.5.21","nodetype.arch":"ppc64","mac.mac":"00:11:22:33:44:55","switch.switch":"sw1","switch.port":"1","postscripts.postscripts":"syslog","nodetype.provmethod":"osimage1","noderes.installnic":"eth0","bootparams.addkcmdline":"rd.break=1","noderes.netboot":"grub2","noderes.xcatmaster":"10.3.5.21"}}
@@ -17,6 +17,7 @@ class Node():
 			Node.loadschema(schema)
                 if Node.__dbhash is None and dbhash is not None:
 			Node.loaddb(dbhash)
+                #rename the key to the node
 		self.__mydict=deepcopy(Node.__schema)
                 self.__mydict[self.name]=self.__mydict[self.__mydict.keys()[0]]
                 del self.__mydict[self.__mydict.keys()[0]]
