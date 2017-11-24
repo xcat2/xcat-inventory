@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from dbsession import *
 from copy import *
 import pdb
@@ -15,42 +16,42 @@ class mixin(object):
         return mydict
 
 ########################################################################
-class Password(Base,mixin):
+class passwd(Base,mixin):
     """"""
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
 ########################################################################
-class Networks(Base,mixin):
+class networks(Base,mixin):
     """"""
     __tablename__ = 'networks'
     __table_args__ = {'autoload':True}
 
 ########################################################################
-class Nodetype(Base,mixin):
+class nodetype(Base,mixin):
     """"""
     __tablename__ = 'nodetype'
     __table_args__ = {'autoload':True} 
 
 ########################################################################
-class Hosts(Base,mixin):
+class hosts(Base,mixin):
     """"""
     __tablename__ = 'hosts'
     __table_args__ = {'autoload':True}
 
 ########################################################################
-class Noderes(Base,mixin):
+class noderes(Base,mixin):
     """"""
     __tablename__ = 'noderes'
     __table_args__ = {'autoload':True}
 
 ########################################################################
-class Switch(Base,mixin):
+class switch(Base,mixin):
     """"""
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
 ########################################################################
-class Mac(Base,mixin):
+class mac(Base,mixin):
     """"""
     __tablename__ = 'mac'
     __table_args__ = {'autoload':True}
@@ -59,13 +60,13 @@ class Mac(Base,mixin):
         key=self.__tablename__+'.'+'mac'
         mydict[key]=mydict[key].split('|')
 ########################################################################
-class Postscripts(Base,mixin):
+class postscripts(Base,mixin):
     """"""
     __tablename__ = 'postscripts'
     __table_args__ = {'autoload':True}
     
 ########################################################################
-class Bootparams(Base,mixin):
+class bootparams(Base,mixin):
     """"""
     __tablename__ = 'bootparams'
     __table_args__ = {'autoload':True}
@@ -76,6 +77,8 @@ class Bootparams(Base,mixin):
 def query_table_by_node(session, tclass, tkey):
     """"""
     result=session.query(tclass).filter(tclass.node == tkey).all()
+    if not result:
+       return None 
     return result[0].getdict()
 
 
@@ -94,7 +97,7 @@ if __name__ == "__main__":
 
     session = loadSession()
     nodelist_value = {}
-    nodelist = ['bybc0607','node1']
+    nodelist = ['node0001','node0002']
     nodelist_value = query_nodelist_by_key(session,nodelist)
     print nodelist_value
     session.close()
