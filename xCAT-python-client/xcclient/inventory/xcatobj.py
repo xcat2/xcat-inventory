@@ -11,7 +11,7 @@ from copy import *
 from dbobject import *
 from dbfactory import *
 
-#dbhash={"node1":{"hosts.ip":"10.3.5.21","nodetype.arch":"ppc64","mac.mac":"00:11:22:33:44:55","switch.switch":"sw1","switch.port":"1","postscripts.postscripts":"syslog","nodetype.provmethod":"osimage1","noderes.installnic":"eth0","bootparams.addkcmdline":"rd.break=1","noderes.netboot":"grub2","noderes.xcatmaster":"10.3.5.21"}}
+import pdb
 
 class Node():
     __schema=None
@@ -26,33 +26,32 @@ class Node():
             Node.loadschema(schema)
 
         if objdict is not None:
-            self.__mydict[node]=deepcopy(objdict)
+            self.__mydict=deepcopy(objdict)
+            self.__dbhash.clear()
+            self.__dict2db(self.__mydict,Node.__schema['node'])
         elif dbhash is not None:
-            self.__dbhash[node]=deepcopy(dbhash)
-            self.__mydict=deepcopy(Node.__schema)
-            self.__mydict[node]=self.__mydict[self.__mydict.keys()[0]]
-            del self.__mydict[self.__mydict.keys()[0]]
-            self.__deeptraverse(self.name, self.__mydict)
+            self.__dbhash=deepcopy(dbhash)
+            self.__mydict.clear()
+            self.__mydict=deepcopy(Node.__schema['node'])
+            self.__db2dict(self.__mydict)
 
-    def __deeptraverse(self, objkey, dict1):
-        def action(objkey, dbhash, string):
-            if objkey in dbhash.keys() and string in dbhash[objkey]:
-                return dbhash[objkey][string]
-            else:
-                return ''
+    def __db2dict(self, dict1):
         for key in dict1.keys():
             if isinstance(dict1[key],dict):
-                self.__deeptraverse(objkey,dict1[key])
-            else:
-                dict1[key]=action(objkey, self.__dbhash, dict1[key])
+                self.__db2dict(dict1[key])
+            else: 
+                dbkey=dict1[key]
+                if dbkey in self.__dbhash.keys():
+                     dict1[key]=self.__dbhash[dbkey]
+                else:
+                     dict1[key]=''
 
-    def __db2dict(self):
-        self.__mydict=deepcopy(Node.__schema)
-        self.__mydict[self.name]=self.__mydict[self.__mydict.keys()[0]]
-        del self.__mydict[self.__mydict.keys()[0]]
-        for key in self.__mydict.keys():
-            if isinstance(self.__mydict[key],dict):
-                pass
+    def __dict2db(self,objdict,schemadict):
+        for key in objdict.keys():
+            if isinstance(objdict[key],dict):
+                self.__dict2db(objdict[key],schemadict[key])
+            else:
+                self.__dbhash[schemadict[key]]=objdict[key]
 
     @staticmethod
     def createfromdb(node, dbhash):
@@ -65,7 +64,6 @@ class Node():
     def createfromfile(node, objdict):
         if not Node.__schema:
             Node.loadschema(Node.__schema_loc__)
-
         return Node(node, objdict=objdict)
 
     @staticmethod
@@ -76,11 +74,21 @@ class Node():
         return self.__dbhash.keys()
 
     def getobjdict(self):
-        return self.__mydict
+        ret={}
+        ret[self.name]=deepcopy(self.__mydict)
+        return ret
     def setobjdict(self,nodedict):
         self.__mydict=deepcopy(nodedict)
+        self.__dbhash.clear()
+        self.__dict2db(self.__mydict, Node.__schema['node'])
     def getdbdata(self):
-        return self.__dbhash
+        ret={}
+        ret[self.name]=deepcopy(self.__dbhash)
+        return ret
+    def setdbdata(self,dbhasih):
+        self.__dbhash=deepcopy(dbhash)
+        self.__mydict.clear()
+        self.__db2dict(self.__mydict)
 
 if __name__ == "__main__":
     db = dbfactory()
@@ -88,7 +96,27 @@ if __name__ == "__main__":
     nodelist = ['c910f03c17k41','c910f03c17k42']
     obj_attr_dict = db.gettab(tabs, nodelist)
 
+    obj={}
+    objdict={}
+    objdb={}
     for node in nodelist:
-        obj = Node.createfromdb('c910f03c17k41', dbhash=obj_attr_dict['c910f03c17k41'])
-        print(obj.getobjdict())
+        obj[node] = Node.createfromdb(node, dbhash=obj_attr_dict[node])
+        objdict.update(obj[node].getobjdict())
+        objdb.update(obj[node].getdbdata())
+        objdict[node]['device_info']['arch']='x86_64'
 
+    objdict1={}
+    objdb1={}
+    for node in nodelist:
+        #pdb.set_trace()
+        obj[node].setobjdict(objdict[node])
+        objdict1.update(obj[node].getobjdict())
+        objdb1.update(obj[node].getdbdata())
+    print "========="
+    print yaml.dump(objdict1,default_flow_style=False)
+    print "========="
+    print yaml.dump(objdb1,default_flow_style=False)
+    print "========="
+
+
+    
