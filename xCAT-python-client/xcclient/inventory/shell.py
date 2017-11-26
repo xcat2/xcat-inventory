@@ -14,6 +14,7 @@ from xcclient import shell
 import xcclient.inventory.manager as mgr
 
 import sys
+import traceback
 
 class InventoryShell(shell.ClusterShell):
     def add_subcommands(self, subparsers, revision):
@@ -52,5 +53,6 @@ def main():
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
     except Exception as e:
-        print(e)
+        #print(e)
+        traceback.print_exc(e)
         sys.exit(1)
