@@ -45,8 +45,6 @@ class InventoryFactory(object):
 
     def exportObjs(self, objlist, fmt, location):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
-        #myclass.loadschema()
-        myclass.loadschema(os.path.join(os.path.dirname(__file__), 'node.yaml'))
         #tabs = myclass.getTables()
         tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
@@ -66,8 +64,6 @@ class InventoryFactory(object):
             obj_attr_dict = yaml.load(contents)
 
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
-        #myclass.loadschema()
-        myclass.loadschema(os.path.join(os.path.dirname(__file__), 'node.yaml'))
 
         dbdict = {}
         for key, attrs in obj_attr_dict.items():
