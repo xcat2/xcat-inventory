@@ -57,7 +57,6 @@ class Node():
     def createfromdb(node, dbhash):
         if not Node.__schema:
             Node.loadschema(Node.__schema_loc__)
-
         return Node(node, dbhash=dbhash)
 
     @staticmethod
@@ -85,7 +84,7 @@ class Node():
         ret={}
         ret[self.name]=deepcopy(self.__dbhash)
         return ret
-    def setdbdata(self,dbhasih):
+    def setdbdata(self,dbhash):
         self.__dbhash=deepcopy(dbhash)
         self.__mydict.clear()
         self.__db2dict(self.__mydict)
@@ -112,10 +111,19 @@ if __name__ == "__main__":
         obj[node].setobjdict(objdict[node])
         objdict1.update(obj[node].getobjdict())
         objdb1.update(obj[node].getdbdata())
+        objdb1[node]['nodetype.arch']="armv71"
+      
+    objdb2={}
+    objdict2={}
+    for node in nodelist:
+        obj[node].setdbdata(objdb1[node])
+        objdict2.update(obj[node].getobjdict())
+        objdb2.update(obj[node].getdbdata())
+
     print "========="
-    print yaml.dump(objdict1,default_flow_style=False)
+    print yaml.dump(objdict2,default_flow_style=False)
     print "========="
-    print yaml.dump(objdb1,default_flow_style=False)
+    print yaml.dump(objdb2,default_flow_style=False)
     print "========="
 
 

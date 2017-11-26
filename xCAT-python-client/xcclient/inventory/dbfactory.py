@@ -15,7 +15,7 @@ class dbfactory():
         for tabname in tabs:
             if hasattr(dbobject,tabname):
                 tab=getattr(dbobject,tabname)
-            if keys is not None:
+            if keys is not None and len(keys)!=0:
                 tabobj=self.dbsession.query(tab).filter(tab.node.in_(keys)).all()
             else:
                 tabobj=self.dbsession.query(tab).all()
