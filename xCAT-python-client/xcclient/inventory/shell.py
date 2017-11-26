@@ -20,7 +20,7 @@ class InventoryShell(shell.ClusterShell):
         pass
 
     @shell.arg('--type', metavar='<type>', help='Object type to be imported')
-    @shell.arg('--name', metavar='<name>', help='Object name to be imported')
+    @shell.arg('--name', metavar='<name>', help='Object names to be imported')
     @shell.arg('--path', metavar='<path>', help='File path for the inventory objects to import from ')
     def do_import(self, args):
         """Import the inventory based on the type or name from specified path"""
@@ -32,7 +32,7 @@ class InventoryShell(shell.ClusterShell):
             mgr.import_all(args.path)
 
     @shell.arg('--type', metavar='<type>', help='Object type to be exported')
-    @shell.arg('--name', metavar='<name>', help='Object name to be exported')
+    @shell.arg('--name', metavar='<name>', help='Object names to be exported')
     @shell.arg('--path', metavar='<path>', help='File path for the inventory objects to export to ')
     @shell.arg('--format', metavar='<format>', help='The content format: json or yaml')
     def do_export(self, args):

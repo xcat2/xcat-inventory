@@ -57,34 +57,36 @@ class InventoryFactory(object):
             else:
                 self.dump2yaml(newobj.getobjdict())
 
-    def exportObj(self):
-        pass
+    def importObjs(self, objlist, location):
+        with open(location) as file:
+            contents=file.read()
+        try:
+            obj_attr_dict = json.loads(contents)
+        except ValueError:
+            obj_attr_dict = yaml.load(contents)
 
-    def importObjs(self,objlist,location):
-        with open(location) as json_data:
-            d = json.load(json_data)
-            print(d)
-        return
-        myclass = __InventoryClass__[self.objtype]
+        myclass = InventoryFactory.__InventoryClass__[self.objtype]
         #myclass.loadschema()
         myclass.loadschema(os.path.join(os.path.dirname(__file__), 'node.yaml'))
 
-        self.getDBInst.gettab(tabs, objlist)
+        dbdict = {}
         for key, attrs in obj_attr_dict.items():
-            newobj = myclass.createfromfile(key, attrs)
-            if fmt.lower() == 'json':
-                self.dump2json(newobj.setDict())
-            else:
-                self.dump2yaml(newobj.setDict())
+            if not objlist or key in objlist:
+                newobj = myclass.createfromfile(key, attrs)
+                dbdict[key] = newobj.getdbdata()
+        self.getDBInst().settab(dbdict)
 
-    def importObj(self):
-        pass
+    def dump2yaml(self, xcatobj, location=None):
+        if not location:
+            print(yaml.dump(xcatobj, default_flow_style=False))
 
-    def dump2yaml(self, xcatobj):
-        print(yaml.dump(xcatobj, default_flow_style=False))
+        #TODO: store in file or directory
 
-    def dump2json(self, xcatobj):
-        print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
+    def dump2json(self, xcatobj, location=None):
+        if not location:
+            print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        #TODO: store in file or directory
 
 def validate_args(args, action):
 

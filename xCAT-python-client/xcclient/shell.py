@@ -180,10 +180,10 @@ class ClusterShell(object):
         #    self.do_bash_completion(args)
         #    return 0
 
-        try:
-            return args.func(args)
-        except Exception, e:
-            raise e
+        #try:
+        return args.func(args)
+        #except Exception, e:
+        #    raise e
 
 class XCHelpFormatter(argparse.HelpFormatter):
     INDENT_BEFORE_ARGUMENTS = 6
