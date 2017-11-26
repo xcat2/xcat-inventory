@@ -12,7 +12,9 @@ class dbfactory():
         if self.dbsession is None:
             return None
         ret={}
-        for tab in tabs:
+        for tabname in tabs:
+            if hasattr(dbobject,tabname):
+                tab=getattr(dbobject,tabname)
             if keys is not None:
                 tabobj=self.dbsession.query(tab).filter(tab.node.in_(keys)).all()
             else:
@@ -50,10 +52,18 @@ class dbfactory():
 
 if __name__ == "__main__":
     df1=dbfactory()
+<<<<<<< HEAD
     mydict=df1.gettab([mac],["node0001","node0002"])
+=======
+    mydict=df1.gettab(['mac'],["node0001","node0002"])
+>>>>>>> ca1a4d7f3e8924e5d2e4a6c2f3a37b1e3c3d4098
     mydict["node0001"]['mac.comments']="zzzzz"
     mydict["node0001"]['mac.interface']="zzzzz"
 
     df1.settab(mydict)
+<<<<<<< HEAD
     mydict1=df1.gettab([mac],["node0001"])
+=======
+    mydict1=df1.gettab(['mac'],["node0001"])
+>>>>>>> ca1a4d7f3e8924e5d2e4a6c2f3a37b1e3c3d4098
     print mydict1
