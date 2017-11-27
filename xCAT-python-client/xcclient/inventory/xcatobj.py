@@ -24,16 +24,10 @@ class Node():
 
         if schema:
             Node.loadschema(schema)
-
         if objdict is not None:
-            self.__mydict=deepcopy(objdict)
-            self.__dbhash.clear()
-            self.__dict2db(self.__mydict,Node.__schema['node'])
+            self.setobjdict(objdict)
         elif dbhash is not None:
-            self.__dbhash=deepcopy(dbhash)
-            self.__mydict.clear()
-            self.__mydict=deepcopy(Node.__schema['node'])
-            self.__db2dict(self.__mydict)
+            self.setdbdata(dbhash)
 
     def __db2dict(self, dict1):
         for key in dict1.keys():
@@ -87,6 +81,7 @@ class Node():
     def setdbdata(self,dbhash):
         self.__dbhash=deepcopy(dbhash)
         self.__mydict.clear()
+        self.__mydict=deepcopy(Node.__schema['node'])
         self.__db2dict(self.__mydict)
 
 if __name__ == "__main__":
@@ -107,7 +102,6 @@ if __name__ == "__main__":
     objdict1={}
     objdb1={}
     for node in nodelist:
-        #pdb.set_trace()
         obj[node].setobjdict(objdict[node])
         objdict1.update(obj[node].getobjdict())
         objdb1.update(obj[node].getdbdata())
