@@ -55,10 +55,6 @@ class mac(Base,mixin):
     """"""
     __tablename__ = 'mac'
     __table_args__ = {'autoload':True}
-    @classmethod
-    def outprocess(self,mydict):
-        key=self.__tablename__+'.'+'mac'
-        mydict[key]=mydict[key].split('|')
 ########################################################################
 class postscripts(Base,mixin):
     """"""
@@ -98,6 +94,15 @@ if __name__ == "__main__":
     session = loadSession()
     nodelist_value = {}
     nodelist = ['node0001','node0002']
-    nodelist_value = query_nodelist_by_key(session,nodelist)
-    print nodelist_value
+    mymac={}
+    mymac['node0001']={}
+    mymac['node0001']['node']="node0001"
+    mymac['node0001']['mac']="11:22:33:44"
+    #pdb.set_trace()
+    mynode=mac(mymac['node0001'])
+    print mynode.getdict()
+    #mymac=mac()
+    #session.add(mymac)
+    #session.commit()
+    print dir(mac)
     session.close()

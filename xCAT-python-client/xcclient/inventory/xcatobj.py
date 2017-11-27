@@ -36,7 +36,10 @@ class Node():
             else: 
                 dbkey=dict1[key]
                 if dbkey in self.__dbhash.keys():
-                     dict1[key]=self.__dbhash[dbkey]
+                     if dbkey == 'mac.mac' and self.__dbhash[dbkey]:
+                         dict1[key]=self.__dbhash[dbkey].split('|')
+                     else:
+                         dict1[key]=self.__dbhash[dbkey]
                 else:
                      dict1[key]=''
 
@@ -45,7 +48,10 @@ class Node():
             if isinstance(objdict[key],dict):
                 self.__dict2db(objdict[key],schemadict[key])
             else:
-                self.__dbhash[schemadict[key]]=objdict[key]
+                if key == 'mac':
+                    self.__dbhash[schemadict[key]]='|'.join(objdict[key])
+                else:
+                    self.__dbhash[schemadict[key]]=objdict[key]
         
     @staticmethod
     def createfromdb(node, dbhash):
