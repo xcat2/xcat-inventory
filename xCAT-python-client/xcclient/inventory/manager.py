@@ -46,7 +46,9 @@ class InventoryFactory(object):
     def exportObjs(self, objlist, fmt, location):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         #tabs = myclass.getTables()
-        tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
+        #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
+        myclass.loadschema()
+        tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
         for key, attrs in obj_attr_dict.items():
             newobj = myclass.createfromdb(key, attrs)
@@ -63,13 +65,17 @@ class InventoryFactory(object):
         except ValueError:
             obj_attr_dict = yaml.load(contents)
 
+
+        import pdb
+        #pdb.set_trace()
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
+
 
         dbdict = {}
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
                 newobj = myclass.createfromfile(key, attrs)
-                dbdict[key] = newobj.getdbdata()
+                dbdict.update(newobj.getdbdata())
         self.getDBInst().settab(dbdict)
 
     def dump2yaml(self, xcatobj, location=None):
@@ -125,3 +131,4 @@ def import_all(location):
     for objtype in ['node']:#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype)
         hdl.importObjs([], location)
+

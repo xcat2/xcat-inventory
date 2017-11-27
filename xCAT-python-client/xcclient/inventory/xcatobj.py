@@ -46,7 +46,7 @@ class Node():
                 self.__dict2db(objdict[key],schemadict[key])
             else:
                 self.__dbhash[schemadict[key]]=objdict[key]
-
+        
     @staticmethod
     def createfromdb(node, dbhash):
         if not Node.__schema:
@@ -60,12 +60,22 @@ class Node():
         return Node(node, objdict=objdict)
 
     @staticmethod
-    def loadschema(schema):
+    def loadschema(schema=None):
+        if schema is None:
+            schema=Node.__schema_loc__
         Node.__schema=yaml.load(file(schema,'r'))
 
-    def listobj(self):
-        return self.__dbhash.keys()
-
+    @staticmethod
+    def gettablist():
+        def __gettablist(schemadict,tabdict):
+            for key in schemadict.keys():
+                if isinstance(schemadict[key],dict):
+                    __gettablist(schemadict[key],tabdict)
+                else:
+                    tabdict[schemadict[key].split('.')[0]]=1
+        tabdict={}
+        __gettablist(Node.__schema,tabdict) 
+        return tabdict.keys()
     def getobjdict(self):
         ret={}
         ret[self.name]=deepcopy(self.__mydict)
@@ -119,6 +129,8 @@ if __name__ == "__main__":
     print "========="
     print yaml.dump(objdb2,default_flow_style=False)
     print "========="
-
-
+    
+    Node.loadschema()
+    for i in  Node.gettablist():
+        print i
     
