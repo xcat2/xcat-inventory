@@ -30,6 +30,15 @@ class dbfactory():
         return  ret 
 
     def settab(self,dbdict=None):
+        def create_or_update(session,tabcls,key,newdict):
+            record=session.query(tabcls).filter(tabcls.node.in_([key])).all()
+            if record is not None:
+                session.query(tabcls).filter(tabcls.node== key).update(newdict)
+            else:
+                print "not found"
+                print dbdict
+                                
+                
         if self.dbsession is None or dbdict is None:
             return None
         tabdict={}
@@ -48,7 +57,10 @@ class dbfactory():
             for tab in tabdict[node].keys():
                 if hasattr(dbobject,tab):
                     tabcls=getattr(dbobject,tab)
-                self.dbsession.query(tabcls).filter(tabcls.node == node).update(tabdict[node][tab])
+                create_or_update(self.dbsession,tabcls,node,tabdict[node][tab])
+                #pdb.set_trace()
+                #self.dbsession.query(tabcls).filter(tabcls.node == node).update(tabdict[node][tab])
+            self.dbsession.commit()
 
 if __name__ == "__main__":
     df1=dbfactory()
@@ -59,3 +71,5 @@ if __name__ == "__main__":
     df1.settab(mydict)
     mydict1=df1.gettab(['mac'],["node0001"])
     print mydict1
+   
+
