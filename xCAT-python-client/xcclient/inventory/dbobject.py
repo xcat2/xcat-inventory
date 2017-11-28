@@ -67,7 +67,11 @@ class bootparams(Base,mixin):
     __tablename__ = 'bootparams'
     __table_args__ = {'autoload':True}
 
-
+########################################################################
+class nodelist(Base,mixin):
+    """"""
+    __tablename__ = 'nodelist'
+    __table_args__ = {'autoload':True}
 #----------------------------------------------------------------------
 
 def query_table_by_node(session, tclass, tkey):

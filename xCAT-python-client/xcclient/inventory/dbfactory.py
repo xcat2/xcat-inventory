@@ -15,6 +15,8 @@ class dbfactory():
         for tabname in tabs:
             if hasattr(dbobject,tabname):
                 tab=getattr(dbobject,tabname)
+            else:
+                continue
             if keys is not None and len(keys)!=0:
                 tabobj=self.dbsession.query(tab).filter(tab.node.in_(keys)).all()
             else:
@@ -57,6 +59,8 @@ class dbfactory():
             for tab in tabdict[node].keys():
                 if hasattr(dbobject,tab):
                     tabcls=getattr(dbobject,tab)
+                else:
+                    continue
                 create_or_update(self.dbsession,tabcls,node,tabdict[node][tab])
                 #pdb.set_trace()
                 #self.dbsession.query(tabcls).filter(tabcls.node == node).update(tabdict[node][tab])
