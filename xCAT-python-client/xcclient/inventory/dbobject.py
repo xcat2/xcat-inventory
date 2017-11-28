@@ -15,6 +15,13 @@ class mixin(object):
             pass 
         return mydict
 
+    @classmethod
+    def getkey(cls):
+         if cls.__name__ == 'nodegroup':
+             return "groupname"
+         else:
+             return "node"
+
 ########################################################################
 class passwd(Base,mixin):
     """"""
@@ -72,6 +79,42 @@ class nodelist(Base,mixin):
     """"""
     __tablename__ = 'nodelist'
     __table_args__ = {'autoload':True}
+
+########################################################################
+class vm(Base,mixin):
+    """"""
+    __tablename__ = 'vm'
+    __table_args__ = {'autoload':True}
+########################################################################
+class nodehm(Base,mixin):
+    """"""
+    __tablename__ = 'nodehm'
+    __table_args__ = {'autoload':True}
+########################################################################
+class nodegroup(Base,mixin):
+    """"""
+    __tablename__ = 'nodegroup'
+    __table_args__ = {'autoload':True}
+########################################################################
+class vpd(Base,mixin):
+    """"""
+    __tablename__ = 'vpd'
+    __table_args__ = {'autoload':True}
+########################################################################
+class servicenode(Base,mixin):
+    """"""
+    __tablename__ = 'servicenode'
+    __table_args__ = {'autoload':True}
+########################################################################
+class hosts(Base,mixin):
+    """"""
+    __tablename__ = 'hosts'
+    __table_args__ = {'autoload':True}
+########################################################################
+class nics(Base,mixin):
+    """"""
+    __tablename__ = 'nics'
+    __table_args__ = {'autoload':True}
 #----------------------------------------------------------------------
 
 def query_table_by_node(session, tclass, tkey):
@@ -103,6 +146,8 @@ if __name__ == "__main__":
     mymac['node0001']['node']="node0001"
     mymac['node0001']['mac']="11:22:33:44"
     #pdb.set_trace()
+    print dir(mac.getkey())
+    print mac.getkey().asc
     mynode=mac(mymac['node0001'])
     print mynode.getdict()
     #mymac=mac()
