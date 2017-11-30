@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from dbsession import *
 from copy import *
+from sqlalchemy import inspect
 import pdb
 
 class mixin(object):
@@ -17,10 +18,8 @@ class mixin(object):
 
     @classmethod
     def getkey(cls):
-         if cls.__name__ == 'nodegroup':
-             return "groupname"
-         else:
-             return "node"
+        ins = inspect(cls)
+        return ins.primary_key[0].key
 
 ########################################################################
 class passwd(Base,mixin):
@@ -28,6 +27,13 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
+########################################################################
+'''
+class networks(Base,mixin):
+    """"""
+    __tablename__ = 'networks'
+    __table_args__ = {'autoload':True}
+'''
 ########################################################################
 class networks(Base,mixin):
     """"""
@@ -57,6 +63,11 @@ class noderes(Base,mixin):
 class switch(Base,mixin):
     """"""
     __tablename__ = 'switch'
+    __table_args__ = {'autoload':True}
+########################################################################
+class switches(Base,mixin):
+    """"""
+    __tablename__ = 'switches'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mac(Base,mixin):
@@ -147,6 +158,9 @@ if __name__ == "__main__":
     mymac['node0001']['node']="node0001"
     mymac['node0001']['mac']="11:22:33:44"
     #pdb.set_trace()
+    print networks.getkey()
+    exit()
+
     print dir(mac.getkey())
     print mac.getkey().asc
     mynode=mac(mymac['node0001'])

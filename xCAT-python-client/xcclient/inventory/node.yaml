@@ -22,6 +22,14 @@
       model: VAL= pdu.modelnum if ([device_type] == 'pdu')
       serial: VAL= pdu.serialnum if ([device_type] == 'pdu'); vpd.serial if(device_type == 'node')       
     security_info:
+      snmpusername: VAL= switches.username if ([device_type] == 'switch')
+      snmppassword: VAL= switches.password if ([device_type] == 'switch')
+      snmpversion: VAL= switches.snmpversion if ([device_type] == 'switch')
+      snmpprivacy: VAL= switches.privacy if ([device_type] == 'switch')
+      snmpauth: VAL= switches.auth if ([device_type] == 'switch')
+      sshusername: VAL= switches.sshusername if ([device_type] == 'switch')
+      sshpassword: VAL= switches.sshpassword if ([device_type] == 'switch')
+      remoteprotocol: VAL= switches.protocol if ([device_type] == 'switch')
       zonename: nodelist.zonename
       productkey: prodkey.key
     network_info:
