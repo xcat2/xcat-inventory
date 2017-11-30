@@ -80,13 +80,11 @@ class Node():
                                 return mydict[result[0][0]]
                         else: 
                             return None
-                    condkey=__getdictval(self.__schema['node'],condkey)
+                    condkey=__getdictval(self.__mydict,condkey)
+                    if not condkey:
+                        condkey=__getdictval(self.__schema['node'],condkey)
                     if condkey:
                         condkey=self.__parseschmaval(condkey)
-
-            #valmatch=re.findall(valregex,value)
-            #if valmatch:
-            #    value=valmatch[0]
 
             condvalmatch=re.findall(valregex,condval)
             if condvalmatch:
