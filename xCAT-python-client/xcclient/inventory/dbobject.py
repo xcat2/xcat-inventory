@@ -41,11 +41,12 @@ class nodetype(Base,mixin):
     __table_args__ = {'autoload':True} 
 
 ########################################################################
+'''
 class hosts(Base,mixin):
     """"""
     __tablename__ = 'hosts'
     __table_args__ = {'autoload':True}
-
+'''
 ########################################################################
 class noderes(Base,mixin):
     """"""

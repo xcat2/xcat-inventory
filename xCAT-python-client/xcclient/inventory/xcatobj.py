@@ -6,6 +6,7 @@
 #
 import yaml
 import json
+import re
 from copy import *
 
 from dbobject import *
@@ -29,29 +30,123 @@ class Node():
         elif dbhash is not None:
             self.setdbdata(dbhash)
 
+    def __parseschmaval(self,rawvalue,onlytabcol=0):
+
+        if rawvalue is None:
+            return None
+
+        evalregex=re.compile("(VAL=)?\s*(.+)")
+        subregx=re.compile("(\S+)(?:\s*if\s*\((\S+)\s*==\s*(\S+)\))?")
+        valregex=re.compile("'(\S+)'")
+        tabcolregex=re.compile("\S+\.\S+")
+        dictkeyregex=re.compile("\[(\S+?)\](\S+)*")
+       
+        (valtype,schmvalue)=re.findall(evalregex,rawvalue)[0]
+        if not valtype:
+            if re.match(tabcolregex,schmvalue):
+                if onlytabcol:  
+                    return schmvalue
+                else:
+                    try:
+                        return self.__dbhash[schmvalue]
+                    except KeyError:
+                        return None
+            else:
+                if onlytabcol:
+                    return None
+                else:
+                    return schmvalue   
+
+        dbkey=''
+
+        for subex in schmvalue.split(';'):
+            (value,condkey,condval)=re.findall(subregx,subex)[0]
+            if value and ( not condkey or not condval):
+                dbkey=value
+                break
+            if re.match(tabcolregex,condkey):
+                if condkey in self.__dbhash.keys() and self.__dbhash[condkey]:
+                    condkey=self.__dbhash[condkey]
+                else:
+                    condkey=''
+            else: 
+                if re.match(dictkeyregex,condkey):
+                    def __getdictval(mydict,keystr):
+                        result=re.findall(dictkeyregex,keystr)
+                        if result:
+                            if result[0][1]:
+                                return __getdictval(mydict[result[0][0]],result[0][1])
+                            else:
+                                return mydict[result[0][0]]
+                        else: 
+                            return None
+                    condkey=__getdictval(self.__schema['node'],condkey)
+                    if condkey:
+                        condkey=self.__parseschmaval(condkey)
+
+            #valmatch=re.findall(valregex,value)
+            #if valmatch:
+            #    value=valmatch[0]
+
+            condvalmatch=re.findall(valregex,condval)
+            if condvalmatch:
+                condval=condvalmatch[0]
+            else:
+                if condval == 'node':
+                    condval=self.name
+
+            if condkey and condkey == condval:
+                dbkey = value
+                break
+            else:
+                continue
+
+        import pdb
+        #if 'servicenode.node' in schmvalue:
+        #    pdb.set_trace()
+
+        dbkeymatch=re.findall(valregex,dbkey)
+        if dbkeymatch:
+            if onlytabcol:
+                return None
+            else:
+                return dbkeymatch[0]         
+        else: 
+            if re.match(tabcolregex,dbkey):
+                if onlytabcol: 
+                    return  dbkey
+                else:
+                    return self.__dbhash[dbkey]
+
     def __db2dict(self, dict1):
         for key in dict1.keys():
             if isinstance(dict1[key],dict):
                 self.__db2dict(dict1[key])
+                if not dict1[key].keys():
+                    del dict1[key]
             else: 
-                dbkey=dict1[key]
-                if dbkey in self.__dbhash.keys():
-                     if dbkey == 'mac.mac' and self.__dbhash[dbkey]:
-                         dict1[key]=self.__dbhash[dbkey].split('|')
-                     else:
-                         dict1[key]=self.__dbhash[dbkey]
+                value=self.__parseschmaval(dict1[key])
+                if not value:
+                    del dict1[key]
                 else:
-                     dict1[key]=''
+                    dict1[key]=value
+                if key == 'mac' and dict1[key]:
+                    macregex=re.compile("^\|.*\|.*\|$")
+                    if not re.match(macregex,dict1[key]):
+                        dict1[key]=dict1[key].split('|')
 
     def __dict2db(self,objdict,schemadict):
         for key in objdict.keys():
             if isinstance(objdict[key],dict):
                 self.__dict2db(objdict[key],schemadict[key])
             else:
-                if key == 'mac':
-                    self.__dbhash[schemadict[key]]='|'.join(objdict[key])
+                tabcol=self.__parseschmaval(schemadict[key],onlytabcol=1)
+                if not tabcol: 
+                    continue
+                if tabcol == 'mac.mac':
+                    self.__dbhash[tabcol]='|'.join(objdict[key])
                 else:
-                    self.__dbhash[schemadict[key]]=objdict[key]
+                    self.__dbhash[tabcol]=objdict[key]
         
     @staticmethod
     def createfromdb(node, dbhash):
@@ -74,11 +169,23 @@ class Node():
     @staticmethod
     def gettablist():
         def __gettablist(schemadict,tabdict):
+            regx=re.compile("(VAL=)?\s*(.+)")
+            subregx=re.compile("(\S+)(?:\s*if\s*\((\S+)\s*==\s*(\S+)\))?")
+            valregex=re.compile("'(\S+)'")
             for key in schemadict.keys():
                 if isinstance(schemadict[key],dict):
                     __gettablist(schemadict[key],tabdict)
                 else:
-                    tabdict[schemadict[key].split('.')[0]]=1
+                    tabcolmatch=re.findall(regx,schemadict[key])                    
+                    if tabcolmatch:
+                        (valtype,conds)=tabcolmatch[0]
+                        if valtype == 'VAL=':
+                            for cond in conds.split(';'):
+                                (value,condkey,condval)=re.findall(subregx,cond)[0] 
+                                if not re.findall(valregex,value):
+                                    tabdict[value.split('.')[0]]=1
+                        else:        
+                            tabdict[schemadict[key].split('.')[0]]=1
         tabdict={}
         __gettablist(Node.__schema,tabdict) 
         return tabdict.keys()
