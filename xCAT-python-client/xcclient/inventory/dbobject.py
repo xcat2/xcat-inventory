@@ -24,6 +24,7 @@ class mixin(object):
 ########################################################################
 class passwd(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('passwd')
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
@@ -37,12 +38,14 @@ class networks(Base,mixin):
 ########################################################################
 class networks(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('networks')
     __tablename__ = 'networks'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class nodetype(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('nodetype')
     __tablename__ = 'nodetype'
     __table_args__ = {'autoload':True} 
 
@@ -56,75 +59,89 @@ class hosts(Base,mixin):
 ########################################################################
 class noderes(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('noderes')
     __tablename__ = 'noderes'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class switch(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('switch')
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
 ########################################################################
 class switches(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('switches')
     __tablename__ = 'switches'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mac(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('mac')
     __tablename__ = 'mac'
     __table_args__ = {'autoload':True}
 ########################################################################
 class postscripts(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('postscripts')
     __tablename__ = 'postscripts'
     __table_args__ = {'autoload':True}
     
 ########################################################################
 class bootparams(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('bootparams')
     __tablename__ = 'bootparams'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class nodelist(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('nodelist')
     __tablename__ = 'nodelist'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class vm(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('vm')
     __tablename__ = 'vm'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nodehm(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('nodehm')
     __tablename__ = 'nodehm'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nodegroup(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('nodegroup')
     __tablename__ = 'nodegroup'
     __table_args__ = {'autoload':True}
 ########################################################################
 class vpd(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('vpd')
     __tablename__ = 'vpd'
     __table_args__ = {'autoload':True}
 ########################################################################
 class servicenode(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('servicenode')
     __tablename__ = 'servicenode'
     __table_args__ = {'autoload':True}
 ########################################################################
 class hosts(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('hosts')
     __tablename__ = 'hosts'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nics(Base,mixin):
     """"""
+    Base.metadata.bind = getEngine('nics')
     __tablename__ = 'nics'
     __table_args__ = {'autoload':True}
 #----------------------------------------------------------------------
@@ -150,14 +167,26 @@ def query_nodelist_by_key(session, nodelist):
 
 if __name__ == "__main__":
 
-    session = loadSession()
+    session = loadSession('hosts')
+    print "============================"
+    x = session.query(hosts).all()
+    for item in x:
+        print item.ip,item.hostnames
+
+    session = loadSession('passwd')
+    print "============================"
+    x = session.query(passwd).all()
+    for item in x:
+        print item.key,item.username
+
+    print "============================"
+    session = loadSession('networks')
     nodelist_value = {}
     nodelist = ['node0001','node0002']
     mymac={}
     mymac['node0001']={}
     mymac['node0001']['node']="node0001"
     mymac['node0001']['mac']="11:22:33:44"
-    #pdb.set_trace()
     print networks.getkey()
     exit()
 
