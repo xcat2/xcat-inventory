@@ -5,31 +5,27 @@ from dbsession import *
 
 
 class dbfactory():
-    dbsession=None
-    def __init__(self):
-        self.dbsession=loadSession()
     def gettab(self,tabs,keys=None):    
-        if self.dbsession is None:
-            return None
         ret={}
         for tabname in tabs:
+            dbsession=loadSession(tabname); 
             if hasattr(dbobject,tabname):
                 tab=getattr(dbobject,tabname)
             else:
                 continue
             tabkey=tab.getkey()
             if keys is not None and len(keys)!=0:
-                tabobj=self.dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys)).all()
+                tabobj=dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys)).all()
             else:
-                tabobj=self.dbsession.query(tab).all()
+                tabobj=dbsession.query(tab).all()
             if not tabobj:
                 continue
             for myobj in tabobj:
                 mydict=myobj.getdict()
-                mynode=mydict[tab.__tablename__+'.'+tabkey]
-                if mynode not in ret.keys():
-                    ret[mynode]={}
-                ret[mynode].update(mydict)
+                mykey=mydict[tab.__tablename__+'.'+tabkey]
+                if mykey not in ret.keys():
+                    ret[mykey]={}
+                ret[mykey].update(mydict)
         return  ret 
 
     def settab(self,dbdict=None):
@@ -45,37 +41,39 @@ class dbfactory():
                 session.execute(tabcls.__table__.insert(), newdict)
                 session.commit()
                 
-        if self.dbsession is None or dbdict is None:
+        if dbdict is None:
             return None
         tabdict={}
-        for node in dbdict.keys():
-            if node not in tabdict.keys():
-                tabdict[node]={}
-            nodedict=dbdict[node]
-            for tabcol in nodedict.keys():
+        for key in dbdict.keys():
+            if key not in tabdict.keys():
+                tabdict[key]={}
+            curdict=dbdict[key]
+            for tabcol in curdict.keys():
                 (tab,col)=tabcol.split('.')
-                if tab not in tabdict[node].keys():
-                    tabdict[node][tab]={}
-                if tabcol not in tabdict[node][tab].keys():
-                    tabdict[node][tab][col]={}
-                tabdict[node][tab][col]=nodedict[tabcol]
-        for node in tabdict.keys():
-            for tab in tabdict[node].keys():
+                if tab not in tabdict[key].keys():
+                    tabdict[key][tab]={}
+                if tabcol not in tabdict[key][tab].keys():
+                    tabdict[key][tab][col]={}
+                tabdict[key][tab][col]=curdict[tabcol]
+        for key in tabdict.keys():
+            for tab in tabdict[key].keys():
+                dbsession=loadSession(tab);
                 if hasattr(dbobject,tab):
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                create_or_update(self.dbsession,tabcls,node,tabdict[node][tab])
-            self.dbsession.commit()
+                create_or_update(dbsession,tabcls,key,tabdict[key][tab])
+                dbsession.commit()
 
 if __name__ == "__main__":
     df1=dbfactory()
     mydict=df1.gettab(['mac'],["node0001","node0002"])
+    print mydict
     if not mydict:
         mydict={}
         mydict["node0001"]={}
-    mydict["node0001"]['mac.comments']="zzzzz"
-    mydict["node0001"]['mac.interface']="mmmmmmmmmm"
+    mydict["node0001"]['mac.comments']="kkkkkkkkk"
+    mydict["node0001"]['mac.interface']="BBBBBBBBBB"
 
     df1.settab(mydict)
     mydict1=df1.gettab(['mac'],["node0001"])
