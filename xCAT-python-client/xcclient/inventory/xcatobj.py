@@ -19,11 +19,13 @@ def Util_rmnullindict(mydict):
     for key in mydict.keys():
         if isinstance(mydict[key],dict):
             Util_rmnullindict(mydict[key])
-            if not mydict.keys():
+            if not mydict[key].keys():
                 del mydict[key]
         else:
             if not mydict[key]:
                 del mydict[key]
+
+
 
 # get the dict value mydict[a][b][c] with key path a.b.c
 def Util_getdictval(mydict,keystr):
@@ -52,15 +54,15 @@ def Util_setdictval(mydict,keystr,value):
             mydict[key]=value
 
 
-class Node():
+class XcatBase():
     __schema=None
-    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'node.yaml')
+    __schema_loc__ = None
 
     __depdict_tab=None
     __depdict_val=None
 
-    def __init__(self, node, dbhash=None, objdict=None, schema=None):
-        self.name=node
+    def __init__(self, objname, dbhash=None, objdict=None, schema=None):
+        self.name=objname
         self.__dbhash = {}
         self.__mydict = {}
 
@@ -126,14 +128,14 @@ class Node():
 
 
     @classmethod
-    def __scanschema(cls,dict1,schmpath=None):
-        for key in dict1.keys():
+    def __scanschema(cls,schmdict,schmpath=None):
+        for key in schmdict.keys():
             if schmpath:
                 curpath=schmpath+'.'+key
             else:
                 curpath=key
-            if isinstance(dict1[key],dict):
-                cls.__scanschema(dict1[key],curpath)
+            if isinstance(schmdict[key],dict):
+                cls.__scanschema(schmdict[key],curpath)
             else:
                 cls.__gendepdict(curpath)
     @classmethod
@@ -212,22 +214,25 @@ class Node():
             self.__evalschema_val(key)
         
     @classmethod
-    def createfromdb(cls,node, dbhash):
+    def createfromdb(cls,objname, dbhash):
         if not cls.__schema:
             cls.loadschema(cls.__schema_loc__)
-        return cls(node, dbhash=dbhash)
+        return cls(objname, dbhash=dbhash)
 
     @classmethod
-    def createfromfile(cls,node, objdict):
+    def createfromfile(cls,objname, objdict):
         if not cls.__schema:
             cls.loadschema(cls.__schema_loc__)
-        return cls(node, objdict=objdict)
+        return cls(objname, objdict=objdict)
 
     @classmethod
     def loadschema(cls,schema=None):
         if schema is None:
-            schema=Node.__schema_loc__
-        cls.__schema=yaml.load(file(schema,'r'))['node']
+            schema=cls.__schema_loc__
+        #cls.__schema=yaml.load(file(schema,'r'))['node']
+        schema=yaml.load(file(schema,'r'))
+        schmkey=schema.keys()[0]
+        cls.__schema=schema[schmkey] 
         cls.scanschema()
 
     @classmethod
@@ -238,32 +243,76 @@ class Node():
                 (mytab,mycol)=tabcol.split('.')
                 tabdict[mytab]=1
         return tabdict.keys() 
+
     def getobjdict(self):
         ret={}
         ret[self.name]=deepcopy(self.__mydict)
         Util_rmnullindict(ret[self.name])
         return ret
-    def setobjdict(self,nodedict):
-        self.__mydict=deepcopy(nodedict)
+
+    def setobjdict(self,objdict):
+        self.__mydict=deepcopy(objdict)
         self.__dbhash.clear()
         self.__dict2db()
+
     def getdbdata(self):
         ret={}
         ret[self.name]=deepcopy(self.__dbhash)
         return ret
+
     def setdbdata(self,dbhash):
         self.__dbhash=deepcopy(dbhash)
         self.__mydict.clear()
-        self.__mydict['node']=self.name
+        self.__mydict['obj_name']=self.name
         self.__db2dict()
+
+
+class Node(XcatBase):
+    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'node.yaml')
+    
+class Osimage(XcatBase):
+    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'osimage.yaml')
+    
+class Network(XcatBase):
+    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'network.yaml')
 
 if __name__ == "__main__":
 
     db = dbfactory()
     Node.loadschema()
+    Osimage.loadschema()
+    Network.loadschema()
+    tabs=Network.gettablist()
+    networklist=['192_168_11_0-255_255_255_0']
+    obj_attr_dict =db.gettab(tabs,networklist)
+    obj={}
+    objdict={}
+    objdb={}
+    for item in networklist:
+        obj[item] = Network.createfromdb(item, dbhash=obj_attr_dict[item])
+        objdict.update(obj[item].getobjdict())
+        objdb.update(obj[item].getdbdata())
+        print yaml.dump(obj[item].getobjdict(),default_flow_style=False)
+
+    #exit()
+
+    tabs=Osimage.gettablist()
+    osimagelist=['rhels7.4-ppc64le-install-compute']
+    obj_attr_dict =db.gettab(tabs,osimagelist)
+    obj={}
+    objdict={}
+    objdb={}
+    for item in osimagelist:
+        obj[item] = Osimage.createfromdb(item, dbhash=obj_attr_dict[item])
+        objdict.update(obj[item].getobjdict())
+        objdb.update(obj[item].getdbdata())
+        print yaml.dump(obj[item].getobjdict(),default_flow_style=False)
+
+    #exit()
     #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
     tabs=Node.gettablist()
-    nodelist = ['node0001']
+    #nodelist = ['node0001','testng1']
+    nodelist = ['testng1']
     #nodelist = ['node0001','c910f03c17k41','c910f03c17k42']
     obj_attr_dict = db.gettab(tabs, nodelist)
 
@@ -274,22 +323,22 @@ if __name__ == "__main__":
         obj[node] = Node.createfromdb(node, dbhash=obj_attr_dict[node])
         objdict.update(obj[node].getobjdict())
         objdb.update(obj[node].getdbdata())
-        objdict[node]['device_info']['arch']='x86_64'
+        #objdict[node]['device_info']['arch']='x86_64'
+        #objdict[node]['device_info']['disksize']='200'
         print yaml.dump(obj[node].getobjdict(),default_flow_style=False)
-
 
     objdict1={}
     objdb1={}
     for node in nodelist:
         obj[node].setobjdict(objdict[node])
-        print obj[node].getobjdict()
-        print obj[node].getdbdata()
         objdict1.update(obj[node].getobjdict())
+        print yaml.dump(obj[node].getobjdict(),default_flow_style=False)
         objdb1.update(obj[node].getdbdata())
         objdb1[node]['nodetype.arch']="armv71"
     objdb2={}
     objdict2={}
     for node in nodelist:
+        print yaml.dump(objdb1,default_flow_style=False)
         obj[node].setdbdata(objdb1[node])
         objdict2.update(obj[node].getobjdict())
         objdb2.update(obj[node].getdbdata())
@@ -300,7 +349,4 @@ if __name__ == "__main__":
     print yaml.dump(objdb2,default_flow_style=False)
     print "========="
     
-    Node.loadschema()
-    for i in  Node.gettablist():
-        print i
     

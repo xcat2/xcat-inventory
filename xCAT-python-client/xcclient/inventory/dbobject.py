@@ -18,8 +18,11 @@ class mixin(object):
 
     @classmethod
     def getkey(cls):
-        ins = inspect(cls)
-        return ins.primary_key[0].key
+        if cls == networks:
+            return 'netname'
+        else:
+            ins = inspect(cls)
+            return ins.primary_key[0].key
 
 ########################################################################
 class passwd(Base,mixin):
@@ -28,13 +31,6 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
-########################################################################
-'''
-class networks(Base,mixin):
-    """"""
-    __tablename__ = 'networks'
-    __table_args__ = {'autoload':True}
-'''
 ########################################################################
 class networks(Base,mixin):
     """"""
@@ -80,6 +76,12 @@ class mac(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('mac')
     __tablename__ = 'mac'
+    __table_args__ = {'autoload':True}
+########################################################################
+class hwinv(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('hwinv')
+    __tablename__ = 'hwinv'
     __table_args__ = {'autoload':True}
 ########################################################################
 class postscripts(Base,mixin):
@@ -143,6 +145,12 @@ class nics(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('nics')
     __tablename__ = 'nics'
+    __table_args__ = {'autoload':True}
+########################################################################
+class osimage(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('osimage')
+    __tablename__ = 'osimage'
     __table_args__ = {'autoload':True}
 #----------------------------------------------------------------------
 

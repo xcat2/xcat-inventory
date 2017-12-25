@@ -1,0 +1,11 @@
+!!python/dict
+  osimage:
+      obj_name:
+      imagetype: "'linux'"
+      default_attrs:
+        osdistroname: "T{osimage.osdistroname}"
+        osupdatename: "T{osimage.osupdatename}"
+        profile: "T{osimage.profile}"
+        osname: "T{osimage.osname}"
+        osvers: "T{osimage.osvers}"
+        osarch: "T{osimage.osarch}"
