@@ -18,11 +18,12 @@ class mixin(object):
 
     @classmethod
     def getkey(cls):
-        if cls == networks:
-            return 'netname'
-        else:
-            ins = inspect(cls)
-            return ins.primary_key[0].key
+        ins = inspect(cls)
+        return ins.primary_key[0].key
+
+    @classmethod
+    def isValid(cls, netname, tabdict):
+        return True
 
 ########################################################################
 class passwd(Base,mixin):
@@ -37,6 +38,24 @@ class networks(Base,mixin):
     Base.metadata.bind = getEngine('networks')
     __tablename__ = 'networks'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getkey(cls):
+        return 'netname'
+
+    @classmethod    
+    def isValid(cls, netname, tabdict):
+        eptkey=0
+        if 'net' not in tabdict.keys():
+            print "Error: net value should not be empty for xCAT network object "+netname
+            eptkey=1
+        if 'mask' not in tabdict.keys():
+            print "Error: mask value should not be empty for xCAT network object "+netname
+            eptkey=1
+        if eptkey:
+            return False
+        else:
+            return True
 
 ########################################################################
 class nodetype(Base,mixin):

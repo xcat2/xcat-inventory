@@ -35,8 +35,8 @@ class dbfactory():
             if record:
                 session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
             else:
-                print "not found"
-                print dbdict
+                print "xCAT network object "+key+" not found"
+                print dbdict 
                 newdict[tabkey]=key
                 session.execute(tabcls.__table__.insert(), newdict)
                 session.commit()
@@ -62,8 +62,9 @@ class dbfactory():
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                create_or_update(dbsession,tabcls,key,tabdict[key][tab])
-                dbsession.commit()
+                if tabcls.isValid(key, tabdict[key][tab]):
+                    create_or_update(dbsession,tabcls,key,tabdict[key][tab])
+                    dbsession.commit()
 
 if __name__ == "__main__":
     df1=dbfactory()
@@ -74,9 +75,26 @@ if __name__ == "__main__":
         mydict["node0001"]={}
     mydict["node0001"]['mac.comments']="kkkkkkkkk"
     mydict["node0001"]['mac.interface']="BBBBBBBBBB"
-
     df1.settab(mydict)
     mydict1=df1.gettab(['mac'],["node0001"])
     print mydict1
+
+    mydict3=df1.gettab(['networks'],["mgtnetwork"])
+    print mydict3
    
+    mydict3={}
+    mydict3["hpctest1"]={}
+    mydict3["hpctest1"]['networks.net']="70.0.0.0"
+    df1.settab(mydict3)
+
+    mydict3={}
+    mydict3["hpctest2"]={}
+    mydict3["hpctest2"]['networks.mask']="255.0.0.0"
+    df1.settab(mydict3)
+
+    mydict3={}
+    mydict3["hpctest3"]={}
+    mydict3["hpctest3"]['networks.net']="70.0.0.0"
+    mydict3["hpctest3"]['networks.mask']="255.0.0.0"
+    df1.settab(mydict3)
 
