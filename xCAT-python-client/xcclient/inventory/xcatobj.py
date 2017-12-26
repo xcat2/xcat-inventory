@@ -54,17 +54,17 @@ def Util_setdictval(mydict,keystr,value):
             mydict[key]=value
 
 
-class XcatBase():
-    __schema=None
-    __schema_loc__ = None
+class XcatBase(object):
+    _schema=None
+    _schema_loc__ = None
 
-    __depdict_tab=None
-    __depdict_val=None
+    _depdict_tab=None
+    _depdict_val=None
 
     def __init__(self, objname, dbhash=None, objdict=None, schema=None):
         self.name=objname
-        self.__dbhash = {}
-        self.__mydict = {}
+        self._dbhash = {}
+        self._mydict = {}
 
         if schema:
             self.__class__.loadschema(schema)
@@ -79,11 +79,11 @@ class XcatBase():
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
 
-        rawvalue=Util_getdictval(cls.__schema,schmpath)
+        rawvalue=Util_getdictval(cls._schema,schmpath)
         if not rawvalue:
             return False
 
-        cls.__depdict_val[schmpath]={}
+        cls._depdict_val[schmpath]={}
         mtchdval=re.findall(valregex,rawvalue)
         if not mtchdval:
             mtchdval=[(':'+rawvalue,'',rawvalue)]
@@ -100,29 +100,24 @@ class XcatBase():
                 depvallist=mtchdval
         if bodystr:
             mtchdtabval=re.findall(tabentregex,bodystr)
-            #print "xxxxxxxxxx"
-            #print mtchdtabval
-            #print "xxxxxxxxxx"
             if mtchdtabval:
                 for item in mtchdtabval:
-                    cls.__depdict_tab[item]={}
-                    cls.__depdict_tab[item]['schmpath']=schmpath
-                    cls.__depdict_tab[item]['deptablist']=[]
-                    cls.__depdict_tab[item]['deptablist'].extend(deptablist)
-                    cls.__depdict_tab[item]['depvallist']=[]
-                    cls.__depdict_tab[item]['depvallist'].extend(depvallist)
-                    cls.__depdict_tab[item]['expression']=expression
+                    cls._depdict_tab[item]={}
+                    cls._depdict_tab[item]['schmpath']=schmpath
+                    cls._depdict_tab[item]['deptablist']=[]
+                    cls._depdict_tab[item]['deptablist'].extend(deptablist)
+                    cls._depdict_tab[item]['depvallist']=[]
+                    cls._depdict_tab[item]['depvallist'].extend(depvallist)
+                    cls._depdict_tab[item]['expression']=expression
 
 
             deptablist.extend(mtchdtabval)
-        cls.__depdict_val[schmpath]['depvallist']=[]
-        cls.__depdict_val[schmpath]['depvallist'].extend(depvallist)
-        cls.__depdict_val[schmpath]['deptablist']=[]
-        cls.__depdict_val[schmpath]['deptablist'].extend(deptablist)
-        cls.__depdict_val[schmpath]['expression']=expression            
+        cls._depdict_val[schmpath]['depvallist']=[]
+        cls._depdict_val[schmpath]['depvallist'].extend(depvallist)
+        cls._depdict_val[schmpath]['deptablist']=[]
+        cls._depdict_val[schmpath]['deptablist'].extend(deptablist)
+        cls._depdict_val[schmpath]['expression']=expression            
 
-        #print "VVVVVVv"
-        #print yaml.dump(cls.__depdict_tab)
 
         return True
 
@@ -140,31 +135,24 @@ class XcatBase():
                 cls.__gendepdict(curpath)
     @classmethod
     def scanschema(cls):
-        cls.__depdict_tab={}
-        cls.__depdict_val={}
-        cls.__scanschema(cls.__schema)
-        #print cls.__depdict_tab
-        #print cls.__depdict_val
-    ''' 
-     if key == 'mac' and dict1[key]:
-         macregex=re.compile("^\|.*\|.*\|$")
-         if not re.match(macregex,dict1[key]):
-             dict1[key]=dict1[key].split('|')
-    '''
+        cls._depdict_tab={}
+        cls._depdict_val={}
+        cls.__scanschema(cls._schema)
+
     def __evalschema_tab(self,tabcol):
-        mydeptablist=self.__depdict_tab[tabcol]['deptablist']
-        mydepvallist=self.__depdict_tab[tabcol]['depvallist']
-        myexpression=self.__depdict_tab[tabcol]['expression']
-        myschmpath=self.__depdict_tab[tabcol]['schmpath']
+        mydeptablist=self._depdict_tab[tabcol]['deptablist']
+        mydepvallist=self._depdict_tab[tabcol]['depvallist']
+        myexpression=self._depdict_tab[tabcol]['expression']
+        myschmpath=self._depdict_tab[tabcol]['schmpath']
         for item in mydepvallist:
-            myval=Util_getdictval(self.__mydict,item)
+            myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=''
             myexpression=myexpression.replace('V{'+item+'}',"'"+myval+"'")
         for item in mydeptablist:
             tabval=''
-            if item in self.__dbhash.keys():
-                tabval=self.__dbhash[item]
+            if item in self._dbhash.keys():
+                tabval=self._dbhash[item]
             else:
                 tabvol=self.__evalschema_tab(item) 
             myexpression=myexpression.replace('T{'+item+'}',"'"+tabval+"'")   
@@ -175,106 +163,134 @@ class XcatBase():
         evalexp=eval("lambda "+myexpression)
         result=evalexp()
         if 0==cmp(result,tabcol):
-            value=Util_getdictval(self.__mydict,myschmpath)
+            value=Util_getdictval(self._mydict,myschmpath)
             if value is None:
                 value=''
-            self.__dbhash[tabcol]=value
+            self._dbhash[tabcol]=value
         else:
-            self.__dbhash[tabcol]=''
-        return self.__dbhash[tabcol]
+            self._dbhash[tabcol]=''
+        return self._dbhash[tabcol]
         
     def __evalschema_val(self,valpath):
-        mydeptablist=self.__depdict_val[valpath]['deptablist']
-        mydepvallist=self.__depdict_val[valpath]['depvallist']
-        myexpression=self.__depdict_val[valpath]['expression']
+        mydeptablist=self._depdict_val[valpath]['deptablist']
+        mydepvallist=self._depdict_val[valpath]['depvallist']
+        myexpression=self._depdict_val[valpath]['expression']
         for item in mydeptablist:    
             tabval=''
-            if item in self.__dbhash.keys():
-                tabval=self.__dbhash[item]
+            if item in self._dbhash.keys():
+                tabval=self._dbhash[item]
             if tabval is None:
                 tabval=''
             myexpression=myexpression.replace('T{'+item+'}',"'"+tabval+"'")
         for item in mydepvallist:
-            myval=Util_getdictval(self.__mydict,item)
+            myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=self.__evalschema_val(item)
             myexpression=myexpression.replace('V{'+item+'}',"'"+myval+"'")
         evalexp=eval("lambda "+myexpression)
         value=evalexp()
-        Util_setdictval(self.__mydict,valpath,value)
+        Util_setdictval(self._mydict,valpath,value)
         return value 
                    
 
     def __dict2db(self):
-        for key in self.__depdict_tab.keys():
+        for key in self._depdict_tab.keys():
             self.__evalschema_tab(key)
             
     def __db2dict(self):
-        for key in self.__depdict_val.keys():
+        for key in self._depdict_val.keys():
             self.__evalschema_val(key)
         
     @classmethod
     def createfromdb(cls,objname, dbhash):
-        if not cls.__schema:
-            cls.loadschema(cls.__schema_loc__)
+        if not cls._schema:
+            cls.loadschema(cls._schema_loc__)
         return cls(objname, dbhash=dbhash)
 
     @classmethod
     def createfromfile(cls,objname, objdict):
-        if not cls.__schema:
-            cls.loadschema(cls.__schema_loc__)
+        if not cls._schema:
+            cls.loadschema(cls._schema_loc__)
         return cls(objname, objdict=objdict)
 
     @classmethod
     def loadschema(cls,schema=None):
         if schema is None:
-            schema=cls.__schema_loc__
-        #cls.__schema=yaml.load(file(schema,'r'))['node']
+            schema=cls._schema_loc__
+        #cls._schema=yaml.load(file(schema,'r'))['node']
         schema=yaml.load(file(schema,'r'))
         schmkey=schema.keys()[0]
-        cls.__schema=schema[schmkey] 
+        cls._schema=schema[schmkey] 
         cls.scanschema()
 
     @classmethod
     def gettablist(cls):
         tabdict={}
-        for mykey in cls.__depdict_val.keys():
-            for tabcol in cls.__depdict_val[mykey]['deptablist']:
+        for mykey in cls._depdict_val.keys():
+            for tabcol in cls._depdict_val[mykey]['deptablist']:
                 (mytab,mycol)=tabcol.split('.')
                 tabdict[mytab]=1
         return tabdict.keys() 
 
     def getobjdict(self):
         ret={}
-        ret[self.name]=deepcopy(self.__mydict)
+        ret[self.name]=deepcopy(self._mydict)
         Util_rmnullindict(ret[self.name])
         return ret
 
     def setobjdict(self,objdict):
-        self.__mydict=deepcopy(objdict)
-        self.__dbhash.clear()
+        self._mydict=deepcopy(objdict)
+        self._dbhash.clear()
         self.__dict2db()
 
     def getdbdata(self):
         ret={}
-        ret[self.name]=deepcopy(self.__dbhash)
+        ret[self.name]=deepcopy(self._dbhash)
         return ret
 
     def setdbdata(self,dbhash):
-        self.__dbhash=deepcopy(dbhash)
-        self.__mydict.clear()
-        self.__mydict['obj_name']=self.name
+        self._dbhash=deepcopy(dbhash)
+        self._mydict.clear()
+        self._mydict['obj_name']=self.name
         self.__db2dict()
 
 
 class Node(XcatBase):
-    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'node.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'node.yaml')
+    def getobjdict(self):
+        ret={}
+        ret=super(Node,self).getobjdict()
+        macpath=""
+        for item in Node._depdict_val.keys():
+            if re.match(r'^\S+\.mac$',item):
+                macpath=item
+                break
+        if macpath:
+            mac=Util_getdictval(self._mydict,macpath)
+            if mac and not isinstance(mac,list):
+                if re.match(r'[^\|]\S+[^\|]$',mac):
+                    Util_setdictval(ret[self.name],macpath,mac.split('|'))
+                else:
+                    Util_setdictval(ret[self.name],macpath,[mac])
+        return ret
+
+    def setobjdict(self,objdict):
+        tmpdict=deepcopy(objdict)
+        for item in Node._depdict_val.keys():
+            if re.match(r'^\S+\.mac$',item):
+                macpath=item
+                break
+        if macpath:
+            mac=Util_getdictval(tmpdict,macpath)
+        if mac and isinstance(mac,list):
+            Util_setdictval(tmpdict,macpath,'|'.join(mac))         
+        super(Node,self).setobjdict(tmpdict)
     
 class Osimage(XcatBase):
-    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'osimage.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'osimage.yaml')
     
 class Network(XcatBase):
-    __schema_loc__ = os.path.join(os.path.dirname(__file__), 'network.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'network.yaml')
 
 if __name__ == "__main__":
 
@@ -311,8 +327,8 @@ if __name__ == "__main__":
     #exit()
     #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
     tabs=Node.gettablist()
-    #nodelist = ['node0001','testng1']
-    nodelist = ['testng1']
+    nodelist = ['node0001','testng1']
+    #nodelist = ['testng1']
     #nodelist = ['node0001','c910f03c17k41','c910f03c17k42']
     obj_attr_dict = db.gettab(tabs, nodelist)
 
