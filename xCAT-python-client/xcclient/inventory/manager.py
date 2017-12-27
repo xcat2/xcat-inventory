@@ -23,7 +23,7 @@ VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage}
     __db__ = None
 
     def __init__(self, objtype):
