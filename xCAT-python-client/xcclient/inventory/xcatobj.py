@@ -76,49 +76,83 @@ class XcatBase(object):
     @classmethod
     def __gendepdict(cls,schmpath):
         valregex=re.compile("^\$\{\{((.*):(.*))\}\}$")
+        revregex=re.compile("^W:T\{(\S+)\}=(.+)$")
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
+    
+        def __parselambda(expression):
+            mtchdval=re.findall(valregex,expression)
+            if not mtchdval:
+                mtchdval=[(':'+expression,'',expression)]
+            ret={}
+            ret['tabsinparam']=[]
+            ret['tabsinbody']=[]
+            ret['valsinparam']=[]
+            ret['valsinbody']=[]
+            ret['expression']=[]
 
+            (expression,paramstr,bodystr)=mtchdval[0]
+            if expression:
+                ret['expression']=expression
+            if paramstr:
+                mtchdtabval=re.findall(tabentregex,paramstr)
+                if mtchdtabval:
+                    ret['tabsinparam'].extend(mtchdtabval)
+                mtchdval=re.findall(dictvalregex,paramstr)
+                if mtchdval:
+                    ret['valsinparam'].extend(mtchdval)
+            if bodystr:
+                mtchdtabval=re.findall(tabentregex,bodystr)
+                if mtchdtabval:
+                    ret['tabsinbody'].extend(mtchdtabval)
+                mtchdval=re.findall(dictvalregex,bodystr)
+                if mtchdval:
+                    ret['valsinbody'].extend(mtchdval)                
+            return ret
+
+       
         rawvalue=Util_getdictval(cls._schema,schmpath)
         if not rawvalue:
             return False
-
+        if isinstance(rawvalue,list):
+            rawvaluelist=rawvalue
+        else:
+            rawvaluelist=[rawvalue]  
         cls._depdict_val[schmpath]={}
-        mtchdval=re.findall(valregex,rawvalue)
-        if not mtchdval:
-            mtchdval=[(':'+rawvalue,'',rawvalue)]
-    
-        deptablist=[]
-        depvallist=[]
-        (expression,paramstr,bodystr)=mtchdval[0] 
-        if paramstr:
-            mtchdtabval=re.findall(tabentregex,paramstr)
-            if mtchdtabval:
-                deptablist=mtchdtabval
-            mtchdval=re.findall(dictvalregex,paramstr)
-            if mtchdval:
-                depvallist=mtchdval
-        if bodystr:
-            mtchdtabval=re.findall(tabentregex,bodystr)
-            if mtchdtabval:
-                for item in mtchdtabval:
-                    cls._depdict_tab[item]={}
-                    cls._depdict_tab[item]['schmpath']=schmpath
-                    cls._depdict_tab[item]['deptablist']=[]
-                    cls._depdict_tab[item]['deptablist'].extend(deptablist)
-                    cls._depdict_tab[item]['depvallist']=[]
-                    cls._depdict_tab[item]['depvallist'].extend(depvallist)
-                    cls._depdict_tab[item]['expression']=expression
+        for item in rawvaluelist:
+            if not re.match(valregex,item) and not re.match(revregex,item):
+                item='${{:'+item+'}}'
+            if re.match(valregex,item): 
+                ret=__parselambda(item)
+                cls._depdict_val[schmpath]['depvallist']=[]
+                cls._depdict_val[schmpath]['depvallist'].extend(ret['valsinparam'])
+                cls._depdict_val[schmpath]['deptablist']=[]
+                cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinparam'])
+                cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinbody'])
+                cls._depdict_val[schmpath]['expression']=ret['expression']    
+           
+                for tabcol in ret['tabsinbody']:
+                    cls._depdict_tab[tabcol]={} 
+                    cls._depdict_tab[tabcol]['schmpath']=schmpath
+                    cls._depdict_tab[tabcol]['deptablist']=[]
+                    cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinparam'])
+                    cls._depdict_tab[tabcol]['depvallist']=[]
+                    cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
+                    cls._depdict_tab[tabcol]['expression']=ret['expression']
 
-
-            deptablist.extend(mtchdtabval)
-        cls._depdict_val[schmpath]['depvallist']=[]
-        cls._depdict_val[schmpath]['depvallist'].extend(depvallist)
-        cls._depdict_val[schmpath]['deptablist']=[]
-        cls._depdict_val[schmpath]['deptablist'].extend(deptablist)
-        cls._depdict_val[schmpath]['expression']=expression            
-
-
+            if re.match(revregex,item):
+                (tabcol,myexpression)=re.findall(revregex,item)[0]
+                ret=__parselambda(myexpression)
+                cls._depdict_tab[tabcol]={} 
+                cls._depdict_tab[tabcol]['expression']=ret['expression']
+                cls._depdict_tab[tabcol]['deptablist']=[]
+                cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinparam'])
+                cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinbody'])
+                cls._depdict_tab[tabcol]['depvallist']=[]
+                cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
+                cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinbody'])
+                cls._depdict_tab[tabcol]['schmpath']=''
+                
         return True
 
 
@@ -138,7 +172,8 @@ class XcatBase(object):
         cls._depdict_tab={}
         cls._depdict_val={}
         cls.__scanschema(cls._schema)
-
+        #print yaml.dump(cls._depdict_tab,default_flow_style=False)
+        #print yaml.dump(cls._depdict_val,default_flow_style=False)
     def __evalschema_tab(self,tabcol):
         mydeptablist=self._depdict_tab[tabcol]['deptablist']
         mydepvallist=self._depdict_tab[tabcol]['depvallist']
@@ -159,17 +194,25 @@ class XcatBase(object):
         tabmatched=re.findall(r'T\{(\S+)\}',myexpression)
         if tabmatched:
             for item in tabmatched:
-                myexpression=myexpression.replace('T{'+item+'}',"'"+item+"'")
+                if myschmpath: 
+                    myexpression=myexpression.replace('T{'+item+'}',"'"+item+"'")
+                else:
+                    tabvol=self.__evalschema_tab(item)
+                    myexpression=myexpression.replace('T{'+item+'}',"'"+tabval+"'")
+        #print "lambda "+myexpression
         evalexp=eval("lambda "+myexpression)
         result=evalexp()
-        if 0==cmp(result,tabcol):
-            value=Util_getdictval(self._mydict,myschmpath)
-            if value is None:
-                value=''
-            self._dbhash[tabcol]=value
+        if myschmpath:
+            if 0==cmp(result,tabcol):
+                value=Util_getdictval(self._mydict,myschmpath)
+                if value is None:
+                    value=''
+                self._dbhash[tabcol]=value
+            else:
+                self._dbhash[tabcol]=''
+            return self._dbhash[tabcol]
         else:
-            self._dbhash[tabcol]=''
-        return self._dbhash[tabcol]
+            self._dbhash[tabcol]=result
         
     def __evalschema_val(self,valpath):
         mydeptablist=self._depdict_val[valpath]['deptablist']
