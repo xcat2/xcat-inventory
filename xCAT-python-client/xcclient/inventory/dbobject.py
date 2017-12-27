@@ -58,6 +58,14 @@ class networks(Base,mixin):
             return True
 
 ########################################################################
+class routes(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('routes')
+    __tablename__ = 'routes'
+    __table_args__ = {'autoload':True}
+
+
+########################################################################
 class nodetype(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('nodetype')
@@ -195,18 +203,22 @@ def query_nodelist_by_key(session, nodelist):
 if __name__ == "__main__":
 
     session = loadSession('hosts')
-    print "============================"
+    print "======hosts======================"
     x = session.query(hosts).all()
     for item in x:
         print item.ip,item.hostnames
 
     session = loadSession('passwd')
-    print "============================"
+    print "======passwd======================"
     x = session.query(passwd).all()
     for item in x:
         print item.key,item.username
 
-    print "============================"
+    print "======routes======================"
+    x = session.query(routes).all()
+    for item in x:
+        print item.net,item.mask
+    print "======networks======================"
     session = loadSession('networks')
     nodelist_value = {}
     nodelist = ['node0001','node0002']
