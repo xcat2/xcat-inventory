@@ -45,6 +45,8 @@ class dbfactory():
                     session.execute(tabcls.__table__.insert(), newdict)
                 except(sqlalchemy.exc.IntegrityError):
                     print "Error: xCAT object "+key+" is duplicate."
+                except Exception, e:
+                    print "Error:", str(e)
                 else:
                     session.commit()
                     print "Import xCAT object "+key+" successfully."
