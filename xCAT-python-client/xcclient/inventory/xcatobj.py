@@ -335,12 +335,17 @@ class Osimage(XcatBase):
 class Network(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'network.yaml')
 
+class Route(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'route.yaml')
+
+
 if __name__ == "__main__":
 
     db = dbfactory()
     Node.loadschema()
     Osimage.loadschema()
     Network.loadschema()
+    Route.loadschema()
     tabs=Network.gettablist()
     networklist=['192_168_11_0-255_255_255_0']
     obj_attr_dict =db.gettab(tabs,networklist)
@@ -352,9 +357,21 @@ if __name__ == "__main__":
         objdict.update(obj[item].getobjdict())
         objdb.update(obj[item].getdbdata())
         print yaml.dump(obj[item].getobjdict(),default_flow_style=False)
+    '''
+    tabs=Route.gettablist()
+    routelist=['20net']
+    obj_attr_dict =db.gettab(tabs,routelist)
+    obj={}
+    objdict={}
+    objdb={}
+    for item in routelist:
+        obj[item] = Route.createfromdb(item, dbhash=obj_attr_dict[item])
+        objdict.update(obj[item].getobjdict())
+        objdb.update(obj[item].getdbdata())
+        print yaml.dump(obj[item].getobjdict(),default_flow_style=False)
 
-    #exit()
-
+    exit()
+    '''
     tabs=Osimage.gettablist()
     osimagelist=['rhels7.4-ppc64le-install-compute']
     obj_attr_dict =db.gettab(tabs,osimagelist)
