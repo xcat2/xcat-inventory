@@ -5,4 +5,4 @@
     mask: "T{routes.mask}"
     ifname: "T{routes.ifname}"
     gateway: "T{routes.gateway}"
-    usercomment: "T{routes.usercomment}"
+    usercomment: "T{routes.comments}"

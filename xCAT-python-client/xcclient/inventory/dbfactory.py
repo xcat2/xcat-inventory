@@ -3,7 +3,6 @@ import dbobject
 from dbobject import *
 from dbsession import *
 
-
 class dbfactory():
     def gettab(self,tabs,keys=None):    
         ret={}
@@ -33,14 +32,23 @@ class dbfactory():
             tabkey=tabcls.getkey()
             record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
             if record:
-                session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
+                try:
+                    session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
+                except Exception, e:
+                    print "Error:", str(e)
+                else:
+                    print "Update xCAT object "+key+" successfully."
             else:
-                print "xCAT network object "+key+" not found"
-                print dbdict 
+                #print dbdict 
                 newdict[tabkey]=key
-                session.execute(tabcls.__table__.insert(), newdict)
-                session.commit()
-                
+                try:
+                    session.execute(tabcls.__table__.insert(), newdict)
+                except(sqlalchemy.exc.IntegrityError):
+                    print "Error: xCAT object "+key+" is duplicate."
+                else:
+                    session.commit()
+                    print "Import xCAT object "+key+" successfully."
+                    print dbdict
         if dbdict is None:
             return None
         tabdict={}
