@@ -119,42 +119,50 @@ class XcatBase(object):
         else:
             rawvaluelist=[rawvalue]  
         cls._depdict_val[schmpath]={}
+       
+        fwdrules=[] 
+        revrules=[]
         for item in rawvaluelist:
             if not re.match(valregex,item) and not re.match(revregex,item):
                 item='${{:'+item+'}}'
-            if re.match(valregex,item): 
-                ret=__parselambda(item)
-                cls._depdict_val[schmpath]['depvallist']=[]
-                cls._depdict_val[schmpath]['depvallist'].extend(ret['valsinparam'])
-                cls._depdict_val[schmpath]['deptablist']=[]
-                cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinparam'])
-                cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinbody'])
-                cls._depdict_val[schmpath]['expression']=ret['expression']    
-           
-                for tabcol in ret['tabsinbody']:
-                    cls._depdict_tab[tabcol]={} 
-                    cls._depdict_tab[tabcol]['schmpath']=schmpath
-                    cls._depdict_tab[tabcol]['deptablist']=[]
-                    cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinparam'])
-                    cls._depdict_tab[tabcol]['depvallist']=[]
-                    cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
-                    cls._depdict_tab[tabcol]['expression']=ret['expression']
+                fwdrules.append(item)
+            elif re.match(valregex,item): 
+                fwdrules.append(item)
+            elif re.match(revregex,item):
+                revrules.append(item)
 
-            if re.match(revregex,item):
-                (tabcol,myexpression)=re.findall(revregex,item)[0]
-                ret=__parselambda(myexpression)
+        for item in fwdrules:
+            ret=__parselambda(item)
+            cls._depdict_val[schmpath]['depvallist']=[]
+            cls._depdict_val[schmpath]['depvallist'].extend(ret['valsinparam'])
+            cls._depdict_val[schmpath]['deptablist']=[]
+            cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinparam'])
+            cls._depdict_val[schmpath]['deptablist'].extend(ret['tabsinbody'])
+            cls._depdict_val[schmpath]['expression']=ret['expression']    
+           
+            for tabcol in ret['tabsinbody']:
                 cls._depdict_tab[tabcol]={} 
-                cls._depdict_tab[tabcol]['expression']=ret['expression']
+                cls._depdict_tab[tabcol]['schmpath']=schmpath
                 cls._depdict_tab[tabcol]['deptablist']=[]
                 cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinparam'])
-                cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinbody'])
                 cls._depdict_tab[tabcol]['depvallist']=[]
                 cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
-                cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinbody'])
-                cls._depdict_tab[tabcol]['schmpath']=''
+                cls._depdict_tab[tabcol]['expression']=ret['expression']
+
+        for item in revrules:
+             (tabcol,myexpression)=re.findall(revregex,item)[0]
+             ret=__parselambda(myexpression)
+             cls._depdict_tab[tabcol]={} 
+             cls._depdict_tab[tabcol]['expression']=ret['expression']
+             cls._depdict_tab[tabcol]['deptablist']=[]
+             cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinparam'])
+             cls._depdict_tab[tabcol]['deptablist'].extend(ret['tabsinbody'])
+             cls._depdict_tab[tabcol]['depvallist']=[]
+             cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
+             cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinbody'])
+             cls._depdict_tab[tabcol]['schmpath']=''
                 
         return True
-
 
     @classmethod
     def __scanschema(cls,schmdict,schmpath=None):
