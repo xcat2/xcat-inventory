@@ -367,7 +367,6 @@ class Node(XcatBase):
             if rawnicsdict:
                 for nic in rawnicsdict.keys():
                     nicattr=rawnicsdict[nic]
-                    print nicattr
                     for attr in nicattr.keys():
                          if attr not in nicsattrdict.keys():
                              nicsattrdict[attr]=[]
