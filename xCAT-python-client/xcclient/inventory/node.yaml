@@ -1,6 +1,5 @@
 !!python/dict
   node:
-    obj_name:
     obj_type: 
     - "${{ groupname=T{nodegroup.groupname}, objname=V{obj_name} :'group' if groupname == objname else 'node'}}"
     - "W:T{nodegroup.groupname}=${{objtype=V{obj_type}: V{obj_name} if objtype=='group' else None}}"
@@ -49,16 +48,15 @@
         switchport: "T{switch.port}"
         switchvlan: "T{switch.vlan}"
       nics:
-        nic1: 
-            ips: "T{nics.nicips}"
-            hostnamesuffixes: "T{nics.nichostnamesuffixes}"
-            hostnameprefixe: "T{nics.nichostnamesuffixes}"
-            alias: "T{nics.nicaliases}"
-            type: "T{nics.nictypes}"
-            configscripts: "T{nics.niccustomscripts}"
-            networks: "T{nics.nicnetworks}"
-            extraconfig: "T{nics.nicextraparams}"
-            nicdevices: "T{nis.nicdevices}"
+        ips: "T{nics.nicips}"
+        hostnamesuffixes: "T{nics.nichostnamesuffixes}"
+        hostnameprefixe: "T{nics.nichostnamesuffixes}"
+        alias: "T{nics.nicaliases}"
+        type: "T{nics.nictypes}"
+        configscripts: "T{nics.niccustomscripts}"
+        networks: "T{nics.nicnetworks}"
+        extraconfig: "T{nics.nicextraparams}"
+        nicdevices: "T{nis.nicdevices}"
     engines:
        hardware_mgt_engine:
           engine_type: "T{nodehm.mgt}"

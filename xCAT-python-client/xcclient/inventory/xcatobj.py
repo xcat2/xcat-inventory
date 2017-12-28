@@ -314,9 +314,14 @@ class Node(XcatBase):
         ret={}
         ret=super(Node,self).getobjdict()
         macpath=""
+        nicspath=""
         for item in Node._depdict_val.keys():
             if re.match(r'^\S+\.mac$',item):
                 macpath=item
+            matchedpath=re.findall(r'^(\S+\.nics)\.\S+$',item)
+            if matchedpath:
+                nicspath=matchedpath[0]
+            if macpath and nicspath:
                 break
         if macpath:
             mac=Util_getdictval(self._mydict,macpath)
@@ -325,18 +330,49 @@ class Node(XcatBase):
                     Util_setdictval(ret[self.name],macpath,mac.split('|'))
                 else:
                     Util_setdictval(ret[self.name],macpath,[mac])
+        if nicspath:
+            rawnicsdict=Util_getdictval(ret[self.name],nicspath)
+            nicsdict={}
+            for key in rawnicsdict.keys():
+                rawvaluelist=rawnicsdict[key].split(',')
+                for nicent in rawvaluelist:
+                    (nic,attrstr)=nicent.split('!')
+                    if nic not in nicsdict.keys():
+                        nicsdict[nic]={}
+                    nicsdict[nic][key]=attrstr.split('|')
+            Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
     def setobjdict(self,objdict):
         tmpdict=deepcopy(objdict)
+        macpath=""
+        nicspath=""
         for item in Node._depdict_val.keys():
             if re.match(r'^\S+\.mac$',item):
                 macpath=item
+            matchedpath=re.findall(r'^(\S+\.nics)\.\S+$',item)
+            if matchedpath:
+                nicspath=matchedpath[0]
+            if macpath and nicspath:
                 break
         if macpath:
             mac=Util_getdictval(tmpdict,macpath)
         if mac and isinstance(mac,list):
             Util_setdictval(tmpdict,macpath,'|'.join(mac))         
+        if nicspath:
+            nicattrstr=''
+            nicsattrdict={}
+            rawnicsdict=Util_getdictval(tmpdict,nicspath)
+            for nic in rawnicsdict.keys():
+                nicattr=rawnicsdict[nic]
+                print nicattr
+                for attr in nicattr.keys():
+                     if attr not in nicsattrdict.keys():
+                         nicsattrdict[attr]=[]
+                     nicsattrdict[attr].append(nic+'!'+'|'.join(nicattr[attr]))
+            for item in nicsattrdict.keys():
+                nicsattrdict[item]=','.join(nicsattrdict[item])
+            Util_setdictval(tmpdict,nicspath,nicsattrdict)
         super(Node,self).setobjdict(tmpdict)
     
 class Osimage(XcatBase):
@@ -397,8 +433,8 @@ if __name__ == "__main__":
     #exit()
     #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
     tabs=Node.gettablist()
-    nodelist = ['node0001','testng1']
-    #nodelist = ['testng1']
+    #nodelist = ['node0001','testng1']
+    nodelist = ['bybc0607']
     #nodelist = ['node0001','c910f03c17k41','c910f03c17k42']
     obj_attr_dict = db.gettab(tabs, nodelist)
 
