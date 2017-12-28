@@ -332,15 +332,16 @@ class Node(XcatBase):
                     Util_setdictval(ret[self.name],macpath,[mac])
         if nicspath:
             rawnicsdict=Util_getdictval(ret[self.name],nicspath)
-            nicsdict={}
-            for key in rawnicsdict.keys():
-                rawvaluelist=rawnicsdict[key].split(',')
-                for nicent in rawvaluelist:
-                    (nic,attrstr)=nicent.split('!')
-                    if nic not in nicsdict.keys():
-                        nicsdict[nic]={}
-                    nicsdict[nic][key]=attrstr.split('|')
-            Util_setdictval(ret[self.name],nicspath,nicsdict)
+            if rawnicsdict:
+                nicsdict={}
+                for key in rawnicsdict.keys():
+                    rawvaluelist=rawnicsdict[key].split(',')
+                    for nicent in rawvaluelist:
+                        (nic,attrstr)=nicent.split('!')
+                        if nic not in nicsdict.keys():
+                            nicsdict[nic]={}
+                        nicsdict[nic][key]=attrstr.split('|')
+                Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
     def setobjdict(self,objdict):
@@ -363,16 +364,17 @@ class Node(XcatBase):
             nicattrstr=''
             nicsattrdict={}
             rawnicsdict=Util_getdictval(tmpdict,nicspath)
-            for nic in rawnicsdict.keys():
-                nicattr=rawnicsdict[nic]
-                print nicattr
-                for attr in nicattr.keys():
-                     if attr not in nicsattrdict.keys():
-                         nicsattrdict[attr]=[]
-                     nicsattrdict[attr].append(nic+'!'+'|'.join(nicattr[attr]))
-            for item in nicsattrdict.keys():
-                nicsattrdict[item]=','.join(nicsattrdict[item])
-            Util_setdictval(tmpdict,nicspath,nicsattrdict)
+            if rawnicsdict:
+                for nic in rawnicsdict.keys():
+                    nicattr=rawnicsdict[nic]
+                    print nicattr
+                    for attr in nicattr.keys():
+                         if attr not in nicsattrdict.keys():
+                             nicsattrdict[attr]=[]
+                         nicsattrdict[attr].append(nic+'!'+'|'.join(nicattr[attr]))
+                for item in nicsattrdict.keys():
+                    nicsattrdict[item]=','.join(nicsattrdict[item])
+                Util_setdictval(tmpdict,nicspath,nicsattrdict)
         super(Node,self).setobjdict(tmpdict)
     
 class Osimage(XcatBase):
