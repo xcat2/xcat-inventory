@@ -279,10 +279,12 @@ class XcatBase(object):
         ret={}
         ret[self.name]=deepcopy(self._mydict)
         Util_rmnullindict(ret[self.name])
+        del ret[self.name]['obj_name']
         return ret
 
     def setobjdict(self,objdict):
         self._mydict=deepcopy(objdict)
+        self._mydict['obj_name']=self.name
         self._dbhash.clear()
         self.__dict2db()
 
