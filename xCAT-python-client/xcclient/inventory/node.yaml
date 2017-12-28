@@ -74,11 +74,11 @@
             vmothersetting: "T{vm.othersettings}"
             vmstoragemodel: "T{vm.storagemodel}"
             vmmemory: "T{vm.memory}"
-            vmcpus: "T{vm.vmcpus}"
-            vmnics: "T{vm.vmnics}"
-            vmnicnicmodel: "T{vm.vmnicnicmodel}"
+            vmcpus: "T{vm.cpus}"
+            vmnics: "T{vm.nics}"
+            vmnicnicmodel: "T{vm.nicmodel}"
             vmvirtflags: "T{vm.virtflags}"
-            vmvncport: "T{vm.vmvncport}"
+            vmvncport: "T{vm.vncport}"
        power_mgt_engine:
           engine_type: "T{nodehm.mgt}" 
           engine_info: 
