@@ -179,6 +179,18 @@ class osimage(Base,mixin):
     Base.metadata.bind = getEngine('osimage')
     __tablename__ = 'osimage'
     __table_args__ = {'autoload':True}
+########################################################################
+class linuximage(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('linuximage')
+    __tablename__ = 'linuximage'
+    __table_args__ = {'autoload':True}
+########################################################################
+class winimage(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('winimage')
+    __tablename__ = 'winimage'
+    __table_args__ = {'autoload':True}
 #----------------------------------------------------------------------
 
 def query_table_by_node(session, tclass, tkey):
