@@ -75,7 +75,7 @@ class XcatBase(object):
 
     @classmethod
     def __gendepdict(cls,schmpath):
-        valregex=re.compile("^\$\{\{((.*):(.*))\}\}$")
+        valregex=re.compile("^\$\{\{((.*):(.*))\}\}\s*$")
         revregex=re.compile("^W:T\{(\S+)\}=(.+)$")
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
