@@ -9,9 +9,9 @@
       members: "${{objtype=V{obj_type} : T{nodegroup.members} if objtype == 'group' else None}}"
       filter: "${{ objtype=V{obj_type} : T{nodegroup.wherevals} if objtype == 'group' else None}}"
     device_type: 
-    - "${{ switchname=T{switches.switch}, pduname=T{pdu.pdu}, objname=V{obj_name}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'server' }}"
+    - "${{ switchname=T{switches.switch}, pduname=T{pdu.node}, objname=V{obj_name}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'server' }}"
     - "W:T{switches.switch}=${{devtype=V{device_type}: V{obj_name} if devtype == 'switch' else None}}"
-    - "W:T{pdu.pdu}=${{devtype=V{device_type}: V{obj_name} if devtype == 'pdu' else None}}" 
+    - "W:T{pdu.node}=${{devtype=V{device_type}: V{obj_name} if devtype == 'pdu' else None}}" 
     device_info:
       arch: "T{nodetype.arch}"
       supportedarchs: "T{nodetype.supportedarchs}"
