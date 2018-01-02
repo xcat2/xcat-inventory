@@ -385,6 +385,11 @@ class Network(XcatBase):
 class Route(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'route.yaml')
 
+class Policy(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'policy.yaml')
+
+class Passwd(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'passwd.yaml')
 
 if __name__ == "__main__":
 

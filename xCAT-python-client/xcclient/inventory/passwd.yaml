@@ -1,0 +1,9 @@
+!!python/dict  
+  passwd:
+    obj_name:
+    key: "T{passwd.key}"
+    username: "T{passwd.username}"
+    password: "T{passwd.password}"
+    cryptmethod: "T{passwd.cryptmethod}"
+    authdomain: "T{passwd.authdomain}"
+    usercomment: "T{passwd.comments}"

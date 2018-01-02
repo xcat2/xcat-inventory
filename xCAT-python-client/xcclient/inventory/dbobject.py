@@ -138,6 +138,13 @@ class vm(Base,mixin):
     __tablename__ = 'vm'
     __table_args__ = {'autoload':True}
 ########################################################################
+class policy(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('policy')
+    __tablename__ = 'policy'
+    __table_args__ = {'autoload':True}
+
+########################################################################
 class nodehm(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('nodehm')
