@@ -37,7 +37,7 @@ class dbfactory():
                 except Exception, e:
                     print "Error:", str(e)
                 else:
-                    print "Update xCAT table "+tabcls.__tablename__+" successfully."
+                    print "Import object "+key+":update xCAT table "+tabcls.__tablename__+" successfully."
             else:
                 newdict[tabkey]=key
                 try:
@@ -48,7 +48,7 @@ class dbfactory():
                     print "Error:", str(e)
                 else:
                     session.commit()
-                    print "Update xCAT table "+tabcls.__tablename__+" successfully."
+                    print "Import object "+key+":update xCAT table "+tabcls.__tablename__+" successfully."
         if dbdict is None:
             return None
         tabdict={}
