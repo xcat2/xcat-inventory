@@ -286,6 +286,8 @@ class XcatBase(object):
     def getobjdict(self):
         ret={}
         ret[self.name]=deepcopy(self._mydict)
+        #print self.name
+        #print ret
         Util_rmnullindict(ret[self.name])
         del ret[self.name]['obj_name']
         return ret
@@ -390,6 +392,9 @@ class Policy(XcatBase):
 
 class Passwd(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'passwd.yaml')
+
+class Site(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'site.yaml')
 
 if __name__ == "__main__":
 
