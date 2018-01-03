@@ -18,12 +18,12 @@ import yaml
 Command-line interface to xCAT inventory import/export
 """
 
-VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage', 'route', 'policy', 'passwd']
+VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage', 'route', 'policy', 'passwd','site']
 VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site}
     __db__ = None
 
     def __init__(self, objtype):
