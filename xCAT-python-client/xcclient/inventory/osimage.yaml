@@ -36,5 +36,5 @@
     winpepath: "${{imagetype=V{imagetype} :T{winimage.winpepath}  if imagetype == 'windows' else None }}"
     kernel_dump:
       dump: "${{imagetype=V{imagetype},provmode=V{provision_mode}: T{linuximage.dump} if imagetype == 'linux' and provmode !='install' else None}}"
-      crashkernelsize: "${{imagetype=V{imagetype},provmode=V{provision_mode}: T{linuximage.crashkernelsizei} if imagetype == 'linux' and provmode !='install' else None}}"
+      crashkernelsize: "${{imagetype=V{imagetype},provmode=V{provision_mode}: T{linuximage.crashkernelsize} if imagetype == 'linux' and provmode !='install' else None}}"
 
