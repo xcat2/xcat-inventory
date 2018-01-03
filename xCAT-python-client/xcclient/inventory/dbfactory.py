@@ -3,7 +3,53 @@ import dbobject
 from dbobject import *
 from dbsession import *
 
-class dbfactory():
+
+def create_or_update(session,tabcls,key,newdict):
+   '''
+   print "=========create_or_update:called========="
+   print newdict
+   print key
+   '''
+   tabkey=tabcls.getkey()
+   delrow=1 
+   for item in newdict.keys():
+       if tabkey != item and newdict[item]!='':
+           delrow=0
+   #print "delrow="+str(delrow)
+   record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
+   if record:
+       if delrow:
+           try:
+               session.delete(record[0])
+           except Exception, e:
+               print "Error:", str(e)
+               return -1
+           else:
+               print "delete row in xCAT table "+tabcls.__tablename__+" successfully."
+       else:
+           try:
+               session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
+           except Exception, e:
+               print "Error:", str(e)
+               return -1
+           else:
+               print "Update xCAT table "+tabcls.__tablename__+" successfully."
+   elif delrow == 0:
+       newdict[tabkey]=key
+       try:
+           session.execute(tabcls.__table__.insert(), newdict)
+       except(sqlalchemy.exc.IntegrityError):
+           print "Error: xCAT object "+key+" is duplicate."
+           return -1
+       except Exception, e:
+           print "Error:", str(e) 
+           return -1
+       else:
+           print "Update xCAT table "+tabcls.__tablename__+" successfully."
+   session.commit()
+   return 0
+
+class matrixdbfactory():
     def gettab(self,tabs,keys=None):    
         ret={}
         for tabname in tabs:
@@ -27,42 +73,10 @@ class dbfactory():
                 ret[mykey].update(mydict)
         return  ret 
 
-    def settab(self,dbdict=None):
-        def create_or_update(session,tabcls,key,newdict):
-            tabkey=tabcls.getkey()
-            record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
-            if record:
-                try:
-                    session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
-                except Exception, e:
-                    print "Error:", str(e)
-                else:
-                    print "Import object "+key+":update xCAT table "+tabcls.__tablename__+" successfully."
-            else:
-                newdict[tabkey]=key
-                try:
-                    session.execute(tabcls.__table__.insert(), newdict)
-                except(sqlalchemy.exc.IntegrityError):
-                    print "Error: xCAT object "+key+" is duplicate."
-                except Exception, e:
-                    print "Error:", str(e)
-                else:
-                    session.commit()
-                    print "Import object "+key+":update xCAT table "+tabcls.__tablename__+" successfully."
-        if dbdict is None:
+    def settab(self,tabdict=None):
+        #print "=========matrixdbfactory:settab========"
+        if tabdict is None:
             return None
-        tabdict={}
-        for key in dbdict.keys():
-            if key not in tabdict.keys():
-                tabdict[key]={}
-            curdict=dbdict[key]
-            for tabcol in curdict.keys():
-                (tab,col)=tabcol.split('.')
-                if tab not in tabdict[key].keys():
-                    tabdict[key][tab]={}
-                if tabcol not in tabdict[key][tab].keys():
-                    tabdict[key][tab][col]={}
-                tabdict[key][tab][col]=curdict[tabcol]
         for key in tabdict.keys():
             for tab in tabdict[key].keys():
                 dbsession=loadSession(tab);
@@ -70,14 +84,112 @@ class dbfactory():
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                if tabcls.isValid(key, tabdict[key][tab]):
+                if tabcls.isValid(key,tabdict[key][tab]):
                     create_or_update(dbsession,tabcls,key,tabdict[key][tab])
                     dbsession.commit()
 
+
+class flatdbfactory() :
+    def gettab(self,tabs,keys=None):    
+        ret={}
+        ret['clustersite']={}
+        for tabname in tabs:
+            dbsession=loadSession(tabname);
+            if hasattr(dbobject,tabname):
+                tab=getattr(dbobject,tabname)
+            else:
+                continue
+            tabobj=dbsession.query(tab).all()
+            if not tabobj:
+                continue
+            for myobj in tabobj:
+                mydict=myobj.getdict()
+                ret['clustersite'].update(mydict)
+        print ret
+        return  ret
+   
+    def settab(self,tabdict=None):
+       print "======flatdbfactory:settab======"
+       #print tabdict
+       if tabdict is None:
+           return None
+       for key in tabdict.keys():
+           for tab in tabdict[key].keys():
+               dbsession=loadSession(tab);
+               if hasattr(dbobject,tab):
+                   tabcls=getattr(dbobject,tab)
+               else:
+                   continue
+               tabkey=tabcls.getkey()
+               rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
+               for rowent in rowentlist:
+                   if tabcls.isValid(key, rowent):
+                        create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
+               dbsession.commit()            
+
+class dbfactory():
+    _dbfactoryoftab={'site':'flat'}
+    def gettab(self,tabs,keys=None):
+        flattabs=[]
+        matrixtabs=[]
+        mydict={}
+        for tab in tabs:
+            if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+                flattabs.append(tab)
+            else:
+                matrixtabs.append(tab)
+        if flattabs:
+            df_flat=flatdbfactory()
+            mydict.update(df_flat.gettab(flattabs,keys))
+        if matrixtabs:
+            df_matrix=matrixdbfactory()
+            mydict.update(df_matrix.gettab(matrixtabs,keys))
+        return mydict
+        
+                
+    def settab(self,dbdict=None):                 
+        if dbdict is None:
+            return None
+        flattabdict={}
+        matrixtabdict={}
+        #print dbdict
+        for key in dbdict.keys():
+            if key not in flattabdict.keys():
+                flattabdict[key]={}
+            if key not in matrixtabdict.keys():
+                matrixtabdict[key]={}
+            curdict=dbdict[key]
+            for tabcol in curdict.keys():
+                (tab,col)=tabcol.split('.')
+                if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+                    if tab not in flattabdict[key].keys():
+                        flattabdict[key][tab]={}
+                    if col not in flattabdict[key][tab].keys():
+                        flattabdict[key][tab][col]={}
+                    flattabdict[key][tab][col]=curdict[tabcol]
+                else:
+                    if tab not in matrixtabdict[key].keys():
+                        matrixtabdict[key][tab]={}
+                    if col not in matrixtabdict[key][tab].keys():
+                        matrixtabdict[key][tab][col]={}
+                    matrixtabdict[key][tab][col]=curdict[tabcol]
+        if flattabdict:
+            df_flat=flatdbfactory()
+            mydict=df_flat.settab(flattabdict)
+        if matrixtabdict: 
+            df_matrix=matrixdbfactory()
+            mydict=df_matrix.settab(matrixtabdict)            
+
 if __name__ == "__main__":
+    df0=flatdbfactory()
+    mydict=df0.gettab(['site'])
+    print mydict
+    exit()
+
     df1=dbfactory()
     mydict=df1.gettab(['mac'],["node0001","node0002"])
     print mydict
+    exit()
     if not mydict:
         mydict={}
         mydict["node0001"]={}

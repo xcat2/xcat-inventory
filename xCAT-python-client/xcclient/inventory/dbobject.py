@@ -198,6 +198,30 @@ class winimage(Base,mixin):
     Base.metadata.bind = getEngine('winimage')
     __tablename__ = 'winimage'
     __table_args__ = {'autoload':True}
+########################################################################
+class site(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('site')
+    __tablename__ = 'site'
+    __table_args__ = {'autoload':True}
+
+    def getdict(self):
+        mydict={}
+        mykey=self.__dict__['key']
+        mydict[self.__tablename__+'.'+mykey]=mykey=self.__dict__['value']
+        return mydict
+
+    @classmethod
+    def dict2tabentry(self,objdict):
+        mydict={}
+        ret=[]
+        for key in objdict.keys():
+            mydict['key']=key
+            mydict['value']=objdict[key]
+            mydict['disable']=''
+            ret.append(deepcopy(mydict))
+        return ret
+       
 #----------------------------------------------------------------------
 
 def query_table_by_node(session, tclass, tkey):
