@@ -92,7 +92,12 @@ class matrixdbfactory():
 class flatdbfactory() :
     def gettab(self,tabs,keys=None):    
         ret={}
-        ret['clustersite']={}
+        if keys:
+            rootkey=keys[0]  
+        else:
+            rootkey='cluster'
+
+        ret[rootkey]={}
         for tabname in tabs:
             dbsession=loadSession(tabname);
             if hasattr(dbobject,tabname):
@@ -104,12 +109,11 @@ class flatdbfactory() :
                 continue
             for myobj in tabobj:
                 mydict=myobj.getdict()
-                ret['clustersite'].update(mydict)
-        print ret
+                ret[rootkey].update(mydict)
         return  ret
    
     def settab(self,tabdict=None):
-       print "======flatdbfactory:settab======"
+       #print "======flatdbfactory:settab======"
        #print tabdict
        if tabdict is None:
            return None
@@ -122,6 +126,7 @@ class flatdbfactory() :
                    continue
                tabkey=tabcls.getkey()
                rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
+               #print rowentlist
                for rowent in rowentlist:
                    if tabcls.isValid(key, rowent):
                         create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
