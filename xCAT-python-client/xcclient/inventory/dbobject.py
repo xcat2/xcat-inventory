@@ -46,10 +46,10 @@ class networks(Base,mixin):
     @classmethod    
     def isValid(cls, netname, tabdict):
         eptkey=0
-        if not tabdict['net']:
+        if 'net' not in tabdict.keys() or not tabdict['net']:
             print "Error: net value should not be empty for xCAT network object "+netname
             eptkey=1
-        if not tabdict['mask']:
+        if 'mask' not in tabdict.keys() or not tabdict['mask']:
             print "Error: mask value should not be empty for xCAT network object "+netname
             eptkey=1
         if eptkey:
