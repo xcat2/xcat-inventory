@@ -1,8 +1,9 @@
 !!python/dict
   node:
     obj_type: 
-    - "${{ groupname=T{nodegroup.groupname}, objname=V{obj_name} :'group' if groupname == objname else 'node'}}"
+    - "${{ groupname=T{nodegroup.groupname}, nodename=T{nodelist.node},objname=V{obj_name} :'node' if nodename == objname else 'group'}}"
     - "W:T{nodegroup.groupname}=${{objtype=V{obj_type}: V{obj_name} if objtype=='group' else None}}"
+    - "W:T{nodelist.node}=${{objtype=V{obj_type}: V{obj_name} if objtype=='node' else None}}"
     obj_info: 
       groups: "${{ objtype=V{obj_type} : T{nodelist.groups} if objtype == 'node' else None}}"
       grouptype: "${{objtype=V{obj_type} :  T{nodegroup.grouptype} if objtype == 'group' else None}}"
