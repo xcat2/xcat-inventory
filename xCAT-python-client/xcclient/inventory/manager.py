@@ -43,34 +43,39 @@ class InventoryFactory(object):
 
         return InventoryFactory.__db__
 
-    def exportObjs(self, objlist, fmt, location):
+    def exportObjs(self, objlist, fmt, location=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         #tabs = myclass.getTables()
         #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
         myclass.loadschema()
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
+        objdict={}
         for key, attrs in obj_attr_dict.items():
             newobj = myclass.createfromdb(key, attrs)
             if not fmt or fmt.lower() == 'json':
                 self.dump2json(newobj.getobjdict())
+            elif fmt.lower() == 'raw':
+                objdict.update(newobj.getobjdict())
             else:
                 self.dump2yaml(newobj.getobjdict())
+        if fmt.lower() == 'raw':
+            return objdict
 
-    def importObjs(self, objlist, location):
+    def importObjs(self, objlist, obj_attr_dict):
+        '''
         with open(location) as file:
             contents=file.read()
         try:
             obj_attr_dict = json.loads(contents)
         except ValueError:
             obj_attr_dict = yaml.load(contents)
-
-
+        '''
         import pdb
         #pdb.set_trace()
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
 
-
+        print (obj_attr_dict)
         dbdict = {}
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
@@ -115,20 +120,38 @@ def export_by_type(objtype, names, location, fmt):
     hdl.exportObjs(objlist, fmt, location)
 
 def export_all(location, fmt):
-    for objtype in ['node']:#VALID_OBJ_TYPES:
+    #for objtype in ['node']:#VALID_OBJ_TYPES:
+    wholedict={}
+    for objtype in VALID_OBJ_TYPES:#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype)
-        hdl.exportObjs([], fmt, location)
+        wholedict[objtype]=hdl.exportObjs([], 'raw')
+    if not fmt or fmt.lower() == 'json':
+        print(json.dumps(wholedict, sort_keys=True, indent=4, separators=(',', ': ')))
+    else:
+        print(yaml.dump(wholedict, default_flow_style=False))
 
 def import_by_type(objtype, names, location):
     hdl = InventoryFactory.createHandler(objtype)
     objlist = []
     if names:
         objlist.extend(names.split(','))
-
-    hdl.importObjs(objlist, location)
+    
+    with open(location) as file:
+        contents=file.read()
+    try:
+        obj_attr_dict = json.loads(contents)
+    except ValueError:
+        obj_attr_dict = yaml.load(contents)
+    hdl.importObjs(objlist, obj_attr_dict)
 
 def import_all(location):
-    for objtype in ['node']:#VALID_OBJ_TYPES:
+    with open(location) as file:
+        contents=file.read()
+    try:
+        obj_attr_dict = json.loads(contents)
+    except ValueError:
+        obj_attr_dict = yaml.load(contents)
+    for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype)
-        hdl.importObjs([], location)
+        hdl.importObjs([], obj_attr_dict[objtype])
 
