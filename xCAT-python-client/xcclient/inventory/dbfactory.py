@@ -157,22 +157,21 @@ class dbfactory():
             return None
         flattabdict={}
         matrixtabdict={}
-        #print dbdict
         for key in dbdict.keys():
-            if key not in flattabdict.keys():
-                flattabdict[key]={}
-            if key not in matrixtabdict.keys():
-                matrixtabdict[key]={}
             curdict=dbdict[key]
             for tabcol in curdict.keys():
                 (tab,col)=tabcol.split('.')
                 if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+                    if key not in flattabdict.keys():
+                        flattabdict[key]={}
                     if tab not in flattabdict[key].keys():
                         flattabdict[key][tab]={}
                     if col not in flattabdict[key][tab].keys():
                         flattabdict[key][tab][col]={}
                     flattabdict[key][tab][col]=curdict[tabcol]
                 else:
+                    if key not in matrixtabdict.keys():
+                        matrixtabdict[key]={}
                     if tab not in matrixtabdict[key].keys():
                         matrixtabdict[key][tab]={}
                     if col not in matrixtabdict[key][tab].keys():
