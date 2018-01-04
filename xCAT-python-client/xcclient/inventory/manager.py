@@ -59,7 +59,7 @@ class InventoryFactory(object):
                 objdict.update(newobj.getobjdict())
             else:
                 self.dump2yaml(newobj.getobjdict())
-        if fmt.lower() == 'raw':
+        if fmt and fmt.lower() == 'raw':
             return objdict
 
     def importObjs(self, objlist, obj_attr_dict):
@@ -75,7 +75,6 @@ class InventoryFactory(object):
         #pdb.set_trace()
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
 
-        print (obj_attr_dict)
         dbdict = {}
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
@@ -142,7 +141,10 @@ def import_by_type(objtype, names, location):
         obj_attr_dict = json.loads(contents)
     except ValueError:
         obj_attr_dict = yaml.load(contents)
-    hdl.importObjs(objlist, obj_attr_dict)
+    if objtype:
+        hdl.importObjs(objlist, obj_attr_dict[objtype])
+    else:
+        hdl.importObjs(objlist, obj_attr_dict)
 
 def import_all(location):
     with open(location) as file:
