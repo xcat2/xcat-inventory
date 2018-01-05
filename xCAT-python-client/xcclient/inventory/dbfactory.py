@@ -135,7 +135,6 @@ class flatdbfactory() :
        if tabdict is None:
            return None
        if not isSqlite():
-           print "baiyuan"
            dbsession=loadSession()
        sessiondict={}
        try:
