@@ -51,16 +51,12 @@ class InventoryFactory(object):
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
         objdict={}
+        objdict[self.objtype]={}
         for key, attrs in obj_attr_dict.items():
             newobj = myclass.createfromdb(key, attrs)
-            if not fmt or fmt.lower() == 'json':
-                self.dump2json(newobj.getobjdict())
-            elif fmt.lower() == 'raw':
-                objdict.update(newobj.getobjdict())
-            else:
-                self.dump2yaml(newobj.getobjdict())
-        if fmt and fmt.lower() == 'raw':
-            return objdict
+            objdict[self.objtype].update(newobj.getobjdict())
+        return objdict
+        
 
     def importObjs(self, objlist, obj_attr_dict):
         '''
@@ -82,17 +78,18 @@ class InventoryFactory(object):
                 dbdict.update(newobj.getdbdata())
         self.getDBInst().settab(dbdict)
 
-    def dump2yaml(self, xcatobj, location=None):
-        if not location:
-            print(yaml.dump(xcatobj, default_flow_style=False))
 
-        #TODO: store in file or directory
+def dump2yaml(xcatobj, location=None):
+    if not location:
+        print(yaml.dump(xcatobj, default_flow_style=False))
 
-    def dump2json(self, xcatobj, location=None):
-        if not location:
-            print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
+    #TODO: store in file or directory
 
-        #TODO: store in file or directory
+def dump2json(xcatobj, location=None):
+    if not location:
+        print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
+
+    #TODO: store in file or directory
 
 def validate_args(args, action):
 
@@ -116,18 +113,23 @@ def export_by_type(objtype, names, location, fmt):
     if names:
         objlist.extend(names.split(','))
 
-    hdl.exportObjs(objlist, fmt, location)
+    typedict=hdl.exportObjs(objlist, fmt, location)
+    if not fmt or fmt.lower() == 'json':
+        dump2json(typedict)
+    else:
+        dump2yaml(typedict)
 
 def export_all(location, fmt):
     #for objtype in ['node']:#VALID_OBJ_TYPES:
     wholedict={}
     for objtype in VALID_OBJ_TYPES:#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype)
-        wholedict[objtype]=hdl.exportObjs([], 'raw')
+        wholedict.update(hdl.exportObjs([], fmt))
     if not fmt or fmt.lower() == 'json':
-        print(json.dumps(wholedict, sort_keys=True, indent=4, separators=(',', ': ')))
+        dump2json(wholedict)
     else:
-        print(yaml.dump(wholedict, default_flow_style=False))
+        dump2yaml(wholedict)
+    
 
 def import_by_type(objtype, names, location):
     hdl = InventoryFactory.createHandler(objtype)
@@ -141,10 +143,14 @@ def import_by_type(objtype, names, location):
         obj_attr_dict = json.loads(contents)
     except ValueError:
         obj_attr_dict = yaml.load(contents)
-    if objtype:
-        hdl.importObjs(objlist, obj_attr_dict[objtype])
+    if objtype: 
+        if objtype in obj_attr_dict.keys():
+            hdl.importObjs(objlist, obj_attr_dict[objtype])
+        else:
+            print("cannot find objects of type "+objtype+" in "+location+". Do nothing...")
     else:
-        hdl.importObjs(objlist, obj_attr_dict)
+        hdl.importObjs(objlist, obj_attr_dict) 
+        
 
 def import_all(location):
     with open(location) as file:
