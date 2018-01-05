@@ -95,8 +95,6 @@ class matrixdbfactory():
         except Exception as e:
             print str(e)
             print "import object failed."
-            if not isSqlite():
-                dbsession.close()
         else:
             if isSqlite():
                 for key in tabdict.keys():
