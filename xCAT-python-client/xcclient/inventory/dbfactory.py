@@ -2,7 +2,7 @@
 import dbobject
 from dbobject import *
 from dbsession import *
-
+from xcclient.shell import CommandException
 
 def create_or_update(session,tabcls,key,newdict):
    '''
@@ -17,38 +17,35 @@ def create_or_update(session,tabcls,key,newdict):
            delrow=0
        if item == 'disable' and newdict[item]=='':
            newdict[item]=None
-   record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
+   try:
+       record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
+   except:
+       raise Exception, "Error: query xCAT table "+tabcls.__tablename__+" failed."
    if record:
        if delrow:
            try:
                session.delete(record[0])
-           except Exception, e:
-               print "Error:", str(e)
-               return -1
+           except:
+               raise Exception, "Error: delete "+key+" is failed."
            else:
-               print "delete row in xCAT table "+tabcls.__tablename__+" successfully."
+               print "delete row in xCAT table "+tabcls.__tablename__+"."
        else:
            try:
                session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
-           except Exception, e:
-               print "Error:", str(e)
-               return -1
+           except:
+               raise Exception, "Error: import object "+key+" is failed."
            else:
-               print "Update xCAT table "+tabcls.__tablename__+" successfully."
+               print "Import "+key+" update xCAT table "+tabcls.__tablename__+"."
    elif delrow == 0:
        newdict[tabkey]=key
        try:
            session.execute(tabcls.__table__.insert(), newdict)
        except(sqlalchemy.exc.IntegrityError):
-           print "Error: xCAT object "+key+" is duplicate."
-           return -1
-       except Exception, e:
-           print "Error:", str(e) 
-           return -1
+           raise CommandException("Error: xCAT object %(t)s is duplicate.", t=key)
+       except:
+           raise Exception, "Error: import object "+key+" is failed."
        else:
-           print "Update xCAT table "+tabcls.__tablename__+" successfully."
-   session.commit()
-   return 0
+           print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
 
 class matrixdbfactory():
     def gettab(self,tabs,keys=None):    
@@ -78,17 +75,36 @@ class matrixdbfactory():
         #print "=========matrixdbfactory:settab========"
         if tabdict is None:
             return None
-        for key in tabdict.keys():
-            for tab in tabdict[key].keys():
-                dbsession=loadSession(tab);
-                if hasattr(dbobject,tab):
-                    tabcls=getattr(dbobject,tab)
-                else:
-                    continue
-                if tabcls.isValid(key,tabdict[key][tab]):
-                    create_or_update(dbsession,tabcls,key,tabdict[key][tab])
-                    dbsession.commit()
-
+        if not isSqlite():
+            dbsession=loadSession()
+        sessiondict={}
+        try:
+            for key in tabdict.keys():
+                for tab in tabdict[key].keys():
+                    if isSqlite():
+                        sessiondict[tab]=loadSession(tab);
+                        dbsession=loadSession(tab);
+                    if hasattr(dbobject,tab):
+                        tabcls=getattr(dbobject,tab)
+                    else:
+                        continue
+                    if tabcls.isValid(key,tabdict[key][tab]):
+                        create_or_update(dbsession,tabcls,key,tabdict[key][tab])
+        except CommandException as e:
+            print str(e)
+        except Exception as e:
+            print str(e)
+            print "import object failed."
+            if not isSqlite():
+                dbsession.close()
+        else:
+            if isSqlite():
+                for key in tabdict.keys():
+                    for tab in tabdict[key].keys():
+                        sessiondict[tab].commit()
+            else:
+                dbsession.commit()
+            print "import object successfully."
 
 class flatdbfactory() :
     def gettab(self,tabs,keys=None):    
@@ -118,21 +134,39 @@ class flatdbfactory() :
        #print tabdict
        if tabdict is None:
            return None
-       for key in tabdict.keys():
-           for tab in tabdict[key].keys():
-               dbsession=loadSession(tab);
-               if hasattr(dbobject,tab):
-                   tabcls=getattr(dbobject,tab)
-               else:
-                   continue
-               tabkey=tabcls.getkey()
-               rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
-               #print rowentlist
-               for rowent in rowentlist:
-                   if tabcls.isValid(key, rowent):
-                        create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
-               dbsession.commit()            
-
+       if not isSqlite():
+           print "baiyuan"
+           dbsession=loadSession()
+       sessiondict={}
+       try:
+           for key in tabdict.keys():
+               for tab in tabdict[key].keys():
+                   if isSqlite():
+                       sessiondict[tab]=loadSession(tab);
+                       dbsession=loadSession(tab);
+                   if hasattr(dbobject,tab):
+                       tabcls=getattr(dbobject,tab)
+                   else:
+                       continue
+                   tabkey=tabcls.getkey()
+                   rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
+                   #print rowentlist
+                   for rowent in rowentlist:
+                       if tabcls.isValid(key, rowent):
+                           create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
+       except CommandException as e:
+           print str(e)
+       except Exception as e:
+           print str(e)
+           print "import object failed."
+       else:
+           if isSqlite():
+               for key in tabdict.keys():
+                   for tab in tabdict[key].keys():
+                       sessiondict[tab].commit()
+           else:
+               dbsession.commit()
+           print "import object successfully."
 class dbfactory():
     _dbfactoryoftab={'site':'flat'}
     def gettab(self,tabs,keys=None):

@@ -59,3 +59,8 @@ def loadSession(tablename=None):
     session = Session()
     return session
 
+def isSqlite():
+    if os.path.exists(dbcfgpath):
+        return False
+    else:
+        return True
