@@ -15,7 +15,8 @@ def create_or_update(session,tabcls,key,newdict):
    for item in newdict.keys():
        if tabkey != item and newdict[item]!='':
            delrow=0
-   #print "delrow="+str(delrow)
+       if item == 'disable' and newdict[item]=='':
+           newdict[item]=None
    record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
    if record:
        if delrow:
