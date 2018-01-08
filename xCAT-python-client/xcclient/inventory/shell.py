@@ -20,9 +20,9 @@ class InventoryShell(shell.ClusterShell):
     def add_subcommands(self, subparsers, revision):
         pass
 
-    @shell.arg('--type', metavar='<type>', help='Object type to be imported')
-    @shell.arg('--name', metavar='<name>', help='Object names to be imported')
-    @shell.arg('--path', metavar='<path>', help='File path for the inventory objects to import from ')
+    @shell.arg('-t','--type', metavar='<type>', help='Object type to be imported')
+    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be imported')
+    @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to import from ')
     def do_import(self, args):
         """Import the inventory based on the type or name from specified path"""
         mgr.validate_args(args, 'import')
@@ -32,9 +32,9 @@ class InventoryShell(shell.ClusterShell):
         else :
             mgr.import_all(args.path)
 
-    @shell.arg('--type', metavar='<type>', help='Object type to be exported')
-    @shell.arg('--name', metavar='<name>', help='Object names to be exported')
-    @shell.arg('--path', metavar='<path>', help='File path for the inventory objects to export to ')
+    @shell.arg('-t','--type', metavar='<type>', help='Object type to be exported')
+    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be exported')
+    @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to export to ')
     @shell.arg('--format', metavar='<format>', help='The content format: json or yaml')
     def do_export(self, args):
         """Export the inventory based on the type or name to specified path"""
