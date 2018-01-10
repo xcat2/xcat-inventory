@@ -311,7 +311,7 @@ class XcatBase(object):
 
 
 class Node(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'node.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/node.yaml')
     def getobjdict(self):
         ret={}
         ret=super(Node,self).getobjdict()
@@ -379,22 +379,22 @@ class Node(XcatBase):
         super(Node,self).setobjdict(tmpdict)
     
 class Osimage(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'osimage.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/osimage.yaml')
     
 class Network(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'network.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/network.yaml')
 
 class Route(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'route.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/route.yaml')
 
 class Policy(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'policy.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/policy.yaml')
 
 class Passwd(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'passwd.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/passwd.yaml')
 
 class Site(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'site.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/site.yaml')
 
 if __name__ == "__main__":
 
