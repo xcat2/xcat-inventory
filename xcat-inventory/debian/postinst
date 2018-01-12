@@ -20,9 +20,8 @@ set -e
 
 case "$1" in
     configure)
-#copy the postscripts under /installl/postscripts directory on MN only
 if [ -f "/etc/xCATMN" ]; then
-        cp /opt/xcat/share/xcat/openstack/postscripts/* /install/postscripts/
+    chmod 755 /opt/xcat/bin/xcat-inventory
 fi
     ;;
 
