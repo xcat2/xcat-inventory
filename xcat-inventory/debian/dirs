@@ -1,0 +1,4 @@
+opt/xcat/bin
+opt/xcat/lib/python/xcclient
+opt/xcat/lib/python/xcclient/inventory
+opt/xcat/lib/python/xcclient/inventory/schema

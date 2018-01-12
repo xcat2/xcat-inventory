@@ -1,0 +1,5 @@
+cli/* opt/xcat/bin/
+xcclient/*.py /opt/xcat/lib/python/xcclient
+xcclient/inventory/*.py /opt/xcat/lib/python/xcclient/inventory
+xcclient/inventory/schema/*.yaml /opt/xcat/lib/python/xcclient/inventory/schema
+
