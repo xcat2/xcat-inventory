@@ -1,6 +1,6 @@
 !!python/dict  
   passwd:
-    obj_name:
+    schema_version: "1.0"
     key: "T{passwd.key}"
     username: "T{passwd.username}"
     password: "T{passwd.password}"

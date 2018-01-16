@@ -1,5 +1,6 @@
 !!python/dict  
   site:
+    schema_version: "1.0"
     xcatdportort: "T{site.xcatdport}"
     xcatiport: "T{site.xcatiport}"
     auditnosyslog: "T{site.auditnosyslog}"
