@@ -1,5 +1,6 @@
 !!python/dict
   node:
+    schema_version: "1.0"
     obj_type: 
     - "${{ groupname=T{nodegroup.groupname}, nodename=T{nodelist.node},objname=V{obj_name} :'node' if nodename == objname else 'group'}}"
     - "W:T{nodegroup.groupname}=${{objtype=V{obj_type}: V{obj_name} if objtype=='group' else None}}"
@@ -26,7 +27,8 @@
       pdutype:  "${{devtype=V{device_type}: T{pdu.machinetype} if devtype == 'pdu' else None}}"
       outlets: "${{devtype=V{device_type}: T{pdu.outlet} if devtype == 'pdu' else None}}"
       model: "${{devtype=V{device_type}: T{pdu.modelnum} if devtype == 'pdu' else None}}"
-      serial: "${{ devtype=V{device_type}: T{pdu.serialnum} if devtype == 'pdu' else T{vpd.serial} if devtype == 'node' else None}}"
+      serial: "${{ devtype=V{device_type}: T{pdu.serialnum} if devtype == 'pdu' else T{vpd.serial} if devtype == 'server' else None}}"
+      characteristics: "T{nodetype.nodetype}"
     security_info:
       snmpusername: "${{devtype=V{device_type}: T{switches.username} if devtype == 'switch' else None}}"
       snmppassword: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else None}}"
@@ -64,7 +66,7 @@
           engine_info:
             bmc: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmc} if hwmgtengtype == 'openbmc' else T{ipmi.bmc} if hwmgtengtype == 'ipmi' else None}}"
             bmcusername: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.username} if hwmgtengtype == 'openbmc' else T{ipmi.username} if hwmgtengtype == 'ipmi' else None}}"
-            bmcpassword: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmcpassword} if hwmgtengtype == 'openbmc' else T{ipmi.password} if hwmgtengtype == 'ipmi' else None}}"
+            bmcpassword: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.password} if hwmgtengtype == 'openbmc' else T{ipmi.password} if hwmgtengtype == 'ipmi' else None}}"
             bmcvlantag: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.taggedvlan} if hwmgtengtype == 'openbmc' else T{ipmi.taggedvlan} if hwmgtengtype == 'ipmi' else None}}"
             consport: "T{openbmc.consport}"
             bmcport: "T{ipmi.bmcport}"
