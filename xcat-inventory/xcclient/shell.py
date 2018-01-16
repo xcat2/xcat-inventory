@@ -51,12 +51,12 @@ class ClusterShell(object):
         parser.add_argument('--debug',
                             default=False,
                             action='store_true',
-                            help="Prints debugging output into the log file.")
+                            help="Prints debugging output into the log file (not implemented yet).")
 
         parser.add_argument('-v', '--verbose',
                             default=False,
                             action='store_true',
-                            help="Prints verbose output.")
+                            help="Prints verbose output (not implemented yet).")
 
         parser.add_argument('-V', '--version',
                             action='version',
