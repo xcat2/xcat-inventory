@@ -9,7 +9,7 @@ from __future__ import print_function
 
 from dbfactory import dbfactory
 from xcatobj import *
-from xcclient.shell import CommandException
+from exceptions import *
 
 import os
 import yaml
@@ -45,8 +45,6 @@ class InventoryFactory(object):
 
     def exportObjs(self, objlist, fmt, location=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
-        #tabs = myclass.getTables()
-        #tabs = ['nodetype', 'switch', 'hosts', 'mac', 'noderes', 'postscripts', 'bootparams']
         myclass.loadschema()
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
@@ -59,14 +57,6 @@ class InventoryFactory(object):
         
 
     def importObjs(self, objlist, obj_attr_dict):
-        '''
-        with open(location) as file:
-            contents=file.read()
-        try:
-            obj_attr_dict = json.loads(contents)
-        except ValueError:
-            obj_attr_dict = yaml.load(contents)
-        '''
         import pdb
         #pdb.set_trace()
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
@@ -94,18 +84,18 @@ def dump2json(xcatobj, location=None):
 def validate_args(args, action):
 
     if args.type and args.type.lower() not in VALID_OBJ_TYPES:
-        raise CommandException("Invalid object type: %(t)s", t=args.type)
+        raise CommandException("Error: Invalid object type: %(t)s", t=args.type)
 
     if args.name and not args.type:
-        raise CommandException("Missing object type for object: %(o)s", o=args.name)
+        raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
 
     if action == 'import': #extra validation for export
         if args.path and not os.path.exists(args.path):
-            raise CommandException("The specified path does not exist: %(p)s", p=args.path)
+            raise CommandException("Error: The specified path does not exist: %(p)s", p=args.path)
 
     if action == 'export': #extra validation for export
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
-            raise CommandException("Invalid exporting format: %(f)s", f=args.format)
+            raise CommandException("Error: Invalid exporting format: %(f)s", f=args.format)
 
 def export_by_type(objtype, names, location, fmt):
     hdl = InventoryFactory.createHandler(objtype)
@@ -114,10 +104,14 @@ def export_by_type(objtype, names, location, fmt):
         objlist.extend(names.split(','))
 
     typedict=hdl.exportObjs(objlist, fmt, location)
+    nonexistobjlist=list(set(objlist).difference(set(typedict[objtype].keys())))
+    if nonexistobjlist:
+        raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
     if not fmt or fmt.lower() == 'json':
         dump2json(typedict)
     else:
         dump2yaml(typedict)
+
 
 def export_all(location, fmt):
     #for objtype in ['node']:#VALID_OBJ_TYPES:
@@ -142,12 +136,19 @@ def import_by_type(objtype, names, location):
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
-        obj_attr_dict = yaml.load(contents)
+        try: 
+            obj_attr_dict = yaml.load(contents)
+        except Exception,e:
+            raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
     if objtype: 
-        if objtype in obj_attr_dict.keys():
-            hdl.importObjs(objlist, obj_attr_dict[objtype])
+        if objtype not in obj_attr_dict.keys():
+            raise ObjNonExistException("Error: cannot find object type '"+objtype+"' in the inout file")
         else:
-            print("cannot find objects of type "+objtype+" in "+location+". Do nothing...")
+            nonexistobjlist=list(set(objlist).difference(set(obj_attr_dict[objtype].keys())))
+            if nonexistobjlist:
+                raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
+            else:
+                hdl.importObjs(objlist, obj_attr_dict[objtype])
     else:
         hdl.importObjs(objlist, obj_attr_dict) 
         
@@ -158,7 +159,11 @@ def import_all(location):
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
-        obj_attr_dict = yaml.load(contents)
+        try:
+            obj_attr_dict = yaml.load(contents)
+        except Exception,e:
+            raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
+    #print(obj_attr_dict)
     for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype)
         hdl.importObjs([], obj_attr_dict[objtype])

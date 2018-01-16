@@ -181,6 +181,12 @@ class nics(Base,mixin):
     __tablename__ = 'nics'
     __table_args__ = {'autoload':True}
 ########################################################################
+class openbmc(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('openbmc')
+    __tablename__ = 'openbmc'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')

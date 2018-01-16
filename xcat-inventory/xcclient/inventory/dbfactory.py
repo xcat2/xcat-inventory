@@ -5,11 +5,6 @@ from dbsession import *
 from xcclient.shell import CommandException
 
 def create_or_update(session,tabcls,key,newdict):
-    '''
-    print "=========create_or_update:called========="
-    print newdict
-    print key
-    '''
     tabkey=tabcls.getkey()
     delrow=1 
     for item in newdict.keys():
@@ -19,21 +14,21 @@ def create_or_update(session,tabcls,key,newdict):
             newdict[item]=None
     try:
         record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
-    except:
-        raise Exception, "Error: query xCAT table "+tabcls.__tablename__+" failed."
+    except Exception, e:
+        raise Exception, "Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e)
     if record:
         if delrow:
             try:
                 session.delete(record[0])
-            except:
-                raise Exception, "Error: delete "+key+" is failed."
+            except Exception, e:
+                raise Exception, "Error: delete "+key+" is failed: "+str(e)
             else:
                 print "delete row in xCAT table "+tabcls.__tablename__+"."
         else:
            try:
                session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
-           except:
-               raise Exception, "Error: import object "+key+" is failed."
+           except Exception, e:
+               raise Exception, "Error: import object "+key+" is failed: "+str(e)
            else:
                print "Import "+key+" update xCAT table "+tabcls.__tablename__+"."
     elif delrow == 0:
@@ -42,8 +37,8 @@ def create_or_update(session,tabcls,key,newdict):
             session.execute(tabcls.__table__.insert(), newdict)
         except(sqlalchemy.exc.IntegrityError):
             raise CommandException("Error: xCAT object %(t)s is duplicate.", t=key)
-        except:
-            raise Exception, "Error: import object "+key+" is failed."
+        except Exception, e:
+            raise Exception, "Error: import object "+key+" is failed: "+str(e) 
         else:
             print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
 

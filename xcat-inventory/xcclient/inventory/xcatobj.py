@@ -11,7 +11,7 @@ from copy import *
 
 from dbobject import *
 from dbfactory import *
-
+from exceptions import *
 import pdb
 
 #remove the dict entries whose value is null or ''
@@ -286,13 +286,25 @@ class XcatBase(object):
     def getobjdict(self):
         ret={}
         ret[self.name]=deepcopy(self._mydict)
-        #print self.name
-        #print ret
         Util_rmnullindict(ret[self.name])
         del ret[self.name]['obj_name']
         return ret
+  
+    @classmethod
+    def validateschema(cls,objdict):
+        def cmpdict(tmpldict,tgtdict):
+            pass           
+  
+        if not isinstance(objdict,dict):
+            raise InvalidFileException("Error: invalid object definition according to the schema file "+_schema_loc__)
+        #TODO
+        return       
+        
 
     def setobjdict(self,objdict):
+        if str(objdict['schema_version']) != str(self.__class__._schema['schema_version']):
+            raise InvalidFileException("Error: schema version mismatch")
+        self.__class__.validateschema(objdict)
         self._mydict=deepcopy(objdict)
         self._mydict['obj_name']=self.name
         self._dbhash.clear()

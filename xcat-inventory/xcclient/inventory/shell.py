@@ -11,6 +11,7 @@ Command-line interface to xCAT inventory import/export
 
 from __future__ import print_function
 from xcclient import shell
+from exceptions import *
 import xcclient.inventory.manager as mgr
 
 import sys
@@ -34,7 +35,7 @@ class InventoryShell(shell.ClusterShell):
 
     @shell.arg('-t','--type', metavar='<type>', help='Object type to be exported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be exported')
-    @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to export to ')
+    @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to export to(not implemented yet)')
     @shell.arg('--format', metavar='<format>', help='The content format: json or yaml')
     def do_export(self, args):
         """Export the inventory based on the type or name to specified path"""
@@ -52,6 +53,12 @@ def main():
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
+    except (InvalidFileException,ObjNonExistException,CommandException), e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    #except (ParserError), e:
+    #    print("Error: invalid file!", file=sys.stderr)
+    #    sys.exit(2)
     except Exception as e:
         #print(e)
         traceback.print_exc(e)
