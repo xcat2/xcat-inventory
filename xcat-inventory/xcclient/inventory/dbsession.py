@@ -37,7 +37,7 @@ def createEngine(tablename=None):
     else:
         print "Fatal: empty table name"
         exit (1)
-    engine=create_engine(engine_value,pool_size=100, pool_recycle=3600,echo=False)
+    engine=create_engine(engine_value, echo=False)
     return engine
 
 def getEngine(tablename=None):
