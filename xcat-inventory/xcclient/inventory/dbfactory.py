@@ -162,7 +162,10 @@ class dbfactory():
                         if col not in flattabdict[key][tab].keys():
                             flattabdict[key][tab][col]={}
                         flattabdict[key][tab][col]=curdict[tabcol]
-                        sessiondict[tab]=loadSession(tab);
+                        if isSqlite():
+                            sessiondict[tab]=loadSession(tab)
+                        else:
+                            sessiondict[tab]=dbsession
                     else:
                         if key not in matrixtabdict.keys():
                             matrixtabdict[key]={}
@@ -171,7 +174,10 @@ class dbfactory():
                         if col not in matrixtabdict[key][tab].keys():
                             matrixtabdict[key][tab][col]={}
                         matrixtabdict[key][tab][col]=curdict[tabcol]
-                        sessiondict[tab]=loadSession(tab);
+                        if isSqlite():
+                            sessiondict[tab]=loadSession(tab)
+                        else:
+                            sessiondict[tab]=dbsession
             if flattabdict:
                 df_flat=flatdbfactory()
                 mydict=df_flat.settab(sessiondict,flattabdict)
@@ -189,6 +195,7 @@ class dbfactory():
                     sessiondict[key].commit()
             else:
                 dbsession.commit()
+                dbsession.close()
             print "import object successfully."          
 
 if __name__ == "__main__":
