@@ -351,10 +351,16 @@ class Node(XcatBase):
                 for key in rawnicsdict.keys():
                     rawvaluelist=rawnicsdict[key].split(',')
                     for nicent in rawvaluelist:
-                        (nic,attrstr)=nicent.split('!')
-                        if nic not in nicsdict.keys():
-                            nicsdict[nic]={}
-                        nicsdict[nic][key]=attrstr.split('|')
+                        try:
+                            (nic,attrstr)=nicent.split('!')
+                            if nic not in nicsdict.keys():
+                                nicsdict[nic]={}
+                            if re.match(r'^[^\|]\S+\|\S+[^\|]$',attrstr):
+                                nicsdict[nic][key]=attrstr.split('|')
+                            else:
+                                nicsdict[nic][key]=[attrstr]
+                        except Exception,e:
+                            raise InvalidValueException("Error: invalid value \""+nicent+"\" for object "+self.name+" found "+"in nics table") 
                 Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
