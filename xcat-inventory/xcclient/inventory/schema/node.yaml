@@ -59,7 +59,7 @@
         configscripts: "T{nics.niccustomscripts}"
         networks: "T{nics.nicnetworks}"
         extraconfig: "T{nics.nicextraparams}"
-        nicdevices: "T{nis.nicdevices}"
+        nicdevices: "T{nics.nicdevices}"
     engines:
        hardware_mgt_engine:
           engine_type: "T{nodehm.mgt}"
