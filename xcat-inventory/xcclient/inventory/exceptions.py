@@ -33,3 +33,5 @@ class CommandException(BaseException):
     pass
 class InvalidFileException(BaseException):
     pass
+class InvalidValueException(BaseException):
+    pass
