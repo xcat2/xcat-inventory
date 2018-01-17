@@ -53,7 +53,7 @@
       nics:
         ips: "T{nics.nicips}"
         hostnamesuffixes: "T{nics.nichostnamesuffixes}"
-        hostnameprefixe: "T{nics.nichostnamesuffixes}"
+        hostnameprefixe: "T{nics.nichostnameprefixes}"
         alias: "T{nics.nicaliases}"
         type: "T{nics.nictypes}"
         configscripts: "T{nics.niccustomscripts}"
