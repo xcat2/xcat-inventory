@@ -187,6 +187,12 @@ class openbmc(Base,mixin):
     __tablename__ = 'openbmc'
     __table_args__ = {'autoload':True}
 ########################################################################
+class prodkey(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('prodkey')
+    __tablename__ = 'prodkey'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
