@@ -9,6 +9,7 @@
       distribution: "T{osimage.osvers}"
       arch: "T{osimage.osarch}"
       osdistro: "T{osimage.osdistroname}"
+      osname: "T{osimage.osname}"
       description: "T{osimage.description}"
     role: "T{osimage.profile}"
     package_selection:
