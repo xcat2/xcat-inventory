@@ -2,7 +2,7 @@
   osimage:
     schema_version: "1.0"
     imagetype:
-    - "${{winimgname=T{winimage.imagename}, objname=V{obj_name}: 'windows' if winimgname == objname else 'linux'}}"
+    - "T{osimage.imagetype}"
     - "W:T{winimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'windows' else None }}"
     - "W:T{osimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'linux' else None }}"
     basic_attributes:
