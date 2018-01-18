@@ -193,6 +193,30 @@ class prodkey(Base,mixin):
     __tablename__ = 'prodkey'
     __table_args__ = {'autoload':True}
 ########################################################################
+class domain(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('domain')
+    __tablename__ = 'domain'
+    __table_args__ = {'autoload':True}
+########################################################################
+class chain(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('chain')
+    __tablename__ = 'chain'
+    __table_args__ = {'autoload':True}
+########################################################################
+class rack(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('rack')
+    __tablename__ = 'rack'
+    __table_args__ = {'autoload':True}
+########################################################################
+class nodepos(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('nodepos')
+    __tablename__ = 'nodepos'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
