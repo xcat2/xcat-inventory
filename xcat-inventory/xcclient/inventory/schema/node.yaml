@@ -11,7 +11,7 @@
       members: "${{objtype=V{obj_type} : T{nodegroup.members} if objtype == 'group' else None}}"
       filter: "${{ objtype=V{obj_type} : T{nodegroup.wherevals} if objtype == 'group' else None}}"
     device_type: 
-    - "${{ switchname=T{switches.switch}, pduname=T{pdu.node}, objname=V{obj_name}, rackname=T{rack.rackname}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'rack' if rackname == objname else  'server' }}"
+    - "${{ switchname=T{switches.switch}, pduname=T{pdu.node}, objname=V{obj_name}, rackname=T{rack.rackname},hcpname=T{ppchcp.hcp}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'rack' if rackname == objname else 'hmc' if hcpname == objname else 'server' }}"
     - "W:T{switches.switch}=${{devtype=V{device_type}: V{obj_name} if devtype == 'switch' else None}}"
     - "W:T{pdu.node}=${{devtype=V{device_type}: V{obj_name} if devtype == 'pdu' else None}}" 
     - "W:T{rack.rackname}=${{devtype=V{device_type}: V{obj_name} if devtype == 'rack' else None}}" 
@@ -55,8 +55,8 @@
         snmpprivacy: "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else None }}"
         snmpauth: "T{switches.auth}" 
       remotecontrol:
-        username: "T{switches.sshusername}" 
-        password: "T{switches.sshpassword}"
+        username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{ppchcp.username} if devtype in ('hmc','ivm','ppc') else T{mpa.username} if devtype in ('mm')  else None}}" 
+        password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{ppchcp.password} if devtype in ('hmc','ivm','ppc') else T{mpa.password} if devtype in ('mm')  else None}}"
         remoteprotocol: "T{switches.protocol}"
       zonename: "T{nodelist.zonename}"
       productkey: "T{prodkey.key}"
@@ -112,6 +112,14 @@
             vmstoragecache: "T{vm.storagecache}"
             vmstorageformat: "T{vm.storageformat}"
             vmtextconsole: "T{vm.storageformat}"
+            hcp: "${{ hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{zvm.hcp} if hwmgtengtype in ('zvm') else T{ppc.hcp} }}"
+            id: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{mp.id} if hwmgtengtype in ('blade') else T{ppc.id}}}"
+            mpa: "T{mp.mpa}"
+            pprofile: "T{ppc.pprofile}"
+            parent: "T{ppc.parent}"
+            hwtype: "${{hwmgtengtype=V{engines.hardware_mgt_engine.engine_type}: T{ppc.nodetype} if hwmgtengtype in ('bpa','fsp','ivm','hmc') else T{mp.nodetype} if hwmgtengtype in ('blade','ipmi','openbmc') else T{zvm.nodetype} if hwmgtengtype in ('zvm') else None}}"
+            supernode: "T{ppc.supernode}"
+            sfp: "T{ppc.sfp}"
        power_mgt_engine:
           engine_type: "T{nodehm.mgt}" 
           engine_info: 
