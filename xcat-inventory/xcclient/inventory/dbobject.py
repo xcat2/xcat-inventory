@@ -217,6 +217,36 @@ class nodepos(Base,mixin):
     __tablename__ = 'nodepos'
     __table_args__ = {'autoload':True}
 ########################################################################
+class ppc(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('ppc')
+    __tablename__ = 'ppc'
+    __table_args__ = {'autoload':True}
+########################################################################
+class ppchcp(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('ppchcp')
+    __tablename__ = 'ppchcp'
+    __table_args__ = {'autoload':True}
+########################################################################
+class mp(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('mp')
+    __tablename__ = 'mp'
+    __table_args__ = {'autoload':True}
+########################################################################
+class zvm(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('zvm')
+    __tablename__ = 'zvm'
+    __table_args__ = {'autoload':True}
+########################################################################
+class mpa(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('mpa')
+    __tablename__ = 'mpa'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
