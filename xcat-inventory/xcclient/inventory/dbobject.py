@@ -247,6 +247,54 @@ class mpa(Base,mixin):
     __tablename__ = 'mpa'
     __table_args__ = {'autoload':True}
 ########################################################################
+class pduoutlet(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('pduoutlet')
+    __tablename__ = 'pduoutlet'
+    __table_args__ = {'autoload':True}
+########################################################################
+class cfgmgt(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('cfgmgt')
+    __tablename__ = 'cfgmgt'
+    __table_args__ = {'autoload':True}
+########################################################################
+class hypervisor(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('hypervisor')
+    __tablename__ = 'hypervisor'
+    __table_args__ = {'autoload':True}
+########################################################################
+class iscsi(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('iscsi')
+    __tablename__ = 'iscsi'
+    __table_args__ = {'autoload':True}
+########################################################################
+class mic(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('mic')
+    __tablename__ = 'mic'
+    __table_args__ = {'autoload':True}
+########################################################################
+class ppcdirect(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('ppcdirect')
+    __tablename__ = 'ppcdirect'
+    __table_args__ = {'autoload':True}
+########################################################################
+class storage(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('storage')
+    __tablename__ = 'storage'
+    __table_args__ = {'autoload':True}
+########################################################################
+class websrv(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('websrv')
+    __tablename__ = 'websrv'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
@@ -263,6 +311,12 @@ class winimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('winimage')
     __tablename__ = 'winimage'
+    __table_args__ = {'autoload':True}
+########################################################################
+class nimimage(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('nimimage')
+    __tablename__ = 'nimimage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class site(Base,mixin):
