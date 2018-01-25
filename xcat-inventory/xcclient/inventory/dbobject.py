@@ -295,6 +295,12 @@ class websrv(Base,mixin):
     __tablename__ = 'websrv'
     __table_args__ = {'autoload':True}
 ########################################################################
+class prescripts(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('prescripts')
+    __tablename__ = 'prescripts'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
