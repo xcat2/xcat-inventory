@@ -83,7 +83,6 @@
         networks: "T{nics.nicnetworks}"
         extraconfig: "T{nics.nicextraparams}"
         nicdevices: "T{nics.nicdevices}"
-        nicsnicsadapter: "T{nics.nicsadapter}"
     engines:
        hardware_mgt_engine:
           engine_type: "T{nodehm.mgt}"
@@ -216,4 +215,3 @@
       websrvpassword: "T{websrv.password}"
       websrvport: "T{websrv.port}"
       websrvusername: "T{websrv.username}"
-      noderestftpdir: "T{noderes.tftpdir}"
