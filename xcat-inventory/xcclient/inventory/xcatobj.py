@@ -237,6 +237,8 @@ class XcatBase(object):
             myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=self.__evalschema_val(item)
+                if myval is None:
+                    myval=''
             myexpression=myexpression.replace('V{'+item+'}',"'"+myval+"'")
         evalexp=eval("lambda "+myexpression)
         value=evalexp()
