@@ -301,6 +301,12 @@ class prescripts(Base,mixin):
     __tablename__ = 'prescripts'
     __table_args__ = {'autoload':True}
 ########################################################################
+class ipmi(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('ipmi')
+    __tablename__ = 'ipmi'
+    __table_args__ = {'autoload':True}
+########################################################################
 class osimage(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('osimage')
