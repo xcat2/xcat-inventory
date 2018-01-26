@@ -29,7 +29,7 @@
       pdutype:  "${{devtype=V{device_type}: T{pdu.machinetype} if devtype == 'pdu' else None}}"
       outlets: "${{devtype=V{device_type}: T{pdu.outlet} if devtype == 'pdu' else None}}"
       model: "${{devtype=V{device_type}: T{pdu.modelnum} if devtype == 'pdu' else None}}"
-      serial: "${{ devtype=V{device_type}: T{pdu.serialnum} if devtype == 'pdu' else T{vpd.serial} if devtype == 'server' else None}}"
+      serial: "${{ devtype=V{device_type}: T{pdu.serialnum} if devtype == 'pdu' else T{vpd.serial} }}"
       characteristics: "T{nodetype.nodetype}"
       displayname: "${{ devtype=V{device_type}: T{rack.displayname} if devtype == 'rack' else None }}"
       rackno: "${{ devtype=V{device_type}: T{rack.num} if devtype == 'rack' else None }}"
