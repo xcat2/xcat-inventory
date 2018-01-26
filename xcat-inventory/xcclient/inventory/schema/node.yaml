@@ -59,8 +59,8 @@
         authkey: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else T{pdu.authkey} if devtype in ('pdu') else None}}"
         privkey: "T{pdu.privkey}"
       remotecontrol:
-        username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{pdu.username} if devtype in ('pdu') else T{ppchcp.username} if devtype in ('hmc','ivm','ppc') else T{mpa.username} if devtype in ('mm')  else None}}" 
-        password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ('pdu') else T{ppchcp.password} if devtype in ('hmc','ivm','ppc') else T{mpa.password} if devtype in ('mm')  else None}}"
+        username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{pdu.username} if devtype in ('pdu') else T{ppchcp.username} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.username} if devtype in ('mm')  else None}}" 
+        password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ('pdu') else T{ppchcp.password} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.password} if devtype in ('mm')  else None}}"
         remoteprotocol: "T{switches.protocol}"
       zonename: "T{nodelist.zonename}"
       productkey: "T{prodkey.key}"
