@@ -247,6 +247,12 @@ class mpa(Base,mixin):
     __tablename__ = 'mpa'
     __table_args__ = {'autoload':True}
 ########################################################################
+class pdu(Base,mixin):
+    """"""
+    Base.metadata.bind = getEngine('pdu')
+    __tablename__ = 'pdu'
+    __table_args__ = {'autoload':True}
+########################################################################
 class pduoutlet(Base,mixin):
     """"""
     Base.metadata.bind = getEngine('pduoutlet')
