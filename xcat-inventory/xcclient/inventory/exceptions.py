@@ -35,3 +35,5 @@ class InvalidFileException(BaseException):
     pass
 class InvalidValueException(BaseException):
     pass
+class BadDBHdlException(BaseException):
+    pass

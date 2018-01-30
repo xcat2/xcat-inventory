@@ -24,14 +24,15 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-t','--type', metavar='<type>', help='Object type to be imported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be imported')
     @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to import from ')
+    @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to database')
     def do_import(self, args):
         """Import the inventory based on the type or name from specified path"""
         mgr.validate_args(args, 'import')
         if args.type :
             #do export by type
-            mgr.import_by_type(args.type, args.name, args.path)
+            mgr.import_by_type(args.type, args.name, args.path, dryrun=args.dryrun)
         else :
-            mgr.import_all(args.path)
+            mgr.import_all(args.path, dryrun=args.dryrun)
 
     @shell.arg('-t','--type', metavar='<type>', help='Object type to be exported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be exported')
@@ -53,7 +54,7 @@ def main():
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
-    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException), e:
+    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException), e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     #except (ParserError), e:

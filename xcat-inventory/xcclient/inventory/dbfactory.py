@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import dbobject
 from dbobject import *
-from dbsession import *
+from dbsession import DBsession
 from xcclient.shell import CommandException
 
 def create_or_update(session,tabcls,key,newdict):
@@ -43,10 +43,13 @@ def create_or_update(session,tabcls,key,newdict):
             print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
 
 class matrixdbfactory():
+    def __init__(self,dbsession):
+        self._dbsession=dbsession
+
     def gettab(self,tabs,keys=None):    
         ret={}
         for tabname in tabs:
-           dbsession=loadSession(tabname); 
+           dbsession=self._dbsession.loadSession(tabname); 
            if hasattr(dbobject,tabname):
                tab=getattr(dbobject,tabname)
            else:
@@ -66,13 +69,13 @@ class matrixdbfactory():
                ret[mykey].update(mydict)
         return  ret 
 
-    def settab(self,sessiondict,tabdict=None):
+    def settab(self,tabdict=None):
         #print "=========matrixdbfactory:settab========"
         if tabdict is None:
             return None
         for key in tabdict.keys():
             for tab in tabdict[key].keys():
-                dbsession=sessiondict[tab];
+                dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):
                     tabcls=getattr(dbobject,tab)
                 else:
@@ -81,6 +84,9 @@ class matrixdbfactory():
                     create_or_update(dbsession,tabcls,key,tabdict[key][tab])
 
 class flatdbfactory() :
+    def __init__(self,dbsession):
+        self._dbsession=dbsession
+
     def gettab(self,tabs,keys=None):    
         ret={}
         if keys:
@@ -89,7 +95,7 @@ class flatdbfactory() :
             rootkey='cluster'
         ret[rootkey]={}
         for tabname in tabs:
-            dbsession=loadSession(tabname);
+            dbsession=self._dbsession.loadSession(tabname);
             if hasattr(dbobject,tabname):
                 tab=getattr(dbobject,tabname)
             else:
@@ -102,12 +108,10 @@ class flatdbfactory() :
                 ret[rootkey].update(mydict)
         return  ret
    
-    def settab(self,sessiondict,tabdict=None):
+    def settab(self,tabdict=None):
         #print "======flatdbfactory:settab======"
         #print tabdict
         if tabdict is None:
-            return None
-        if sessiondict is None:
             return None
         for key in tabdict.keys():
             for tab in tabdict[key].keys():
@@ -117,12 +121,17 @@ class flatdbfactory() :
                     continue
                 tabkey=tabcls.getkey()
                 rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
-                dbsession=sessiondict[tab]
+                dbsession=self._dbsession.loadSession(tab)
                 for rowent in rowentlist:
                     if tabcls.isValid(key, rowent):
                         create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
+
 class dbfactory():
     _dbfactoryoftab={'site':'flat'}
+    
+    def __init__(self,dbsession):
+        self._dbsession=dbsession
+
     def gettab(self,tabs,keys=None):
         flattabs=[]
         matrixtabs=[]
@@ -133,10 +142,10 @@ class dbfactory():
             else:
                 matrixtabs.append(tab)
         if flattabs:
-            df_flat=flatdbfactory()
+            df_flat=flatdbfactory(self._dbsession)
             mydict.update(df_flat.gettab(flattabs,keys))
         if matrixtabs:
-            df_matrix=matrixdbfactory()
+            df_matrix=matrixdbfactory(self._dbsession)
             mydict.update(df_matrix.gettab(matrixtabs,keys))
         return mydict
         
@@ -144,9 +153,6 @@ class dbfactory():
     def settab(self,dbdict=None):                 
         if dbdict is None:
             return None
-        sessiondict={}
-        if not isSqlite():
-            dbsession=loadSession()
         flattabdict={}
         matrixtabdict={}
         try:
@@ -162,10 +168,6 @@ class dbfactory():
                         if col not in flattabdict[key][tab].keys():
                             flattabdict[key][tab][col]={}
                         flattabdict[key][tab][col]=curdict[tabcol]
-                        if isSqlite():
-                            sessiondict[tab]=loadSession(tab)
-                        else:
-                            sessiondict[tab]=dbsession
                     else:
                         if key not in matrixtabdict.keys():
                             matrixtabdict[key]={}
@@ -174,28 +176,18 @@ class dbfactory():
                         if col not in matrixtabdict[key][tab].keys():
                             matrixtabdict[key][tab][col]={}
                         matrixtabdict[key][tab][col]=curdict[tabcol]
-                        if isSqlite():
-                            sessiondict[tab]=loadSession(tab)
-                        else:
-                            sessiondict[tab]=dbsession
             if flattabdict:
-                df_flat=flatdbfactory()
-                mydict=df_flat.settab(sessiondict,flattabdict)
+                df_flat=flatdbfactory(self._dbsession)
+                mydict=df_flat.settab(flattabdict)
             if matrixtabdict: 
-                df_matrix=matrixdbfactory()
-                mydict=df_matrix.settab(sessiondict,matrixtabdict)  
+                df_matrix=matrixdbfactory(self._dbsession)
+                mydict=df_matrix.settab(matrixtabdict)  
         except CommandException as e:
             print str(e)
         except Exception as e:
             print str(e)
             print "import object failed."
         else:
-            if isSqlite():
-                for key in sessiondict.keys():
-                    sessiondict[key].commit()
-            else:
-                dbsession.commit()
-                dbsession.close()
             print "import object successfully."          
 
 if __name__ == "__main__":

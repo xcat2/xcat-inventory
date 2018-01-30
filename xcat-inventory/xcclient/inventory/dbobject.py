@@ -28,14 +28,14 @@ class mixin(object):
 ########################################################################
 class passwd(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('passwd')
+    Base.metadata.bind = DBsession.getEngine('passwd')
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class networks(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('networks')
+    Base.metadata.bind = DBsession.getEngine('networks')
     __tablename__ = 'networks'
     __table_args__ = {'autoload':True}
 
@@ -60,7 +60,7 @@ class networks(Base,mixin):
 ########################################################################
 class routes(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('routes')
+    Base.metadata.bind = DBsession.getEngine('routes')
     __tablename__ = 'routes'
     __table_args__ = {'autoload':True}
 
@@ -68,7 +68,7 @@ class routes(Base,mixin):
 ########################################################################
 class nodetype(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nodetype')
+    Base.metadata.bind = DBsession.getEngine('nodetype')
     __tablename__ = 'nodetype'
     __table_args__ = {'autoload':True} 
 
@@ -82,264 +82,264 @@ class hosts(Base,mixin):
 ########################################################################
 class noderes(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('noderes')
+    Base.metadata.bind = DBsession.getEngine('noderes')
     __tablename__ = 'noderes'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class switch(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('switch')
+    Base.metadata.bind = DBsession.getEngine('switch')
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
 ########################################################################
 class switches(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('switches')
+    Base.metadata.bind = DBsession.getEngine('switches')
     __tablename__ = 'switches'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mac(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('mac')
+    Base.metadata.bind = DBsession.getEngine('mac')
     __tablename__ = 'mac'
     __table_args__ = {'autoload':True}
 ########################################################################
 class hwinv(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('hwinv')
+    Base.metadata.bind = DBsession.getEngine('hwinv')
     __tablename__ = 'hwinv'
     __table_args__ = {'autoload':True}
 ########################################################################
 class postscripts(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('postscripts')
+    Base.metadata.bind = DBsession.getEngine('postscripts')
     __tablename__ = 'postscripts'
     __table_args__ = {'autoload':True}
     
 ########################################################################
 class bootparams(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('bootparams')
+    Base.metadata.bind = DBsession.getEngine('bootparams')
     __tablename__ = 'bootparams'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class nodelist(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nodelist')
+    Base.metadata.bind = DBsession.getEngine('nodelist')
     __tablename__ = 'nodelist'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class vm(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('vm')
+    Base.metadata.bind = DBsession.getEngine('vm')
     __tablename__ = 'vm'
     __table_args__ = {'autoload':True}
 ########################################################################
 class policy(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('policy')
+    Base.metadata.bind = DBsession.getEngine('policy')
     __tablename__ = 'policy'
     __table_args__ = {'autoload':True}
 
 ########################################################################
 class nodehm(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nodehm')
+    Base.metadata.bind = DBsession.getEngine('nodehm')
     __tablename__ = 'nodehm'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nodegroup(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nodegroup')
+    Base.metadata.bind = DBsession.getEngine('nodegroup')
     __tablename__ = 'nodegroup'
     __table_args__ = {'autoload':True}
 ########################################################################
 class vpd(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('vpd')
+    Base.metadata.bind = DBsession.getEngine('vpd')
     __tablename__ = 'vpd'
     __table_args__ = {'autoload':True}
 ########################################################################
 class servicenode(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('servicenode')
+    Base.metadata.bind = DBsession.getEngine('servicenode')
     __tablename__ = 'servicenode'
     __table_args__ = {'autoload':True}
 ########################################################################
 class hosts(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('hosts')
+    Base.metadata.bind = DBsession.getEngine('hosts')
     __tablename__ = 'hosts'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nics(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nics')
+    Base.metadata.bind = DBsession.getEngine('nics')
     __tablename__ = 'nics'
     __table_args__ = {'autoload':True}
 ########################################################################
 class openbmc(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('openbmc')
+    Base.metadata.bind = DBsession.getEngine('openbmc')
     __tablename__ = 'openbmc'
     __table_args__ = {'autoload':True}
 ########################################################################
 class prodkey(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('prodkey')
+    Base.metadata.bind = DBsession.getEngine('prodkey')
     __tablename__ = 'prodkey'
     __table_args__ = {'autoload':True}
 ########################################################################
 class domain(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('domain')
+    Base.metadata.bind = DBsession.getEngine('domain')
     __tablename__ = 'domain'
     __table_args__ = {'autoload':True}
 ########################################################################
 class chain(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('chain')
+    Base.metadata.bind = DBsession.getEngine('chain')
     __tablename__ = 'chain'
     __table_args__ = {'autoload':True}
 ########################################################################
 class rack(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('rack')
+    Base.metadata.bind = DBsession.getEngine('rack')
     __tablename__ = 'rack'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nodepos(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nodepos')
+    Base.metadata.bind = DBsession.getEngine('nodepos')
     __tablename__ = 'nodepos'
     __table_args__ = {'autoload':True}
 ########################################################################
 class ppc(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('ppc')
+    Base.metadata.bind = DBsession.getEngine('ppc')
     __tablename__ = 'ppc'
     __table_args__ = {'autoload':True}
 ########################################################################
 class ppchcp(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('ppchcp')
+    Base.metadata.bind = DBsession.getEngine('ppchcp')
     __tablename__ = 'ppchcp'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mp(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('mp')
+    Base.metadata.bind = DBsession.getEngine('mp')
     __tablename__ = 'mp'
     __table_args__ = {'autoload':True}
 ########################################################################
 class zvm(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('zvm')
+    Base.metadata.bind = DBsession.getEngine('zvm')
     __tablename__ = 'zvm'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mpa(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('mpa')
+    Base.metadata.bind = DBsession.getEngine('mpa')
     __tablename__ = 'mpa'
     __table_args__ = {'autoload':True}
 ########################################################################
 class pdu(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('pdu')
+    Base.metadata.bind = DBsession.getEngine('pdu')
     __tablename__ = 'pdu'
     __table_args__ = {'autoload':True}
 ########################################################################
 class pduoutlet(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('pduoutlet')
+    Base.metadata.bind = DBsession.getEngine('pduoutlet')
     __tablename__ = 'pduoutlet'
     __table_args__ = {'autoload':True}
 ########################################################################
 class cfgmgt(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('cfgmgt')
+    Base.metadata.bind = DBsession.getEngine('cfgmgt')
     __tablename__ = 'cfgmgt'
     __table_args__ = {'autoload':True}
 ########################################################################
 class hypervisor(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('hypervisor')
+    Base.metadata.bind = DBsession.getEngine('hypervisor')
     __tablename__ = 'hypervisor'
     __table_args__ = {'autoload':True}
 ########################################################################
 class iscsi(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('iscsi')
+    Base.metadata.bind = DBsession.getEngine('iscsi')
     __tablename__ = 'iscsi'
     __table_args__ = {'autoload':True}
 ########################################################################
 class mic(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('mic')
+    Base.metadata.bind = DBsession.getEngine('mic')
     __tablename__ = 'mic'
     __table_args__ = {'autoload':True}
 ########################################################################
 class ppcdirect(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('ppcdirect')
+    Base.metadata.bind = DBsession.getEngine('ppcdirect')
     __tablename__ = 'ppcdirect'
     __table_args__ = {'autoload':True}
 ########################################################################
 class storage(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('storage')
+    Base.metadata.bind = DBsession.getEngine('storage')
     __tablename__ = 'storage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class websrv(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('websrv')
+    Base.metadata.bind = DBsession.getEngine('websrv')
     __tablename__ = 'websrv'
     __table_args__ = {'autoload':True}
 ########################################################################
 class prescripts(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('prescripts')
+    Base.metadata.bind = DBsession.getEngine('prescripts')
     __tablename__ = 'prescripts'
     __table_args__ = {'autoload':True}
 ########################################################################
 class ipmi(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('ipmi')
+    Base.metadata.bind = DBsession.getEngine('ipmi')
     __tablename__ = 'ipmi'
     __table_args__ = {'autoload':True}
 ########################################################################
 class osimage(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('osimage')
+    Base.metadata.bind = DBsession.getEngine('osimage')
     __tablename__ = 'osimage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class linuximage(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('linuximage')
+    Base.metadata.bind = DBsession.getEngine('linuximage')
     __tablename__ = 'linuximage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class winimage(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('winimage')
+    Base.metadata.bind = DBsession.getEngine('winimage')
     __tablename__ = 'winimage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class nimimage(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('nimimage')
+    Base.metadata.bind = DBsession.getEngine('nimimage')
     __tablename__ = 'nimimage'
     __table_args__ = {'autoload':True}
 ########################################################################
 class site(Base,mixin):
     """"""
-    Base.metadata.bind = getEngine('site')
+    Base.metadata.bind = DBsession.getEngine('site')
     __tablename__ = 'site'
     __table_args__ = {'autoload':True}
 
