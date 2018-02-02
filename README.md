@@ -1,4 +1,6 @@
-# xCAT-Incubator
+# xcat-inventory
+
+A tool to backup/restore the xcat cluster configuration
 =============================================
 the syntax of command to export the xcat inventory data(for specific type, specific objects, or the whole cluster):  
 ```
