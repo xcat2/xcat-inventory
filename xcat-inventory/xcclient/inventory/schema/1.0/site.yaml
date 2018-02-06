@@ -1,6 +1,5 @@
 !!python/dict  
   site:
-    schema_version: "1.0"
     auditnosyslog: "T{site.auditnosyslog}"
     auditskipcmds: "T{site.auditskipcmds}"
     blademaxp: "T{site.blademaxp}"

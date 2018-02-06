@@ -1,6 +1,5 @@
 !!python/dict  
   policy:
-    schema_version: "1.0"
     name: "T{policy.name}"
     host: "T{policy.host}"
     commands: "T{policy.commands}"

@@ -1,6 +1,5 @@
 !!python/dict  
   network:
-    schema_version: "1.0"
     basic_attr:
       net: "T{networks.net}"
       mask: "T{networks.mask}"

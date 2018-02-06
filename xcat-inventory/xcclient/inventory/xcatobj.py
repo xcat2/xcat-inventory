@@ -77,6 +77,7 @@ class XcatBase(object):
     def __gendepdict(cls,schmpath):
         valregex=re.compile("^\$\{\{((.*):(.*))\}\}\s*$")
         revregex=re.compile("^W:T\{(\S+)\}=(.+)$")
+        validateregex=re.compile("^C:\$")
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
     
@@ -122,14 +123,18 @@ class XcatBase(object):
        
         fwdrules=[] 
         revrules=[]
+        validaterules=[]
         for item in rawvaluelist:
-            if not re.match(valregex,item) and not re.match(revregex,item):
+            if not re.match(valregex,item) and not re.match(revregex,item) and not re.match(validateregex,item):
                 item='${{:'+item+'}}'
                 fwdrules.append(item)
             elif re.match(valregex,item): 
                 fwdrules.append(item)
             elif re.match(revregex,item):
                 revrules.append(item)
+            elif re.match(validateregex,item):
+                validaterules.append(item)
+                print validaterules
 
         for item in fwdrules:
             ret=__parselambda(item)
@@ -240,8 +245,11 @@ class XcatBase(object):
                 if myval is None:
                     myval=''
             myexpression=myexpression.replace('V{'+item+'}',"'"+myval+"'")
-        evalexp=eval("lambda "+myexpression)
-        value=evalexp()
+        try:
+            evalexp=eval("lambda "+myexpression)
+            value=evalexp()
+        except Exception,e:
+            raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\"")
         Util_setdictval(self._mydict,valpath,value)
         return value 
                    
@@ -271,10 +279,14 @@ class XcatBase(object):
         if schema is None:
             schema=cls._schema_loc__
         #cls._schema=yaml.load(file(schema,'r'))['node']
-        schema=yaml.load(file(schema,'r'))
+        try: 
+            schema=yaml.load(file(schema,'r'))
+        except Exception, e:
+            raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
         schmkey=schema.keys()[0]
         cls._schema=schema[schmkey] 
         cls.scanschema()
+        cls._schema_loc__=schema
 
     @classmethod
     def gettablist(cls):
@@ -304,8 +316,6 @@ class XcatBase(object):
         
 
     def setobjdict(self,objdict):
-        if str(objdict['schema_version']) != str(self.__class__._schema['schema_version']):
-            raise InvalidFileException("Error: schema version mismatch")
         self.__class__.validateschema(objdict)
         self._mydict=deepcopy(objdict)
         self._mydict['obj_name']=self.name
@@ -325,7 +335,7 @@ class XcatBase(object):
 
 
 class Node(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/node.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/node.yaml')
     def getobjdict(self):
         ret={}
         ret=super(Node,self).getobjdict()
@@ -399,22 +409,22 @@ class Node(XcatBase):
         super(Node,self).setobjdict(tmpdict)
     
 class Osimage(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/osimage.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/osimage.yaml')
     
 class Network(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/network.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/network.yaml')
 
 class Route(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/route.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/route.yaml')
 
 class Policy(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/policy.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/policy.yaml')
 
 class Passwd(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/passwd.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/passwd.yaml')
 
 class Site(XcatBase):
-    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/site.yaml')
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/site.yaml')
 
 if __name__ == "__main__":
 

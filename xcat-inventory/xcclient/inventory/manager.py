@@ -26,27 +26,37 @@ class InventoryFactory(object):
     __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site}
     __db__ = None
     
-    def __init__(self, objtype,dbsession):
+    def __init__(self, objtype,dbsession,schemapath):
         self.objtype = objtype
         self.dbsession=dbsession
+        self.schemapath=schemapath
 
     @staticmethod
-    def createHandler(objtype,dbsession):
+    def createHandler(objtype,dbsession,schemaversion='latest'):
+        if schemaversion is None:
+            schemaversion='latest'
+        schemapath=os.path.join(os.path.dirname(__file__), 'schema/'+schemaversion+'/'+objtype+'.yaml')
+        if not os.path.exists(schemapath):
+            raise BadSchemaException("Error: schema file \""+schemapath+"\" does not exist, please confirm the schema version!")
         # non-thread-safe now
         if objtype not in InventoryFactory.__InventoryHandlers__:
-            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession)
-
+            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath)
         return InventoryFactory.__InventoryHandlers__[objtype]
 
+    @staticmethod
+    def getLatestSchemaVersion():
+        schemapath=os.path.join(os.path.dirname(__file__), 'schema/latest')
+        realpath=os.path.realpath(schemapath)
+        return os.path.basename(realpath)
+   
     def getDBInst(self):
         if InventoryFactory.__db__ is None:
             InventoryFactory.__db__=dbfactory(self.dbsession)
-
         return InventoryFactory.__db__
 
     def exportObjs(self, objlist, location=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
-        myclass.loadschema()
+        myclass.loadschema(self.schemapath)
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
         objdict={}
@@ -59,6 +69,7 @@ class InventoryFactory(object):
 
     def importObjs(self, objlist, obj_attr_dict):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
+        myclass.loadschema(self.schemapath)
         dbdict = {}
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
@@ -95,9 +106,10 @@ def validate_args(args, action):
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
             raise CommandException("Error: Invalid exporting format: %(f)s", f=args.format)
 
-def export_by_type(objtype, names, location, fmt):
+def export_by_type(objtype, names, location, fmt,version=None):
+    InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
-    hdl = InventoryFactory.createHandler(objtype,dbsession)
+    hdl = InventoryFactory.createHandler(objtype,dbsession,version)
     objlist = []
     if names:
         objlist.extend(names.split(','))
@@ -106,6 +118,11 @@ def export_by_type(objtype, names, location, fmt):
     nonexistobjlist=list(set(objlist).difference(set(typedict[objtype].keys())))
     if nonexistobjlist:
         raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
+   
+    if version is None or version in ('latest'):
+        version=InventoryFactory.getLatestSchemaVersion()
+    typedict['schema_version']=version    
+    
     if not fmt or fmt.lower() == 'json':
         dump2json(typedict)
     else:
@@ -113,22 +130,27 @@ def export_by_type(objtype, names, location, fmt):
     dbsession.close() 
 
 
-def export_all(location, fmt):
+def export_all(location, fmt,version=None):
     dbsession=DBsession()
     #for objtype in ['node']:#VALID_OBJ_TYPES:
     wholedict={}
     for objtype in VALID_OBJ_TYPES:#VALID_OBJ_TYPES:
-        hdl = InventoryFactory.createHandler(objtype,dbsession)
+        hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         wholedict.update(hdl.exportObjs([]))
+
+    if version is None or version in ('latest'):
+        version=InventoryFactory.getLatestSchemaVersion()
+    wholedict['schema_version']=version
+
     if not fmt or fmt.lower() == 'json':
         dump2json(wholedict)
     else:
         dump2yaml(wholedict)
     dbsession.close() 
 
-def import_by_type(objtype, names, location,dryrun=None):
+def import_by_type(objtype, names, location,dryrun=None,version=None):
     dbsession=DBsession()
-    hdl = InventoryFactory.createHandler(objtype,dbsession)
+
     objlist = []
     if names:
         objlist.extend(names.split(','))
@@ -142,6 +164,21 @@ def import_by_type(objtype, names, location,dryrun=None):
             obj_attr_dict = yaml.load(contents)
         except Exception,e:
             raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
+  
+    versinfile=None
+    if 'schema_version' in obj_attr_dict.keys():
+        versinfile=obj_attr_dict['schema_version']
+        del obj_attr_dict['schema_version']
+    if not versinfile or versinfile == 'latest':
+        versinfile=InventoryFactory.getLatestSchemaVersion()
+    if version == 'latest':
+        version=InventoryFactory.getLatestSchemaVersion()
+    if version and version != versinfile:
+        raise CommandException("Error: the specified schema version \""+version+"\" does not match the schema_version \""+versinfile+"\" in input file "+location ) 
+    version=versinfile
+
+    hdl = InventoryFactory.createHandler(objtype,dbsession,version)
+
     if objtype: 
         if objtype not in obj_attr_dict.keys():
             raise ObjNonExistException("Error: cannot find object type '"+objtype+"' in the file "+location)
@@ -159,7 +196,7 @@ def import_by_type(objtype, names, location,dryrun=None):
         print("Dry run mode, nothing will be written to database!")
     dbsession.close()
 
-def import_all(location,dryrun=None):
+def import_all(location,dryrun=None,version=None):
     dbsession=DBsession()
     with open(location) as file:
         contents=file.read()
@@ -170,9 +207,21 @@ def import_all(location,dryrun=None):
             obj_attr_dict = yaml.load(contents)
         except Exception,e:
             raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
+
+    versinfile=None
+    if 'schema_version' in obj_attr_dict.keys():
+        versinfile=obj_attr_dict['schema_version']
+        del obj_attr_dict['schema_version']
+    if not versinfile or versinfile == 'latest':
+        versinfile=InventoryFactory.getLatestSchemaVersion()
+    if version == 'latest':
+        version=InventoryFactory.getLatestSchemaVersion()
+    if version and version != versinfile:
+        raise CommandException("Error: the specified schema version \""+version+"\" does not match the schema_version \""+versinfile+"\" in input file "+location )
+    version=versinfile
     
     for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
-        hdl = InventoryFactory.createHandler(objtype,dbsession)
+        hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         hdl.importObjs([], obj_attr_dict[objtype])
     
     if not dryrun:

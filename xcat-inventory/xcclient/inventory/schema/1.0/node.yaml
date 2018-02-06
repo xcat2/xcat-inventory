@@ -1,6 +1,5 @@
 !!python/dict
   node:
-    schema_version: "1.0"
     obj_type: 
     - "${{ groupname=T{nodegroup.groupname}, nodename=T{nodelist.node},objname=V{obj_name} :'node' if nodename == objname else 'group'}}"
     - "W:T{nodegroup.groupname}=${{objtype=V{obj_type}: V{obj_name} if objtype=='group' else None}}"

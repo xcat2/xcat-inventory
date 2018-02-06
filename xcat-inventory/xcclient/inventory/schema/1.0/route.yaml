@@ -1,6 +1,5 @@
 !!python/dict  
   route:
-    schema_version: "1.0"
     net: "T{routes.net}"
     mask: "T{routes.mask}"
     ifname: "T{routes.ifname}"

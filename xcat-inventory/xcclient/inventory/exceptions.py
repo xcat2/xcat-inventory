@@ -37,3 +37,5 @@ class InvalidValueException(BaseException):
     pass
 class BadDBHdlException(BaseException):
     pass
+class BadSchemaException(BaseException):
+    pass

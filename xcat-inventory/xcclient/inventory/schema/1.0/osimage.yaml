@@ -1,6 +1,5 @@
 !!python/dict
   osimage:
-    schema_version: "1.0"
     imagetype:
     - "T{osimage.imagetype}"
     - "W:T{winimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'windows' else None }}"
