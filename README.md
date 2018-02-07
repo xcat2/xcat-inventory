@@ -20,7 +20,7 @@ xcat-inventory export [--format=<yaml/json>] [-t|--type=<node/osimage/site/polic
   xcat-inventory export --format=yaml -t node -o c910f03c05k27,virtswitch1
   ```
   
-  3. to generate the inventory data for the who cluster
+  3. to generate the inventory data for the whole cluster
   ```
   xcat-inventory export --format=yaml
   ```
