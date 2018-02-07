@@ -7,7 +7,7 @@ Usage Info:
 
 A. the syntax of command to export the xcat inventory data(for specific type, specific objects, or the whole cluster):  
 ```
-xcat-inventory export [--format=<yaml/json>] [-t|--type=<node/osimage/site/policy/passwd/network/router>] [-o|--objects=<object list delimited with ','>]
+xcat-inventory export [--format=<yaml/json>] [-t|--type=<node/osimage/site/policy/passwd/network/route>] [-o|--objects=<object list delimited with ','>]
 
 ```
   1. to generate the inventory data for all osimage in yaml format
@@ -30,7 +30,7 @@ xcat-inventory export [--format=<yaml/json>] [-t|--type=<node/osimage/site/polic
 
 B. the syntax to import the inventory data to xcat is:
 ```
-xcat-inventory import -f|--path <the path to inventory file> [-t|--type=<node/osimage/site/policy/passwd/network/router>] [-o|--objects=<object list delimited with ','>]
+xcat-inventory import -f|--path <the path to inventory file> [-t|--type=<node/osimage/site/policy/passwd/network/route>] [-o|--objects=<object list delimited with ','>]
 ```
   1. to import  the definition of node virtswitch1  from the full inventory file
   ```
