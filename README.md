@@ -71,7 +71,7 @@ xcat-inventory export --format=yaml >/git/cluster-data/clusterinv.yaml
 ```
 git diff 
 git add /git/cluster-data/clusterinv.yaml
-git commit /git/cluster-data/clusterinv.yaml -m "$(date "+%Y_%m_%d_%H_%M_%S"): replaced bad nodes; turn on xcatdebugmode;blabla"
+git commit /git/cluster-data/clusterinv.yaml -m "$(date "+%Y_%m_%d_%H_%M_%S"): replaced bad nodes; turn on xcatdebugmode; blah-blah"
 ```
 
 4. ordinary cluster operation
