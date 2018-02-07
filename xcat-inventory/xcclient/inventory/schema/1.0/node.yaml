@@ -156,7 +156,7 @@
               hwtype: "T{mp.nodetype}"
               mpa: "T{mp.mpa}"
        power_mgt_engine:
-          engine_type: "T{nodehm.mgt}" 
+          engine_type: "T{nodehm.power}" 
           engine_info: 
             pdu: "T{pduoutlet.pdu}"
        netboot_engine:
@@ -172,9 +172,8 @@
             prescriptsbegin: "T{prescripts.begin}"
             prescriptsend: "T{prescripts.end}"
        console_engine:
-          engine_type: "T{nodehm.mgt}"
+          engine_type: "T{nodehm.cons}"
           engine_info:
-            cons: "T{nodehm.cons}"
             conserver: "T{nodehm.conserver}"
             serialport: "T{nodehm.serialport}"
             serialspeed: "T{nodehm.serialspeed}"
