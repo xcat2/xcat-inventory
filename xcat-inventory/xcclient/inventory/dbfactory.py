@@ -35,10 +35,8 @@ def create_or_update(session,tabcls,key,newdict):
         newdict[tabkey]=key
         try:
             session.execute(tabcls.__table__.insert(), newdict)
-        except(sqlalchemy.exc.IntegrityError):
-            raise CommandException("Error: xCAT object %(t)s is duplicate.", t=key)
         except Exception, e:
-            raise Exception, "Error: import object "+key+" is failed: "+str(e) 
+            raise Exception, "Error: import object "+key+" to table "+tabcls.__tablename__+" is failed: "+str(e) 
         else:
             print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
 
