@@ -134,7 +134,6 @@ class XcatBase(object):
                 revrules.append(item)
             elif re.match(validateregex,item):
                 validaterules.append(item)
-                print validaterules
 
         for item in fwdrules:
             ret=__parselambda(item)
