@@ -18,7 +18,7 @@ import yaml
 Command-line interface to xCAT inventory import/export
 """
 
-VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage', 'route', 'policy', 'passwd','site']
+#VALID_OBJ_TYPES = ['site', 'node', 'network', 'osimage', 'route', 'policy', 'passwd','site']
 VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
@@ -30,6 +30,10 @@ class InventoryFactory(object):
         self.objtype = objtype
         self.dbsession=dbsession
         self.schemapath=schemapath
+
+    @classmethod
+    def getvalidobjtypes(cls):
+        return cls.__InventoryClass__.keys()
 
     @staticmethod
     def createHandler(objtype,dbsession,schemaversion='latest'):
@@ -66,7 +70,16 @@ class InventoryFactory(object):
             objdict[self.objtype].update(newobj.getobjdict())
         return objdict
         
-
+    @classmethod
+    def validateObjLayout(cls,obj_attr_dict):
+        filekeys=set(obj_attr_dict.keys())
+        schemakeys=set(cls.getvalidobjtypes())
+        schemakeys.add('schema_version')
+        invalidkeys=list(filekeys-schemakeys)
+        if invalidkeys:
+            raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
+        
+        
     def importObjs(self, objlist, obj_attr_dict):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
@@ -92,7 +105,7 @@ def dump2json(xcatobj, location=None):
 
 def validate_args(args, action):
 
-    if args.type and args.type.lower() not in VALID_OBJ_TYPES:
+    if args.type and args.type.lower() not in InventoryFactory.getvalidobjtypes():
         raise CommandException("Error: Invalid object type: %(t)s", t=args.type)
 
     if args.name and not args.type:
@@ -132,9 +145,8 @@ def export_by_type(objtype, names, location, fmt,version=None):
 
 def export_all(location, fmt,version=None):
     dbsession=DBsession()
-    #for objtype in ['node']:#VALID_OBJ_TYPES:
     wholedict={}
-    for objtype in VALID_OBJ_TYPES:#VALID_OBJ_TYPES:
+    for objtype in InventoryFactory.getvalidobjtypes():
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         wholedict.update(hdl.exportObjs([]))
 
@@ -219,7 +231,8 @@ def import_all(location,dryrun=None,version=None):
     if version and version != versinfile:
         raise CommandException("Error: the specified schema version \""+version+"\" does not match the schema_version \""+versinfile+"\" in input file "+location )
     version=versinfile
-    
+   
+    InventoryFactory.validateObjLayout(obj_attr_dict) 
     for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         hdl.importObjs([], obj_attr_dict[objtype])

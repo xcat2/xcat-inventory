@@ -22,7 +22,7 @@
     device_info:
       arch: 
       - "T{nodetype.arch}"
-      - "C:${{arch=V{device_info.arch}: True if arch in ('ppc64','ppc64el','ppc64le','x86_64') else False}}"
+      - "C:${{arch=V{device_info.arch}: True if arch in ('ppc64','ppc64el','ppc64le','x86_64','armv71') else False}}"
       supportedarchs: 
       - "T{nodetype.supportedarchs}"
       disksize: "T{hwinv.disksize}"
@@ -55,10 +55,18 @@
       type: "T{domain.type}"
     security_info:
       snmp:
-        securitylevel: "T{pdu.seclevel}"
-        version: "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ('pdu') else None}}"
-        authprotocol: "${{ devtype=V{device_type}: T{switches.auth} if devtype in ('switch') else T{pdu.authtype} if devtype in ('pdu')  else None  }}" 
-        privacyprotocol: "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else T{pdu.privtype} if devtype in ('pdu')  else  None }}"
+        securitylevel: 
+        - "T{pdu.seclevel}"
+        - "C:${{seclevel=V{security_info.snmp.securitylevel}: True if seclevel in  ('', 'noAuthNoPriv','authNoPriv','authPriv') else False}}"
+        version: 
+        - "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ('pdu') else None}}"
+        - "C:${{version=V{security_info.snmp.version}: True if version in ('','SNMPv1','SNMPv2','SNMPv3') else False}}"
+        authprotocol: 
+        - "${{ devtype=V{device_type}: T{switches.auth} if devtype in ('switch') else T{pdu.authtype} if devtype in ('pdu')  else None  }}" 
+        - "C:${{authtype=V{security_info.snmp.authprotocol}: True if authtype in ('','MD5','SHA') else False}}"
+        privacyprotocol: 
+        - "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else T{pdu.privtype} if devtype in ('pdu')  else  None }}"
+        - "C:${{privtype=V{security_info.snmp.privacyprotocol}: True if privtype in ('','AES','DES','authNoPriv') else False}}"
         community: "${{devtype=V{device_type}: T{pdu.community} if devtype in ('pdu')  else T{switches.password} if devtype == 'switch' else None}}"
         username: "${{devtype=V{device_type}: T{switches.username} if devtype == 'switch' else T{pdu.snmpuser} if devtype in ('pdu') else None}}"
         authkey: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else T{pdu.authkey} if devtype in ('pdu') else None}}"
@@ -66,7 +74,9 @@
       remotecontrol:
         username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{pdu.username} if devtype in ('pdu') else T{ppchcp.username} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.username} if devtype in ('mm')  else None}}" 
         password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ('pdu') else T{ppchcp.password} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.password} if devtype in ('mm')  else None}}"
-        remoteprotocol: "T{switches.protocol}"
+        remoteprotocol: 
+        - "T{switches.protocol}"
+        - "C:${{protocol=V{security_info.remotecontrol.remoteprotocol}: True if protocol in ('','ssh','telnet') else False}}"
       zonename: "T{nodelist.zonename}"
       product: "T{prodkey.product}"
       productkey: "T{prodkey.key}"
@@ -77,15 +87,17 @@
       primarynic: 
         ip: 
         - "T{hosts.ip}"
-        - "C:${{ip=V{network_info.primarynic.ip},devtype=V{device_type}: False if devtype in 'server' and not ip else True }}"
+        - "C:${{ip=V{network_info.primarynic.ip},devtype=V{device_type}: False if devtype not in ('rack') and not ip else True }}"
         mac: 
         - "T{mac.mac}"   
         - "C:${{mac=V{network_info.primarynic.mac},devtype=V{device_type}: 
-                    False if devtype in 'server' and not mac
+                    False if devtype in ('server') and not mac
                           else True }}" 
         hostnames: "T{hosts.hostnames}"
         switch: "T{switch.switch}"
-        switchport: "T{switch.port}"
+        switchport: 
+        - "T{switch.port}"
+        - "C:${{swport=V{network_info.primarynic.switchport}: False if swport and not str(swport).isdigit() else True}}"
         switchvlan: "T{switch.vlan}"
         switchinterface: "T{switch.interface}"
       nics:
@@ -103,7 +115,7 @@
        hardware_mgt_engine:
           engine_type: 
           - "T{nodehm.mgt}"
-          - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if engine_type in ('openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade') else False}}"
+          - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if engine_type in ('','openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade') else False}}"
           engine_info:
             openbmc_info:
               bmc: "T{openbmc.bmc}"
@@ -161,7 +173,9 @@
           engine_info: 
             pdu: "T{pduoutlet.pdu}"
        netboot_engine:
-          engine_type: "T{noderes.netboot}" 
+          engine_type: 
+          - "T{noderes.netboot}" 
+          - "C:${{enginetype=V{engines.netboot_engine.engine_type}: True if enginetype in ('','pxe','xnba','grub2','yaboot','petitboot') else False }}"
           engine_info: 
             installnic: "T{noderes.installnic}"
             discoverynics: "T{noderes.discoverynics}"
@@ -185,6 +199,7 @@
     role: 
     - "${{ snname=T{servicenode.node},objname=V{obj_name}: 'service' if snname ==objname else 'compute'}}"
     - "W:T{servicenode.node}=${{role=V{role}: V{obj_name} if role == 'service' else None}}"
+    - "C:${{role=V{role}: True if role in ('compute','service') else False}}"
     role_info:
       xcatmaster: "T{noderes.xcatmaster}"
       servicenode: "T{noderes.servicenode}"
@@ -194,15 +209,33 @@
       nameservers: "T{noderes.nameservers}"
       nodelistprimarysn: "T{nodelist.primarysn}"
       enablesyslog: "T{noderes.syslog}"
-      setupnameserver: "${{role=V{role}: T{servicenode.nameserver} if role == 'service' else None}}"
-      setupdhcp:  "${{ role=V{role}: T{servicenode.dhcpserver} if role == 'service' else None}}"
-      setuptftp: "${{ role=V{role}: T{servicenode.tftpserver} if role == 'service' else None}}"
-      setupnfs: "${{ role=V{role}: T{servicenode.nfsserver} if role == 'service' else None}}"
-      setupconserver: "${{ role=V{role}: T{servicenode.conserver} if role == 'service' else None}}"
-      setupipforward: "${{ role=V{role}: T{servicenode.ipforward} if role == 'service' else None}}"
-      setupproxydhcp: "${{ role=V{role}: T{servicenode.proxydhcp} if role == 'service' else None}}"
-      setupldap: "${{ role=V{role}: T{servicenode.ldapserver} if role == 'service' else None}}"
-      setupntp: "${{ role=V{role}: T{servicenode.ntpserver} if role == 'service' else None}}"
+      setupnameserver: 
+      - "${{role=V{role}: T{servicenode.nameserver} if role == 'service' else None}}"
+      - "C:${{setupnameserver=V{role_info.setupnameserver}: True if setupnameserver in ('0','1','2','') else False}}"
+      setupdhcp:  
+      - "${{ role=V{role}: T{servicenode.dhcpserver} if role == 'service' else None}}"
+      - "C:${{setupdhcp=V{role_info.setupdhcp}: True if setupdhcp in ('0','1','') else False}}"
+      setuptftp: 
+      - "${{ role=V{role}: T{servicenode.tftpserver} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setuptftp}: True if option in ('0','1','') else False}}"
+      setupnfs: 
+      - "${{ role=V{role}: T{servicenode.nfsserver} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupnfs}: True if option in ('0','1','') else False}}"
+      setupconserver: 
+      - "${{ role=V{role}: T{servicenode.conserver} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupconserver}: True if option in ('0','1','2','') else False}}"
+      setupipforward: 
+      - "${{ role=V{role}: T{servicenode.ipforward} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupipforward}: True if option in ('0','1','') else False}}"
+      setupproxydhcp: 
+      - "${{ role=V{role}: T{servicenode.proxydhcp} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupproxydhcp}: True if option in ('0','1','') else False}}"
+      setupldap: 
+      - "${{ role=V{role}: T{servicenode.ldapserver} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupldap}: True if option in ('0','1','') else False}}"
+      setupntp: 
+      - "${{ role=V{role}: T{servicenode.ntpserver} if role == 'service' else None}}"
+      - "C:${{option=V{role_info.setupntp}: True if option in ('0','1','') else False}}"
       dhcpinterfaces: "${{ role=V{role}:T{servicenode.dhcpinterfaces} if role == 'service' else None}}"
     deprecated:
       cfgmgtcfgmgr: "T{cfgmgt.cfgmgr}"
