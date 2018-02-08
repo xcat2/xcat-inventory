@@ -90,7 +90,7 @@ class flatdbfactory() :
         if keys:
             rootkey=keys[0]  
         else:
-            rootkey='cluster'
+            rootkey='clustersite'
         ret[rootkey]={}
         for tabname in tabs:
             dbsession=self._dbsession.loadSession(tabname);
