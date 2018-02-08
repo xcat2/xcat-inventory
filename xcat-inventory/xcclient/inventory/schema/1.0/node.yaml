@@ -68,6 +68,7 @@
         password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ('pdu') else T{ppchcp.password} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.password} if devtype in ('mm')  else None}}"
         remoteprotocol: "T{switches.protocol}"
       zonename: "T{nodelist.zonename}"
+      product: "T{prodkey.product}"
       productkey: "T{prodkey.key}"
     network_info:
       linkports: "${{devtype=V{device_type}: T{switches.linkports} if devtype == 'switch' else None}}"
