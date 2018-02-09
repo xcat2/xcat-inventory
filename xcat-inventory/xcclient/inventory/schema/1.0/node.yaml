@@ -59,7 +59,7 @@
         version: "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ('pdu') else None}}"
         authprotocol: "${{ devtype=V{device_type}: T{switches.auth} if devtype in ('switch') else T{pdu.authtype} if devtype in ('pdu')  else None  }}" 
         privacyprotocol: "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else T{pdu.privtype} if devtype in ('pdu')  else  None }}"
-        community: "${{devtype=V{device_type},snmpver=V{security_info.snmp.version}: T{pdu.community} if devtype in ('pdu') and snmpver in ('SNMPv1','SNMPv2') else T{switches.password} if devtype == 'switch' and snmpver in ('SNMPv1','SNMPv2') else None}}"
+        community: "${{devtype=V{device_type}: T{pdu.community} if devtype in ('pdu')  else T{switches.password} if devtype == 'switch' else None}}"
         username: "${{devtype=V{device_type}: T{switches.username} if devtype == 'switch' else T{pdu.snmpuser} if devtype in ('pdu') else None}}"
         authkey: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else T{pdu.authkey} if devtype in ('pdu') else None}}"
         privkey: "T{pdu.privkey}"
