@@ -104,10 +104,11 @@ def dump2json(xcatobj, location=None):
     #TODO: store in file or directory
 
 def validate_args(args, action):
+    if args.type is not None and args.type.lower() not in InventoryFactory.getvalidobjtypes():
+        raise CommandException("Error: Invalid object type: \"%(t)s\"", t=args.type)
 
-    if args.type and args.type.lower() not in InventoryFactory.getvalidobjtypes():
-        raise CommandException("Error: Invalid object type: %(t)s", t=args.type)
-
+    if args.name == '':
+        raise CommandException("Error: Invalid objects name: \"%(o)s\"", o=args.name)
     if args.name and not args.type:
         raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
 
