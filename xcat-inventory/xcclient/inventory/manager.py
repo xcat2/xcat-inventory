@@ -112,8 +112,11 @@ def validate_args(args, action):
     if args.name and not args.type:
         raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
 
+    
     if action == 'import': #extra validation for export
-        if args.path and not os.path.exists(args.path):
+        if not args.path:
+           raise CommandException("Error: Invalid file to import: \"%(p)s\"", p=args.path)
+        if not os.path.exists(args.path):
             raise CommandException("Error: The specified path does not exist: %(p)s", p=args.path)
 
     if action == 'export': #extra validation for export
