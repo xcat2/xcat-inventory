@@ -1,7 +1,11 @@
 !!python/dict  
   route:
-    net: "T{routes.net}"
-    mask: "T{routes.mask}"
+    net: 
+    - "T{routes.net}"
+    - "C:${{value=V{net}: vutil.isIPaddr(value)}}"
+    mask: 
+    - "T{routes.mask}"
+    - "C:${{value=V{mask}: vutil.isIPaddr(value)}}"
     ifname: "T{routes.ifname}"
     gateway: "T{routes.gateway}"
     usercomment: "T{routes.comments}"

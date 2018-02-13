@@ -12,6 +12,7 @@ from copy import *
 from dbobject import *
 from dbfactory import *
 from exceptions import *
+import vutil
 import pdb
 
 #remove the dict entries whose value is null or ''
