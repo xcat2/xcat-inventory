@@ -12,6 +12,7 @@ from copy import *
 from dbobject import *
 from dbfactory import *
 from exceptions import *
+import vutil
 import pdb
 
 #remove the dict entries whose value is null or ''
@@ -29,6 +30,8 @@ def Util_rmnullindict(mydict):
 
 # get the dict value mydict[a][b][c] with key path a.b.c
 def Util_getdictval(mydict,keystr):
+    if not  isinstance(mydict,dict):
+        return None
     dictkeyregex=re.compile("([^\.]+)\.?(\S+)*")
     result=re.findall(dictkeyregex,keystr)
     if result:
@@ -77,7 +80,7 @@ class XcatBase(object):
     def __gendepdict(cls,schmpath):
         valregex=re.compile("^\$\{\{((.*):(.*))\}\}\s*$")
         revregex=re.compile("^W:T\{(\S+)\}=(.+)$")
-        validateregex=re.compile("^C:\$")
+        validateregex=re.compile("^C:(.+)$")
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
     
@@ -135,6 +138,16 @@ class XcatBase(object):
             elif re.match(validateregex,item):
                 validaterules.append(item)
 
+        cls._depdict_val[schmpath]['validate']={}
+        cls._depdict_val[schmpath]['validate']['depvallist']=[]
+        cls._depdict_val[schmpath]['validate']['expression']=[]
+        for item in validaterules:
+            myexpression=re.findall(validateregex,item)[0] 
+            ret=__parselambda(myexpression)
+            cls._depdict_val[schmpath]['validate']['expression'].append(ret['expression'])
+            cls._depdict_val[schmpath]['validate']['depvallist'].extend(ret['valsinparam'])
+            cls._depdict_val[schmpath]['validate']['depvallist'].extend(ret['valsinbody'])
+
         for item in fwdrules:
             ret=__parselambda(item)
             cls._depdict_val[schmpath]['depvallist']=[]
@@ -186,6 +199,7 @@ class XcatBase(object):
         cls.__scanschema(cls._schema)
         #print yaml.dump(cls._depdict_tab,default_flow_style=False)
         #print yaml.dump(cls._depdict_val,default_flow_style=False)
+
     def __evalschema_tab(self,tabcol):
         mydeptablist=self._depdict_tab[tabcol]['deptablist']
         mydepvallist=self._depdict_tab[tabcol]['depvallist']
@@ -303,19 +317,55 @@ class XcatBase(object):
         del ret[self.name]['obj_name']
         return ret
   
-    @classmethod
-    def validateschema(cls,objdict):
-        def cmpdict(tmpldict,tgtdict):
-            pass           
   
+
+    def validatelayout(self,objdict):
+        def _dictcmp(schemadict,objdict,invalidkeylist,curpath=''):
+           if isinstance(objdict,dict):
+               if not isinstance(schemadict,dict):
+                   invalidkeylist.append(curpath)
+                   return
+               for key in objdict.keys():
+                   if schemadict.has_key(key):
+                       _dictcmp(schemadict[key],objdict[key],invalidkeylist,curpath+'.'+key)
+                   else:
+                       invalidkeylist.append(curpath+'.'+key)
+           else:
+               pass
+
         if not isinstance(objdict,dict):
-            raise InvalidFileException("Error: invalid object definition according to the schema file "+_schema_loc__)
-        #TODO
+            raise InvalidFileException("Error: invalid object definition of "+slef.name)
+        
+        invalidkeylist=[]
+        _dictcmp(self.__class__._schema,objdict,invalidkeylist)
+        if invalidkeylist:
+            raise InvalidFileException("Error: invalid keys \""+','.join(invalidkeylist)+"\" found in object definition of "+self.name)
+
         return       
         
+    def validatevalue(self,objdict):
+        for key in self._depdict_val.keys():
+            depvallist=self._depdict_val[key]['validate']['depvallist']
+            expression=self._depdict_val[key]['validate']['expression']
+            for myexpression in expression:
+                for val in depvallist:
+                    myval=Util_getdictval(objdict,val)
+                    if myval is None:
+                        myval=''
+                    myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval)+"'")                    
+                try:
+                    #print myexpression
+                    evalexp=eval("lambda "+myexpression)
+                    value=evalexp()
+                except Exception,e:                    
+                    raise  InvalidValueException("Error: encountered some error when validate schema entry ["+key+"]: "+str(e)) 
+                if not value:
+                    raise  InvalidValueException("Error: failed to validate schema entry ["+key+"]: \""+myexpression+"\"") 
+
 
     def setobjdict(self,objdict):
-        self.__class__.validateschema(objdict)
+        self.validatelayout(objdict)
+        self.validatevalue(objdict)
         self._mydict=deepcopy(objdict)
         self._mydict['obj_name']=self.name
         self._dbhash.clear()
