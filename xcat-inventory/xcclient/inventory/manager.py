@@ -66,6 +66,8 @@ class InventoryFactory(object):
         objdict={}
         objdict[self.objtype]={}
         for key, attrs in obj_attr_dict.items():
+            if not key:
+               continue
             newobj = myclass.createfromdb(key, attrs)
             objdict[self.objtype].update(newobj.getobjdict())
         return objdict
