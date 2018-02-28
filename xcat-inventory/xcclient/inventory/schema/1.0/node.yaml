@@ -90,9 +90,6 @@
         - "C:${{ip=V{network_info.primarynic.ip}: False if ip and not vutil.isIPaddr(ip) else True}}"
         mac: 
         - "T{mac.mac}"   
-        - "C:${{mac=V{network_info.primarynic.mac},devtype=V{device_type}: 
-                    False if devtype in ('server') and not mac
-                          else True }}" 
         - "C:${{mac=V{network_info.primarynic.mac}: False if mac and not vutil.isMacHosts(mac) else True}}"
         hostnames: "T{hosts.hostnames}"
         switch: "T{switch.switch}"

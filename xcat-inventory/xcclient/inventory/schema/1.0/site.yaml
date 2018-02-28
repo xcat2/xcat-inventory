@@ -16,7 +16,7 @@
     dhcpinterfaces: "T{site.dhcpinterfaces}"
     dhcplease: 
     - "T{site.dhcplease}"
-    - "C:${{option=V{dhcplease}: True if str(option) == '' or str(option).isdigit() else False}}"
+    - "C:${{option=V{dhcplease}: False if option and not str(option).isdigit() else True}}"
     dhcpsetup: "T{site.dhcpsetup}"
     disjointdhcps: 
     - "T{site.disjointdhcps}"
@@ -100,13 +100,13 @@
     - "C:${{option=V{xcatdebugmode}: True if str(option) in ('','0','1','2') else False}}"
     xcatdport: 
     - "T{site.xcatdport}"
-    - "C:${{option=V{xcatdport},xcatiport=V{xcatiport},xcatlport=V{xcatlport}: True if str(option).isdigit() and str(option) not in (xcatiport,xcatlport) else False}}"
+    - "C:${{option=V{xcatdport},xcatiport=V{xcatiport},xcatlport=V{xcatlport}: False if option and (not str(option).isdigit() or str(option) in (str(xcatiport),str(xcatlport))) else True}}"
     xcatiport: 
     - "T{site.xcatiport}"
-    - "C:${{option=V{xcatiport},xcatdport=V{xcatdport},xcatlport=V{xcatlport}: True if str(option).isdigit() and str(option) not in (xcatdport,xcatlport) else False}}"
+    - "C:${{option=V{xcatiport},xcatdport=V{xcatdport},xcatlport=V{xcatlport}: False if option and (not str(option).isdigit() or str(option) in (str(xcatdport),str(xcatlport))) else True}}"
     xcatlport: 
     - "T{site.xcatlport}"
-    - "C:${{option=V{xcatlport},xcatiport=V{xcatiport},xcatdport=V{xcatdport}: True if str(option) == '' or str(option).isdigit() and str(option) not in (xcatiport,xcatdport) else False}}"
+    - "C:${{option=V{xcatlport},xcatiport=V{xcatiport},xcatdport=V{xcatdport}: False if option and (not str(option).isdigit() or str(option) in (str(xcatiport),str(xcatdport))) else True}}"
     xcatmaxbatchconnections: "T{site.xcatmaxbatchconnections}"
     xcatmaxconnections: "T{site.xcatmaxconnections}"
     xcatsslciphers: "T{site.xcatsslciphers}"
