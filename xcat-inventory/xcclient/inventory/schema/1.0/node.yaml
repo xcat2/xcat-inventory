@@ -121,16 +121,12 @@
           - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if str(engine_type) in ('','openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade') else False}}"
           engine_info:
             #openbmc_info:
-            bmc: "T{openbmc.bmc}"
-            bmcusername: "T{openbmc.username}"
-            bmcpassword: "T{openbmc.password}"
-            bmcvlantag: "T{openbmc.taggedvlan}"
+            bmc: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmc} if str(engine_type) in ('openbmc') else T{ipmi.bmc} if str(engine_type) in ('ipmi') else None}}"
+            bmcusername: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.username} if str(engine_type) in ('openbmc') else T{ipmi.username} if str(engine_type) in ('ipmi') else None}}"
+            bmcpassword: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.password} if str(engine_type) in ('openbmc') else T{ipmi.password} if str(engine_type) in ('ipmi') else None}}"
+            bmctaggedvlan: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.taggedvlan} if str(engine_type) in ('openbmc') else T{ipmi.taggedvlan} if str(engine_type) in ('ipmi') else None}}"
             consport: "T{openbmc.consport}"
             #ipmi_info:
-            bmc: "T{ipmi.bmc}"
-            bmcusername: "T{ipmi.username}"
-            bmcpassword: "T{ipmi.password}"
-            bmcvlantag: "T{ipmi.taggedvlan}"
             bmcid: "T{ipmi.bmcid}"
             bmcport: "T{ipmi.bmcport}"
             #kvm_info:
@@ -155,21 +151,16 @@
             vmstorageformat: "T{vm.storageformat}"
             vmtextconsole: "T{vm.storageformat}"
             #zvm_info:
-            hcp: "T{zvm.hcp}"
-            userid: "T{zvm.userid}"
-            parent: "T{zvm.parent}"
-            hwtype: "T{zvm.nodetype}"
+            hcp: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.hcp} if str(engine_type) in ('zvm') else T{ppc.hcp} if str(engine_type) in ('hmc') else None }}"
+            zvmuserid: "T{zvm.userid}"
+            parent: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.parent} if str(engine_type) in ('zvm') else T{ppc.parent} if str(engine_type) in ('hmc') else None }}"
+            hwtype: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.nodetype} if str(engine_type) in ('zvm') else T{ppc.nodetype} if str(engine_type) in ('hmc') else T{mp.nodetype} }}"
             #hmc_info: 
-            hcp: "T{ppc.hcp}"
-            id: "T{ppc.id}"
+            id: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{ppc.id} if str(engine_type) in ('hmc') else T{mp.id} }}"
             pprofile: "T{ppc.pprofile}"
-            parent: "T{ppc.parent}"
-            hwtype: "T{ppc.nodetype}"
             supernode: "T{ppc.supernode}"
             sfp: "T{ppc.sfp}"
             #other_info:
-            id: "T{mp.id}"
-            hwtype: "T{mp.nodetype}"
             mpa: "T{mp.mpa}"
        power_mgt_engine:
           engine_type: "T{nodehm.power}" 
