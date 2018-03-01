@@ -25,6 +25,9 @@ class mixin(object):
     def isValid(cls, netname, tabdict):
         return True
 
+    @classmethod
+    def dict2tabentry(self,objdict):
+        pass      
 ########################################################################
 class passwd(Base,mixin):
     """"""
@@ -356,7 +359,7 @@ class site(Base,mixin):
         for key in objdict.keys():
             mydict['key']=key
             mydict['value']=objdict[key]
-            mydict['disable']=''
+            mydict['disable']=None
             ret.append(deepcopy(mydict))
         return ret
        

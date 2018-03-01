@@ -4,14 +4,31 @@ from dbobject import *
 from dbsession import DBsession
 from xcclient.shell import CommandException
 
-def create_or_update(session,tabcls,key,newdict):
+def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkey=tabcls.getkey()
+    #for matrix table, remove the record if all the non-key values are None or blank 
     delrow=1 
+    #for flat table, keep the record untouch if the non-key values are None
+    skiprow=1
     for item in newdict.keys():
+        if  tabkey != item and newdict[item] is not None:
+            skiprow=0        
+
+        if  tabkey != item and newdict[item] is None:
+            newdict[item]=''
+    
         if tabkey != item and newdict[item]!='':
             delrow=0
+
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
+
+    if not ismatrixtable:
+        if skiprow:
+            return
+        #do not remove for flat table
+        delrow=0
+
     try:
         record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
     except Exception, e:
@@ -30,15 +47,17 @@ def create_or_update(session,tabcls,key,newdict):
            except Exception, e:
                raise Exception, "Error: import object "+key+" is failed: "+str(e)
            else:
-               print "Import "+key+" update xCAT table "+tabcls.__tablename__+"."
+               print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
     elif delrow == 0:
         newdict[tabkey]=key
         try:
             session.execute(tabcls.__table__.insert(), newdict)
+        except(sqlalchemy.exc.IntegrityError):
+            raise CommandException("Error: xCAT object %(t)s is duplicate.", t=key)
         except Exception, e:
-            raise Exception, "Error: import object "+key+" to table "+tabcls.__tablename__+" is failed: "+str(e) 
+            raise Exception, "Error: import object "+key+" is failed: "+str(e) 
         else:
-            print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
+            print "Import "+key+": insert xCAT table "+tabcls.__tablename__+"."
 
 class matrixdbfactory():
     def __init__(self,dbsession):
@@ -122,7 +141,7 @@ class flatdbfactory() :
                 dbsession=self._dbsession.loadSession(tab)
                 for rowent in rowentlist:
                     if tabcls.isValid(key, rowent):
-                        create_or_update(dbsession,tabcls,rowent[tabkey],rowent)
+                        create_or_update(dbsession,tabcls,rowent[tabkey],rowent,False)
 
 class dbfactory():
     _dbfactoryoftab={'site':'flat'}

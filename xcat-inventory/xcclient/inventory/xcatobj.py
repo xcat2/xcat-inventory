@@ -231,8 +231,6 @@ class XcatBase(object):
         if myschmpath:
             if 0==cmp(result,tabcol):
                 value=Util_getdictval(self._mydict,myschmpath)
-                if value is None:
-                    value=''
                 self._dbhash[tabcol]=value
             else:
                 self._dbhash[tabcol]=''
