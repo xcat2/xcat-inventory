@@ -26,27 +26,31 @@ network:
 
 #node object define all nodes including compute nodes and service nodes, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/node.7.html
 node:
-  #nodename
   compute_node1:
     device_info:
-      arch: ppc64le
+      arch: x86_64
     device_type: server
     engines:
       console_engine:
-        engine_type: openbmc
+        engine_info:
+          serialport: '0'
+          serialspeed: '115200'
+        engine_type: ipmi
       hardware_mgt_engine:
         engine_info:
-          bmc: 192.168.2.16
-          bmcpassword: 0penBmc
-          bmcusername: root
-        engine_type: openbmc
+          bmc: 50.5.1.107
+          bmcpassword: C910passw0rd!
+          bmcusername: USERID
+        engine_type: ipmi
       netboot_engine:
-        engine_type: petitboot
+        engine_type: xnba
+      power_mgt_engine:
+        engine_type: ipmi
     network_info:
       primarynic:
-        ip: 192.168.2.16
+        ip: 192.168.1.15
         mac:
-        - 70:e2:84:14:30:c0
+        - 34:40:b5:be:77:50
     obj_info:
       groups: all
     obj_type: node
