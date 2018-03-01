@@ -2,6 +2,7 @@
 import dbobject
 from dbobject import *
 from dbsession import DBsession
+from sqlalchemy import or_
 from xcclient.shell import CommandException
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
@@ -73,9 +74,9 @@ class matrixdbfactory():
                continue
            tabkey=tab.getkey()
            if keys is not None and len(keys)!=0:
-               tabobj=dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys)).all()
+               tabobj=dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            else:
-               tabobj=dbsession.query(tab).all()
+               tabobj=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            if not tabobj:
                continue
            for myobj in tabobj:
@@ -117,7 +118,7 @@ class flatdbfactory() :
                 tab=getattr(dbobject,tabname)
             else:
                 continue
-            tabobj=dbsession.query(tab).all()
+            tabobj=dbsession.query(tab).filter(or_(tab.disable == None,tab.disable.notin_(['1','yes']))).all()
             if not tabobj:
                 continue
             for myobj in tabobj:
