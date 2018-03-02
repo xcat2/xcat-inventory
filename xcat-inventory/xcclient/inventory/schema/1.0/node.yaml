@@ -115,7 +115,7 @@
        hardware_mgt_engine:
           engine_type: 
           - "T{nodehm.mgt}"
-          - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if str(engine_type) in ('','openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade') else False}}"
+          - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if str(engine_type) in ('','openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade','pdu','switch') else False}}"
           engine_info:
             #openbmc_info:
             bmc: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmc} if str(engine_type) in ('openbmc') else T{ipmi.bmc} if str(engine_type) in ('ipmi') else None}}"
@@ -180,6 +180,7 @@
        console_engine:
           engine_type: "T{nodehm.cons}"
           engine_info:
+            consoleenabled: "T{nodehm.consoleenabled}"
             conserver: "T{nodehm.conserver}"
             serialport: "T{nodehm.serialport}"
             serialspeed: "T{nodehm.serialspeed}"
