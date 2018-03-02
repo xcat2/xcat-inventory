@@ -87,21 +87,21 @@
       primarynic: 
         ip: 
         - "T{hosts.ip}"
-        - "C:${{ip=V{network_info.primarynic.ip}: False if ip and not vutil.isIPaddr(ip) else True}}"
+        - "C:${{ip=V{network_info.primarynic.ip}: False if ip and not vutil.isIPaddr(ip) and not vutil.isRegex(ip) else True}}"
         mac: 
         - "T{mac.mac}"   
-        - "C:${{mac=V{network_info.primarynic.mac}: False if mac and not vutil.isMacHosts(mac) else True}}"
+        - "C:${{mac=V{network_info.primarynic.mac}: False if mac and not vutil.isMacHosts(mac) and not vutil.isRegex(mac) else True}}"
         hostnames: "T{hosts.hostnames}"
         switch: "T{switch.switch}"
         switchport: 
         - "T{switch.port}"
-        - "C:${{swport=V{network_info.primarynic.switchport}: False if swport and not str(swport).isdigit() else True}}"
+        - "C:${{swport=V{network_info.primarynic.switchport}: False if swport and not str(swport).isdigit() and not vutil.isRegex(swport) else True}}"
         switchvlan: "T{switch.vlan}"
         switchinterface: "T{switch.interface}"
       nics:
         ips: 
         - "T{nics.nicips}"
-        - "C:${{value=V{network_info.nics.ips}: False if value and not vutil.isNicips(value) else True}}"
+        - "C:${{value=V{network_info.nics.ips}: False if value and not vutil.isNicips(value) and not vutil.isRegex(value) else True}}"
         hostnamesuffixes: "T{nics.nichostnamesuffixes}"
         hostnameprefixe: "T{nics.nichostnameprefixes}"
         alias: "T{nics.nicaliases}"

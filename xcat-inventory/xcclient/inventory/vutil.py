@@ -20,6 +20,10 @@ def isMac(varin):
     MacRegex=r'[0-9a-f]{2}([:])[0-9a-f]{2}(\1[0-9a-f]{2}){4}$'
     return (re.match(MacRegex,str(varin),re.IGNORECASE) is not None)
 
+def isRegex(varin):
+    RegexPattern=r'^\|.*\|$'
+    return (re.match(RegexPattern,str(varin)) is not None)
+
 def isIPrange(varin):
     ip=[]
     ip=str(varin).split('-')
@@ -53,7 +57,7 @@ def isNicips(varin):
 
 
 if __name__ == "__main__":
-    expression='x: isIPrange(x)'
+    expression='x: isRegex(x)'
     f=eval("lambda "+expression)
     print (f(sys.argv[1]))
     
