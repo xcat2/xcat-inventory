@@ -1,0 +1,128 @@
+#
+# Description: This template supplies a simple flat cluster example. 
+#              User can modify it based on his own xCAT management node and compute nodes.
+#              After modification, user can use xcat-inventory to import it to setup a baisic cluster.
+#
+
+#site object is global settings for the whole cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/site.5.html
+site:
+  cluster:
+    #must modify domain, forwarders, nameservers and master based on your own xCAT management node
+    domain: cluster.com
+    forwarders: 10.5.106.2
+    nameservers: 192.168.1.5
+    master: 192.168.1.5
+
+#network object is store networks in the cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/network.7.html
+network:
+  #netname is used to identify this network definition.
+  provision_network:
+    basic_attr:
+      gateway: <xcatmaster>
+      #must modify net and mask based on your provision network
+      mask: 255.255.0.0
+      net: 192.168.0.0
+    service:
+      tftpserver: <xcatmaster>
+
+#The passwd object is used to update user's authentication token(s), see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/passwd.5.html
+passwd:
+  system:
+    key: system
+    password: cluster
+    username: root
+
+#node object define all nodes including compute nodes and service nodes, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/node.7.html
+node:
+  #this node1 is an openpower openbmc node object example
+  node1:
+    device_info:
+      arch: ppc64le
+    device_type: server
+    engines:
+      console_engine:
+        engine_type: openbmc
+      hardware_mgt_engine:
+        engine_info:
+          #must modify bmc, bmcpassword and bmcusername based on your own compute node
+          bmc: 50.10.2.16
+          bmcpassword: 0penBmc
+          bmcusername: root
+        engine_type: openbmc
+      netboot_engine:
+        engine_type: petitboot
+    network_info:
+      primarynic:
+        #must modify ip and mac to use real provision network ip and mac
+        ip: 192.168.1.16
+        mac:
+        - 70:e2:84:14:30:c0
+    obj_info:
+      groups: all
+    obj_type: node
+    role: compute
+
+  #this node1 is a openpower ipmi node object example
+  #node1:
+  #  device_info:
+  #    arch: ppc64le
+  #  device_type: server
+  #  engines:
+  #    console_engine:
+  #      engine_info:
+  #        serialport: '0'
+  #        serialspeed: '115200'
+  #      engine_type: ipmi
+  #    hardware_mgt_engine:
+  #      engine_info:
+  #        #must modify bmc, bmcpassword and bmcusername based on your own compute node
+  #        bmc: 50.45.7.1
+  #        bmcpassword: admin
+  #        bmcusername: ADMIN
+  #      engine_type: ipmi
+  #    netboot_engine:
+  #      engine_type: petitboot
+  #  network_info:
+  #    primarynic:
+  #      #must modify ip and mac to use real provision network ip and mac
+  #      ip: 192.168.45.7
+  #      mac:
+  #      - 98:be:94:59:ea:27
+  #  obj_info:
+  #    groups: all
+  #  obj_type: node
+  #  role: compute
+  #
+
+  #this node1 is a x86_64 ipmi node object example
+  #node1:
+  #  device_info:
+  #    arch: x86_64
+  #  device_type: server
+  #  engines:
+  #    console_engine:
+  #      engine_info:
+  #        serialport: '0'
+  #        serialspeed: '115200'
+  #      engine_type: ipmi
+  #    hardware_mgt_engine:
+  #      engine_info:
+  #        #must modify bmc, bmcpassword and bmcusername based on your own compute node
+  #        bmc: 50.5.1.107
+  #        bmcpassword: PASSW0RD
+  #        bmcusername: USERID
+  #      engine_type: ipmi
+  #    netboot_engine:
+  #      engine_type: xnba
+  #    power_mgt_engine:
+  #      engine_type: ipmi
+  #  network_info:
+  #    primarynic:
+  #      #must modify ip and mac to use real provision network ip and mac
+  #      ip: 192.168.1.15
+  #      mac:
+  #      - 34:40:b5:be:77:50
+  #  obj_info:
+  #    groups: all
+  #  obj_type: node
+  #  role: compute
