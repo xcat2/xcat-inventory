@@ -82,7 +82,7 @@ class InventoryFactory(object):
             raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
         
         
-    def importObjs(self, objlist, obj_attr_dict):
+    def importObjs(self, objlist, obj_attr_dict,update=True):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         dbdict = {}
@@ -90,6 +90,9 @@ class InventoryFactory(object):
             if not objlist or key in objlist:
                 newobj = myclass.createfromfile(key, attrs)
                 dbdict.update(newobj.getdbdata())
+        tabs=myclass.gettablist()
+        if not update:
+            self.getDBInst().cleartab(tabs)
         self.getDBInst().settab(dbdict)
 
 
@@ -166,7 +169,7 @@ def export_all(location, fmt,version=None):
         dump2yaml(wholedict)
     dbsession.close() 
 
-def import_by_type(objtype, names, location,dryrun=None,version=None):
+def import_by_type(objtype, names, location,dryrun=None,version=None,update=True):
     dbsession=DBsession()
 
     objlist = []
@@ -205,16 +208,16 @@ def import_by_type(objtype, names, location,dryrun=None,version=None):
             if nonexistobjlist:
                 raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
             else:
-                hdl.importObjs(objlist, obj_attr_dict[objtype])
+                hdl.importObjs(objlist, obj_attr_dict[objtype],update)
     else:
-        hdl.importObjs(objlist, obj_attr_dict) 
+        hdl.importObjs(objlist, obj_attr_dict,update) 
     if not dryrun:
         dbsession.commit()    
     else:
         print("Dry run mode, nothing will be written to database!")
     dbsession.close()
 
-def import_all(location,dryrun=None,version=None):
+def import_all(location,dryrun=None,version=None,update=True):
     dbsession=DBsession()
     with open(location) as file:
         contents=file.read()
@@ -241,7 +244,7 @@ def import_all(location,dryrun=None,version=None):
     InventoryFactory.validateObjLayout(obj_attr_dict) 
     for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
-        hdl.importObjs([], obj_attr_dict[objtype])
+        hdl.importObjs([], obj_attr_dict[objtype],update)
     
     if not dryrun:
         dbsession.commit()

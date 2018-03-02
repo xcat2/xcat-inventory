@@ -26,14 +26,15 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to import from ')
     @shell.arg('-s','--schema-version',dest='version', metavar='<version>', help='the schema version ')
     @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to database')
+    @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode, remove all the records in xcat db before import the objects in the file, otherwise, only update existing records or insert new records, do not remove the records in xcat db ')
     def do_import(self, args):
         """Import the inventory based on the type or name from specified path"""
         mgr.validate_args(args, 'import')
         if args.type :
             #do export by type
-            mgr.import_by_type(args.type, args.name, args.path, dryrun=args.dryrun,version=args.version)
+            mgr.import_by_type(args.type, args.name, args.path, dryrun=args.dryrun,version=args.version,update=args.update)
         else :
-            mgr.import_all(args.path, dryrun=args.dryrun,version=args.version)
+            mgr.import_all(args.path, dryrun=args.dryrun,version=args.version,update=args.update)
 
     @shell.arg('-t','--type', metavar='<type>', help='Object type to be exported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be exported')

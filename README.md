@@ -79,7 +79,7 @@ git commit /git/cluster-data/clusterinv.yaml -m "$(date "+%Y_%m_%d_%H_%M_%S"): r
 5. find the desired cluster configuration commit(commit no: c95673b861ded3c962a7659522a01fc96af6b89b), check it out and apply it
 ```
 git checkout  c95673b861ded3c962a7659522a01fc96af6b89b
-xcat-inventory import -f /git/cluster-data/clusterinv.yaml
+xcat-inventory import -f /git/cluster-data/clusterinv.yaml -c
 ``` 
 
 

@@ -144,6 +144,8 @@ class flatdbfactory() :
                     if tabcls.isValid(key, rowent):
                         create_or_update(dbsession,tabcls,rowent[tabkey],rowent,False)
 
+    
+
 class dbfactory():
     _dbfactoryoftab={'site':'flat'}
     
@@ -207,6 +209,28 @@ class dbfactory():
             print "import object failed."
         else:
             print "import object successfully."          
+
+    def cleartab(self,tabs):
+        flattabs=[]
+        matrixtabs=[]
+        for tab in tabs:
+            if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+                flattabs.append(tab)
+            else:
+                matrixtabs.append(tab)
+        for tab in matrixtabs:
+            if hasattr(dbobject,tab):
+                tabcls=getattr(dbobject,tab)
+            else:
+                continue
+            dbsession=self._dbsession.loadSession(tab)
+            try:
+                dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
+                #dbsession.query(tabcls).filter(tabcls.disable.notin_(['1','yes'])).delete()
+            except Exception, e:
+                raise Exception, "Error: failed to clear table "+str(tab)+": "+str(e)
+            else:
+                print("table "+tab+ "cleared!")
 
 if __name__ == "__main__":
     df0=flatdbfactory()
