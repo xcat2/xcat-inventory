@@ -28,6 +28,14 @@ class mixin(object):
     @classmethod
     def dict2tabentry(self,objdict):
         pass      
+    
+    @classmethod
+    def getTabtype(self):
+        return 'matrix'
+
+    @classmethod
+    def getReservedKeys(self):
+        return []
 ########################################################################
 class passwd(Base,mixin):
     """"""
@@ -119,6 +127,10 @@ class postscripts(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('postscripts')
     __tablename__ = 'postscripts'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getReservedKeys(self):
+        return ['xcatdefaults','service']
     
 ########################################################################
 class bootparams(Base,mixin):
@@ -363,6 +375,9 @@ class site(Base,mixin):
             ret.append(deepcopy(mydict))
         return ret
        
+    @classmethod
+    def getTabtype(self):
+        return 'flat'
 #----------------------------------------------------------------------
 
 def query_table_by_node(session, tclass, tkey):

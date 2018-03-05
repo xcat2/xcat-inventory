@@ -147,7 +147,6 @@ class flatdbfactory() :
     
 
 class dbfactory():
-    _dbfactoryoftab={'site':'flat'}
     
     def __init__(self,dbsession):
         self._dbsession=dbsession
@@ -156,8 +155,13 @@ class dbfactory():
         flattabs=[]
         matrixtabs=[]
         mydict={}
+
         for tab in tabs:
-            if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+            if hasattr(dbobject,tab):
+                tabcls=getattr(dbobject,tab)
+            else:
+                continue       
+            if tabcls.getTabtype() == 'flat':
                 flattabs.append(tab)
             else:
                 matrixtabs.append(tab)
@@ -180,7 +184,11 @@ class dbfactory():
                 curdict=dbdict[key]
                 for tabcol in curdict.keys():
                     (tab,col)=tabcol.split('.')
-                    if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+                    if hasattr(dbobject,tab):
+                        tabcls=getattr(dbobject,tab)
+                    else:
+                        continue       
+                    if tabcls.getTabtype() == 'flat':
                         if key not in flattabdict.keys():
                             flattabdict[key]={}
                         if tab not in flattabdict[key].keys():
@@ -214,7 +222,11 @@ class dbfactory():
         flattabs=[]
         matrixtabs=[]
         for tab in tabs:
-            if tab in self._dbfactoryoftab.keys() and self._dbfactoryoftab[tab] == 'flat':
+            if hasattr(dbobject,tab):
+                tabcls=getattr(dbobject,tab)
+            else:
+                continue       
+            if tabcls.getTabtype() == 'flat':
                 flattabs.append(tab)
             else:
                 matrixtabs.append(tab)
@@ -223,10 +235,14 @@ class dbfactory():
                 tabcls=getattr(dbobject,tab)
             else:
                 continue
+            tabkey=tabcls.getkey()
+            ReservedKeys=tabcls.getReservedKeys()
             dbsession=self._dbsession.loadSession(tab)
             try:
-                dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
-                #dbsession.query(tabcls).filter(tabcls.disable.notin_(['1','yes'])).delete()
+                if ReservedKeys:
+                    dbsession.query(tabcls).filter(getattr(tabcls,tabkey).notin_(ReservedKeys),or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
+                else:
+                    dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
             except Exception, e:
                 raise Exception, "Error: failed to clear table "+str(tab)+": "+str(e)
             else:
