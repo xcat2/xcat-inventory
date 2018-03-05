@@ -356,9 +356,9 @@ class XcatBase(object):
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
-                    raise  InvalidValueException("Error: encountered some error when validate schema entry ["+key+"]: "+str(e)) 
+                    raise  InvalidValueException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
                 if not value:
-                    raise  InvalidValueException("Error: failed to validate schema entry ["+key+"]: \""+myexpression+"\"") 
+                    raise  InvalidValueException("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
 
 
     def setobjdict(self,objdict):
