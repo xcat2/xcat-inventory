@@ -20,6 +20,10 @@ def isMac(varin):
     MacRegex=r'[0-9a-f]{2}([:])[0-9a-f]{2}(\1[0-9a-f]{2}){4}$'
     return (re.match(MacRegex,str(varin),re.IGNORECASE) is not None)
 
+def isPort(varin):
+    PortRegex=r'^(swp)*[0-9]+$'
+    return (re.match(PortRegex,str(varin),re.IGNORECASE) is not None)
+
 def isRegex(varin):
     RegexPattern=r'^\|.*\|$'
     return (re.match(RegexPattern,str(varin)) is not None)
@@ -49,9 +53,11 @@ def isNicips(varin):
             return False
         ips=[]
         if len(entry) == 2:
+            if isRegex(entry[1]):
+                continue
             ips=entry[1].split('|')
         for ip in ips:
-            if not isIPaddr(ip):
+            if not isIPaddr(ip) or isRegex(ip):
                 return False
     return True   
 
