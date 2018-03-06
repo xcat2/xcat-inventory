@@ -4,37 +4,40 @@
 #              After modification, user can use xcat-inventory to import it to setup a baisic kvm cluster.
 #
 
-#site object is global settings for the whole cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/site.5.html
+#site object is global settings for the whole cluster
 site:
-  cluster:
-    #must modify domain, forwarders, nameservers and master based on your own xCAT management node
+  clustersite:
+    #must modify 
     domain: cluster.com
+    #must modify
     forwarders: 10.5.106.2
+    #must modify
     nameservers: 192.168.1.5
+    #must modify
     master: 192.168.1.5
 
-#network object is store networks in the cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/network.7.html
+#network object is store networks in the cluster
 network:
   #netname is used to identify this network definition.
   provision_network:
     basic_attr:
       gateway: <xcatmaster>
-      #must modify net and mask based on your provision network
+      #must modify
       mask: 255.255.0.0
+      #must modify
       net: 192.168.0.0
     service:
       tftpserver: <xcatmaster>
 
-#The passwd object is used to update user's authentication token(s), see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/passwd.5.html
+#The passwd object is used to update user's authentication token(s)
 passwd:
   system:
-    key: system
-    password: cluster
+    password: changeme
     username: root
 
-#node object define all nodes including compute nodes and service nodes, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/node.7.html
+#node object define all nodes including compute nodes and service nodes
 node:
-  #this vmcn1 is a openpower kvm node object example
+  #vmcn1 is a power kvm node object example
   vmcn1:
     device_info:
       arch: ppc64le
@@ -49,10 +52,10 @@ node:
       hardware_mgt_engine:
         engine_info:
           vmcpus: '2'
-          #must modify vmhost to your own hypervisor
+          #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
           vmhost: 192.168.1.18
           vmmemory: '8192'
-          #must modify vmnics to your own bridge
+          #must modify, vmnics should exist in hypervisor
           vmnics: br0
           vmstorage: dir:///var/lib/libvirt/images/
         engine_type: kvm
@@ -60,15 +63,15 @@ node:
         engine_type: grub2
     network_info:
       primarynic:
-        #must modify ip and mac to use real provision network ip
+        #must modify
         ip: 192.168.1.25
     obj_info:
       groups: all
     obj_type: node
     role: compute 
 
-  #this vmcn1 is a openpower kvm node object example
-  #vmcn1:
+  #vmcn2 is a x86_64 kvm node object example
+  #vmcn2:
   #  device_info:
   #    arch: x86_64
   #  device_type: server
@@ -82,9 +85,10 @@ node:
   #    hardware_mgt_engine:
   #      engine_info:
   #        vmcpus: '4'
-  #        #must modify vmnics to your own bridge
+  #        #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
   #        vmhost: 192.168.1.18
   #        vmmemory: '8192'
+  #        #must modify, vmnics should exist in hypervisor
   #        vmnics: br0
   #        vmstorage: dir:///var/lib/libvirt/images/
   #      engine_type: kvm
@@ -92,7 +96,7 @@ node:
   #      engine_type: xnba
   #  network_info:
   #    primarynic:
-  #      #must modify ip and mac to use real provision network ip 
+  #      #must modify
   #      ip: 192.168.1.25
   #  obj_info:
   #    groups: all

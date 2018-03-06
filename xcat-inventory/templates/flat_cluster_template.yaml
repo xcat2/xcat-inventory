@@ -2,39 +2,42 @@
 # Description: This template supplies a simple flat cluster example. 
 #              User can modify it based on his own xCAT management node and compute nodes.
 #              After modification, user can use xcat-inventory to import it to setup a baisic cluster.
-#
+#                        
 
-#site object is global settings for the whole cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/site.5.html
+#site object is global settings for the whole cluster
 site:
-  cluster:
-    #must modify domain, forwarders, nameservers and master based on your own xCAT management node
+  clustersite:
+    #must modify
     domain: cluster.com
+    #must modify
     forwarders: 10.5.106.2
+    #must modify
     nameservers: 192.168.1.5
+    #must modify
     master: 192.168.1.5
 
-#network object is store networks in the cluster, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/network.7.html
+#network object is store networks in the cluster
 network:
   #netname is used to identify this network definition.
   provision_network:
     basic_attr:
       gateway: <xcatmaster>
-      #must modify net and mask based on your provision network
+      #must modify 
       mask: 255.255.0.0
+      #must modify
       net: 192.168.0.0
     service:
       tftpserver: <xcatmaster>
 
-#The passwd object is used to update user's authentication token(s), see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man5/passwd.5.html
+#The passwd object is used to update user's authentication token(s)
 passwd:
   system:
-    key: system
-    password: cluster
+    password: changeme
     username: root
 
-#node object define all nodes including compute nodes and service nodes, see more attributes http://xcat-docs.readthedocs.io/en/latest/guides/admin-guides/references/man7/node.7.html
+#node object define all nodes including compute nodes and service nodes
 node:
-  #this node1 is an openpower openbmc node object example
+  #node1 is an IBM Power system AC922 node object example
   node1:
     device_info:
       arch: ppc64le
@@ -44,17 +47,20 @@ node:
         engine_type: openbmc
       hardware_mgt_engine:
         engine_info:
-          #must modify bmc, bmcpassword and bmcusername based on your own compute node
+          #must modify 
           bmc: 50.10.2.16
+          #must modify
           bmcpassword: 0penBmc
+          #must modify
           bmcusername: root
         engine_type: openbmc
       netboot_engine:
         engine_type: petitboot
     network_info:
       primarynic:
-        #must modify ip and mac to use real provision network ip and mac
+        #must modify 
         ip: 192.168.1.16
+        #must modify
         mac:
         - 70:e2:84:14:30:c0
     obj_info:
@@ -62,8 +68,8 @@ node:
     obj_type: node
     role: compute
 
-  #this node1 is a openpower ipmi node object example
-  #node1:
+  #node2 is a IBM Power S822LC node object example
+  #node2:
   #  device_info:
   #    arch: ppc64le
   #  device_type: server
@@ -75,17 +81,20 @@ node:
   #      engine_type: ipmi
   #    hardware_mgt_engine:
   #      engine_info:
-  #        #must modify bmc, bmcpassword and bmcusername based on your own compute node
-  #        bmc: 50.45.7.1
+  #        #must modify 
+  #        bmc: 50.10.2.16
+  #        #must modify
   #        bmcpassword: admin
+  #        #must modify
   #        bmcusername: ADMIN
   #      engine_type: ipmi
   #    netboot_engine:
   #      engine_type: petitboot
   #  network_info:
   #    primarynic:
-  #      #must modify ip and mac to use real provision network ip and mac
-  #      ip: 192.168.45.7
+  #      #must modify 
+  #      ip: 192.168.1.16
+  #      #must modify
   #      mac:
   #      - 98:be:94:59:ea:27
   #  obj_info:
@@ -94,8 +103,8 @@ node:
   #  role: compute
   #
 
-  #this node1 is a x86_64 ipmi node object example
-  #node1:
+  #node3 is a Lenovo X3650 node object example
+  #node3:
   #  device_info:
   #    arch: x86_64
   #  device_type: server
@@ -107,9 +116,11 @@ node:
   #      engine_type: ipmi
   #    hardware_mgt_engine:
   #      engine_info:
-  #        #must modify bmc, bmcpassword and bmcusername based on your own compute node
-  #        bmc: 50.5.1.107
+  #        #must modify
+  #        bmc: 50.10.2.16
+  #        #must modify
   #        bmcpassword: PASSW0RD
+  #        #must modify
   #        bmcusername: USERID
   #      engine_type: ipmi
   #    netboot_engine:
@@ -118,8 +129,9 @@ node:
   #      engine_type: ipmi
   #  network_info:
   #    primarynic:
-  #      #must modify ip and mac to use real provision network ip and mac
-  #      ip: 192.168.1.15
+  #      #must modify
+  #      ip: 192.168.1.16
+  #      #must modify
   #      mac:
   #      - 34:40:b5:be:77:50
   #  obj_info:
