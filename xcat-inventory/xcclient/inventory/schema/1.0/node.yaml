@@ -153,7 +153,7 @@
             parent: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.parent} if str(engine_type) in ('zvm') else T{ppc.parent} if str(engine_type) in ('hmc') else None }}"
             hwtype: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.nodetype} if str(engine_type) in ('zvm') else T{ppc.nodetype} if str(engine_type) in ('hmc') else T{mp.nodetype} }}"
             #hmc_info: 
-            id: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{ppc.id} if str(engine_type) in ('hmc') else T{mp.id} }}"
+            id: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{ppc.id} if str(engine_type) in ('hmc','kvm')  else T{mp.id} }}"
             pprofile: "T{ppc.pprofile}"
             supernode: "T{ppc.supernode}"
             sfp: "T{ppc.sfp}"

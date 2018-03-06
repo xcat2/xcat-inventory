@@ -260,7 +260,7 @@ class XcatBase(object):
             evalexp=eval("lambda "+myexpression)
             value=evalexp()
         except Exception,e:
-            raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\"")
+            raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\": "+str(e))
         Util_setdictval(self._mydict,valpath,value)
         return value 
                    
