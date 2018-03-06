@@ -1,6 +1,5 @@
 !!python/dict  
   passwd:
-    key: "T{passwd.key}"
     username: "T{passwd.username}"
     password: "T{passwd.password}"
     cryptmethod: 
