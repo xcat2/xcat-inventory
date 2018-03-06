@@ -39,6 +39,9 @@ class InventoryFactory(object):
     def createHandler(objtype,dbsession,schemaversion='latest'):
         if schemaversion is None:
             schemaversion='latest'
+        validversions=InventoryFactory.getAvailableSchemaVersions()
+        if schemaversion not in validversions:
+            raise BadSchemaException("Error: invalid schema version \""+schemaversion+"\", the valid schema versions: "+','.join(validversions)) 
         schemapath=os.path.join(os.path.dirname(__file__), 'schema/'+schemaversion+'/'+objtype+'.yaml')
         if not os.path.exists(schemapath):
             raise BadSchemaException("Error: schema file \""+schemapath+"\" does not exist, please confirm the schema version!")
@@ -47,6 +50,16 @@ class InventoryFactory(object):
             InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath)
         return InventoryFactory.__InventoryHandlers__[objtype]
 
+    @staticmethod
+    def getAvailableSchemaVersions():
+        schemaversions=[]
+        schemapath=os.path.join(os.path.dirname(__file__), 'schema')
+        for item in os.listdir(schemapath):  
+            filepath = os.path.join(schemapath, item)  
+            if os.path.isdir(filepath):  
+                schemaversions.append(item)
+        return schemaversions
+ 
     @staticmethod
     def getLatestSchemaVersion():
         schemapath=os.path.join(os.path.dirname(__file__), 'schema/latest')
@@ -221,11 +234,19 @@ def import_all(location,dryrun=None,version=None,update=True):
     dbsession=DBsession()
     with open(location) as file:
         contents=file.read()
+    #obj_attr_dict = json.loads(contents)
     try:
+        print("1111\n")
         obj_attr_dict = json.loads(contents)
+        print("xxx\n")
+        print(obj_attr_dict)
     except ValueError:
         try:
+            print("222\n")
+            #print(obj_attr_dict)
             obj_attr_dict = yaml.load(contents)
+            print("yyyy\n")
+            print(obj_attr_dict)
         except Exception,e:
             raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
 
