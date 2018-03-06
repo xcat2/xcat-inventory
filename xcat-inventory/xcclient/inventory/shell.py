@@ -53,7 +53,7 @@ class InventoryShell(shell.ClusterShell):
 # main entry for CLI
 def main():
     try:
-        InventoryShell('xcat-inventory').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
+        InventoryShell('xcat-inventory','#VERSION_SUBSTITUTE#').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
