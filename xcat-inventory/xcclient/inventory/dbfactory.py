@@ -41,14 +41,14 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             except Exception, e:
                 raise Exception, "Error: delete "+key+" is failed: "+str(e)
             else:
-                print "delete row in xCAT table "+tabcls.__tablename__+"."
+                print("delete row in xCAT table "+tabcls.__tablename__+".")
         else:
            try:
                session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
            except Exception, e:
                raise Exception, "Error: import object "+key+" is failed: "+str(e)
            else:
-               print "Import "+key+": update xCAT table "+tabcls.__tablename__+"."
+               print("Import "+key+": update xCAT table "+tabcls.__tablename__+".")
     elif delrow == 0:
         newdict[tabkey]=key
         try:
@@ -58,7 +58,7 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         except Exception, e:
             raise Exception, "Error: import object "+key+" is failed: "+str(e) 
         else:
-            print "Import "+key+": insert xCAT table "+tabcls.__tablename__+"."
+            print("Import "+key+": insert xCAT table "+tabcls.__tablename__+".")
 
 class matrixdbfactory():
     def __init__(self,dbsession):
@@ -214,9 +214,9 @@ class dbfactory():
             print str(e)
         except Exception as e:
             print str(e)
-            print "import object failed."
+            print("import object failed.")
         else:
-            print "import object successfully."          
+            print("import object successfully.")          
 
     def cleartab(self,tabs):
         flattabs=[]
@@ -249,40 +249,4 @@ class dbfactory():
                 print("table "+tab+ "cleared!")
 
 if __name__ == "__main__":
-    df0=flatdbfactory()
-    mydict=df0.gettab(['site'])
-    print mydict
-    exit()
-
-    df1=dbfactory()
-    mydict=df1.gettab(['mac'],["node0001","node0002"])
-    print mydict
-    exit()
-    if not mydict:
-        mydict={}
-        mydict["node0001"]={}
-    mydict["node0001"]['mac.comments']="kkkkkkkkk"
-    mydict["node0001"]['mac.interface']="BBBBBBBBBB"
-    df1.settab(mydict)
-    mydict1=df1.gettab(['mac'],["node0001"])
-    print mydict1
-
-    mydict3=df1.gettab(['networks'],["mgtnetwork"])
-    print mydict3
-   
-    mydict3={}
-    mydict3["hpctest1"]={}
-    mydict3["hpctest1"]['networks.net']="70.0.0.0"
-    df1.settab(mydict3)
-
-    mydict3={}
-    mydict3["hpctest2"]={}
-    mydict3["hpctest2"]['networks.mask']="255.0.0.0"
-    df1.settab(mydict3)
-
-    mydict3={}
-    mydict3["hpctest3"]={}
-    mydict3["hpctest3"]['networks.net']="70.0.0.0"
-    mydict3["hpctest3"]['networks.mask']="255.0.0.0"
-    df1.settab(mydict3)
-
+     pass

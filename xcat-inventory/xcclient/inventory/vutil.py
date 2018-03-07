@@ -63,9 +63,10 @@ def isNicips(varin):
 
 
 if __name__ == "__main__":
-    expression='x: isRegex(x)'
-    f=eval("lambda "+expression)
-    print (f(sys.argv[1]))
+    pass
+    #expression='x: isRegex(x)'
+    #f=eval("lambda "+expression)
+    #print (f(sys.argv[1]))
     
 
 

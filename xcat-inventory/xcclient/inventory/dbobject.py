@@ -58,10 +58,10 @@ class networks(Base,mixin):
     def isValid(cls, netname, tabdict):
         eptkey=0
         if 'net' not in tabdict.keys() or not tabdict['net']:
-            print "Error: net value should not be empty for xCAT network object "+netname
+            print("Error: net value should not be empty for xCAT network object "+netname)
             eptkey=1
         if 'mask' not in tabdict.keys() or not tabdict['mask']:
-            print "Error: mask value should not be empty for xCAT network object "+netname
+            print ("Error: mask value should not be empty for xCAT network object "+netname)
             eptkey=1
         if eptkey:
             return False
@@ -400,40 +400,5 @@ def query_nodelist_by_key(session, nodelist):
     return nodelist_value
 
 if __name__ == "__main__":
-
-    session = loadSession('hosts')
-    print "======hosts======================"
-    x = session.query(hosts).all()
-    for item in x:
-        print item.ip,item.hostnames
-
-    session = loadSession('passwd')
-    print "======passwd======================"
-    x = session.query(passwd).all()
-    for item in x:
-        print item.key,item.username
-
-    print "======routes======================"
-    x = session.query(routes).all()
-    for item in x:
-        print item.net,item.mask
-    print "======networks======================"
-    session = loadSession('networks')
-    nodelist_value = {}
-    nodelist = ['node0001','node0002']
-    mymac={}
-    mymac['node0001']={}
-    mymac['node0001']['node']="node0001"
-    mymac['node0001']['mac']="11:22:33:44"
-    print networks.getkey()
-    exit()
-
-    print dir(mac.getkey())
-    print mac.getkey().asc
-    mynode=mac(mymac['node0001'])
-    print mynode.getdict()
-    #mymac=mac()
-    #session.add(mymac)
-    #session.commit()
-    print dir(mac)
-    session.close()
+     pass
+  
