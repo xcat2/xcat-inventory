@@ -209,22 +209,22 @@ class XcatBase(object):
             myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=''
-            myexpression=myexpression.replace('V{'+item+'}','r"""'+myval+'"""')
+            myexpression=myexpression.replace('V{'+item+'}',"'"+str(myval).replace("'","\\'")+"'")
         for item in mydeptablist:
             tabval=''
             if item in self._dbhash.keys():
                 tabval=self._dbhash[item]
             else:
                 tabvol=self.__evalschema_tab(item) 
-            myexpression=myexpression.replace('T{'+item+'}','r"""'+tabval+'"""')   
+            myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")   
         tabmatched=re.findall(r'T\{(\S+)\}',myexpression)
         if tabmatched:
             for item in tabmatched:
                 if myschmpath: 
-                    myexpression=myexpression.replace('T{'+item+'}','r"""'+item+'"""')
+                    myexpression=myexpression.replace('T{'+item+'}',"'"+str(item).replace("'","\\'")+"'")
                 else:
                     tabvol=self.__evalschema_tab(item)
-                    myexpression=myexpression.replace('T{'+item+'}','r"""'+tabval+'"""')
+                    myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
         #print "lambda "+myexpression
         evalexp=eval("lambda "+myexpression)
         result=evalexp()
@@ -248,14 +248,14 @@ class XcatBase(object):
                 tabval=self._dbhash[item]
             if tabval is None:
                 tabval=''
-            myexpression=myexpression.replace('T{'+item+'}','r"""'+tabval+'"""')
+            myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
         for item in mydepvallist:
             myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=self.__evalschema_val(item)
                 if myval is None:
                     myval=''
-            myexpression=myexpression.replace('V{'+item+'}','r"""'+myval+'"""')
+            myexpression=myexpression.replace('V{'+item+'}',"'"+str(myval).replace("'","\\'")+"'")
         try:
             evalexp=eval("lambda "+myexpression)
             value=evalexp()
@@ -350,7 +350,7 @@ class XcatBase(object):
                     myval=Util_getdictval(objdict,val)
                     if myval is None:
                         myval=''
-                    myexpression=myexpression.replace('V{'+val+'}','r"""'+str(myval)+'"""')                    
+                    myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")                    
                 try:
                     #print myexpression
                     evalexp=eval("lambda "+myexpression)
