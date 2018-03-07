@@ -21,14 +21,14 @@ class InventoryShell(shell.ClusterShell):
     def add_subcommands(self, subparsers, revision):
         pass
 
-    @shell.arg('-t','--type', metavar='<type>', help='Object type to be imported, valid object types: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, import the objects of all the types in the file')
-    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be imported, delimited with Comma(,). If not specified, import all the objects of the specified type in the file')
-    @shell.arg('-f','--path', metavar='<path>', help='File path of the inventory file to import ')
-    @shell.arg('-s','--schema-version',dest='version', metavar='<version>', help='the schema version. Valid schema versions: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, use "latest" schema version')
-    @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to database')
-    @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode, remove all the objects in xcat db before import the objects in the file. If not specified, only update existing records or insert new records, will not remove other objects in xcat db. ')
+    @shell.arg('-t','--type', metavar='<type>', help='type of the objects to import, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in the inventory file will be imported')
+    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to import, delimited with Comma(,). If not specified, all objects of the specified type in the inventory file will be imported')
+    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file to import ')
+    @shell.arg('-s','--schema-version',dest='version', metavar='<version>', help='schema version of the inventory file. Valid schema versions: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
+    @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to xcat database')
+    @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode. IF specified, all objects other than the ones to import will be removed')
     def do_import(self, args):
-        """Import the inventory based on the type or name from specified path"""
+        """Import inventory file to xcat database"""
         mgr.validate_args(args, 'import')
         if args.type :
             #do export by type
@@ -36,13 +36,13 @@ class InventoryShell(shell.ClusterShell):
         else :
             mgr.import_all(args.path, dryrun=args.dryrun,version=args.version,update=args.update)
 
-    @shell.arg('-t','--type', metavar='<type>', help='Object type to be exported, valid object types: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, export the inventory data of the current cluster')
-    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='Object names to be exported, delimited with Comma(,). If not specified, export all the objects of the specified type in the file')
-    @shell.arg('-f','--path', metavar='<path>', help='File path for the inventory objects to export to(not implemented yet)')
-    @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='the schema version.  Valid schema versions: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, use "latest" schema version')
-    @shell.arg('--format', metavar='<format>', help='The content format: json or yaml. json by default if not specified ')
+    @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
+    @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to export, delimited with Comma(,). If not specified, all objects of the specified type will be exported')
+    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file(not implemented yet)')
+    @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
+    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
     def do_export(self, args):
-        """Export the inventory based on the type or name to specified path"""
+        """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
         if args.type :
             # do export by type
