@@ -120,18 +120,7 @@ class DBsession(Singleton):
         
     #for debug: print the self._sessions
     def dumpsession(self):
-        print self._sessions
+        print(self._sessions)
  
 if __name__ == "__main__":
-    a=DBsession()
-    b=DBsession()
-    c=DBsession()
-    print a
-    print b
-    sessa=a.loadSession('hosts')
-    sessa=a.loadSession('mac')
-    print dir(a)
-    a.dumpsession()
-    b.dumpsession()
-    a.close()
-    b.dumpsession()
+    pass

@@ -236,17 +236,10 @@ def import_all(location,dryrun=None,version=None,update=True):
         contents=file.read()
     #obj_attr_dict = json.loads(contents)
     try:
-        print("1111\n")
         obj_attr_dict = json.loads(contents)
-        print("xxx\n")
-        print(obj_attr_dict)
     except ValueError:
         try:
-            print("222\n")
-            #print(obj_attr_dict)
             obj_attr_dict = yaml.load(contents)
-            print("yyyy\n")
-            print(obj_attr_dict)
         except Exception,e:
             raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
 
