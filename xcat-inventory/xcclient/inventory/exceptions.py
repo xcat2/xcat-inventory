@@ -39,3 +39,5 @@ class BadDBHdlException(BaseException):
     pass
 class BadSchemaException(BaseException):
     pass
+class DBException(BaseException):
+    pass

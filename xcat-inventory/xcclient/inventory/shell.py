@@ -57,7 +57,7 @@ def main():
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
-    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException), e:
+    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException), e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     #except (ParserError), e:

@@ -124,12 +124,10 @@ def dump2json(xcatobj, location=None):
 def validate_args(args, action):
     if args.type is not None and args.type.lower() not in InventoryFactory.getvalidobjtypes():
         raise CommandException("Error: Invalid object type: \"%(t)s\"", t=args.type)
-
     if args.name == '':
         raise CommandException("Error: Invalid objects name: \"%(o)s\"", o=args.name)
     if args.name and not args.type:
         raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
-
     
     if action == 'import': #extra validation for export
         if not args.path:
@@ -225,7 +223,12 @@ def import_by_type(objtype, names, location,dryrun=None,version=None,update=True
     else:
         hdl.importObjs(objlist, obj_attr_dict,update) 
     if not dryrun:
-        dbsession.commit()    
+        try:
+            dbsession.commit()   
+        except Exception, e: 
+            raise DBException("Error on commit DB transactions: "+str(e))
+        else:
+            print('Inventory import successfully!')
     else:
         print("Dry run mode, nothing will be written to database!")
     dbsession.close()
@@ -234,7 +237,6 @@ def import_all(location,dryrun=None,version=None,update=True):
     dbsession=DBsession()
     with open(location) as file:
         contents=file.read()
-    #obj_attr_dict = json.loads(contents)
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
@@ -261,7 +263,12 @@ def import_all(location,dryrun=None,version=None,update=True):
         hdl.importObjs([], obj_attr_dict[objtype],update)
     
     if not dryrun:
-        dbsession.commit()
+        try:
+            dbsession.commit()
+        except Exception, e:
+            raise DBException("Error on commit DB transactions: "+str(e))
+        else:
+            print('Inventory import successfully!')
     else:
         print("Dry run mode, nothing will be written to database!")
     dbsession.close()

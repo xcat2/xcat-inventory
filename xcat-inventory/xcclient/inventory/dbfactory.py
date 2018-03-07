@@ -3,7 +3,8 @@ import dbobject
 from dbobject import *
 from dbsession import DBsession
 from sqlalchemy import or_
-from xcclient.shell import CommandException
+#from xcclient.shell import CommandException
+from exceptions import *
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkey=tabcls.getkey()
@@ -33,32 +34,30 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     try:
         record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
     except Exception, e:
-        raise Exception, "Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e)
+        raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
         if delrow:
             try:
                 session.delete(record[0])
             except Exception, e:
-                raise Exception, "Error: delete "+key+" is failed: "+str(e)
-            else:
-                print("delete row in xCAT table "+tabcls.__tablename__+".")
+                raise DBException("Error: delete "+key+" is failed: "+str(e))
+            #else:
+            #    print("delete row in xCAT table "+tabcls.__tablename__+".")
         else:
            try:
                session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
            except Exception, e:
-               raise Exception, "Error: import object "+key+" is failed: "+str(e)
-           else:
-               print("Import "+key+": update xCAT table "+tabcls.__tablename__+".")
+               raise DBException("Error: import object "+key+" is failed: "+str(e))
+           #else:
+           #    print("Import "+key+": update xCAT table "+tabcls.__tablename__+".")
     elif delrow == 0:
         newdict[tabkey]=key
         try:
             session.execute(tabcls.__table__.insert(), newdict)
-        except(sqlalchemy.exc.IntegrityError):
-            raise CommandException("Error: xCAT object %(t)s is duplicate.", t=key)
         except Exception, e:
-            raise Exception, "Error: import object "+key+" is failed: "+str(e) 
-        else:
-            print("Import "+key+": insert xCAT table "+tabcls.__tablename__+".")
+            raise DBException("Error: import object "+key+" is failed: "+str(e)) 
+        #else:
+        #    print("Import "+key+": insert xCAT table "+tabcls.__tablename__+".")
 
 class matrixdbfactory():
     def __init__(self,dbsession):
@@ -89,9 +88,12 @@ class matrixdbfactory():
 
     def settab(self,tabdict=None):
         #print "=========matrixdbfactory:settab========"
+        #print(tabdict)
+        #print("\n")
         if tabdict is None:
             return None
         for key in tabdict.keys():
+            print("Importing object: "+str(key))
             for tab in tabdict[key].keys():
                 dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):
@@ -179,44 +181,41 @@ class dbfactory():
             return None
         flattabdict={}
         matrixtabdict={}
-        try:
-            for key in dbdict.keys():
-                curdict=dbdict[key]
-                for tabcol in curdict.keys():
-                    (tab,col)=tabcol.split('.')
-                    if hasattr(dbobject,tab):
-                        tabcls=getattr(dbobject,tab)
-                    else:
-                        continue       
-                    if tabcls.getTabtype() == 'flat':
-                        if key not in flattabdict.keys():
-                            flattabdict[key]={}
-                        if tab not in flattabdict[key].keys():
-                            flattabdict[key][tab]={}
-                        if col not in flattabdict[key][tab].keys():
-                            flattabdict[key][tab][col]={}
-                        flattabdict[key][tab][col]=curdict[tabcol]
-                    else:
-                        if key not in matrixtabdict.keys():
-                            matrixtabdict[key]={}
-                        if tab not in matrixtabdict[key].keys():
-                            matrixtabdict[key][tab]={}
-                        if col not in matrixtabdict[key][tab].keys():
-                            matrixtabdict[key][tab][col]={}
-                        matrixtabdict[key][tab][col]=curdict[tabcol]
-            if flattabdict:
-                df_flat=flatdbfactory(self._dbsession)
-                mydict=df_flat.settab(flattabdict)
-            if matrixtabdict: 
-                df_matrix=matrixdbfactory(self._dbsession)
-                mydict=df_matrix.settab(matrixtabdict)  
-        except CommandException as e:
-            print str(e)
-        except Exception as e:
-            print str(e)
-            print("import object failed.")
-        else:
-            print("import object successfully.")          
+        #try:
+        for key in dbdict.keys():
+            curdict=dbdict[key]
+            for tabcol in curdict.keys():
+                (tab,col)=tabcol.split('.')
+                if hasattr(dbobject,tab):
+                    tabcls=getattr(dbobject,tab)
+                else:
+                    continue       
+                if tabcls.getTabtype() == 'flat':
+                    if key not in flattabdict.keys():
+                        flattabdict[key]={}
+                    if tab not in flattabdict[key].keys():
+                        flattabdict[key][tab]={}
+                    if col not in flattabdict[key][tab].keys():
+                        flattabdict[key][tab][col]={}
+                    flattabdict[key][tab][col]=curdict[tabcol]
+                else:
+                    if key not in matrixtabdict.keys():
+                        matrixtabdict[key]={}
+                    if tab not in matrixtabdict[key].keys():
+                        matrixtabdict[key][tab]={}
+                    if col not in matrixtabdict[key][tab].keys():
+                        matrixtabdict[key][tab][col]={}
+                    matrixtabdict[key][tab][col]=curdict[tabcol]
+        if flattabdict:
+            df_flat=flatdbfactory(self._dbsession)
+            mydict=df_flat.settab(flattabdict)
+        if matrixtabdict: 
+            df_matrix=matrixdbfactory(self._dbsession)
+            mydict=df_matrix.settab(matrixtabdict)  
+        #except Exception as e:
+        #  raise ("Error: import object failed.")
+        #else:
+        #    print("import object successfully.")          
 
     def cleartab(self,tabs):
         flattabs=[]
@@ -244,9 +243,9 @@ class dbfactory():
                 else:
                     dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
             except Exception, e:
-                raise Exception, "Error: failed to clear table "+str(tab)+": "+str(e)
-            else:
-                print("table "+tab+ "cleared!")
+                raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
+            #else:
+            #    print("table "+tab+ "cleared!")
 
 if __name__ == "__main__":
      pass
