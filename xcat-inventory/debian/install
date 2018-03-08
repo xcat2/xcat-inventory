@@ -1,5 +1,6 @@
 cli/* opt/xcat/bin/
 xcclient/*.py /opt/xcat/lib/python/xcclient
 xcclient/inventory/*.py /opt/xcat/lib/python/xcclient/inventory
-xcclient/inventory/schema/*.yaml /opt/xcat/lib/python/xcclient/inventory/schema
-
+xcclient/inventory/schema/latest/*.yaml /opt/xcat/lib/python/xcclient/inventory/schema/latest
+xcclient/inventory/schema/1.0/*.yaml /opt/xcat/lib/python/xcclient/inventory/schema/1.0
+templates/* /opt/xcat/share/xcat/inventory_templates

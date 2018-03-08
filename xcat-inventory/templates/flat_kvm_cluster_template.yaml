@@ -1,0 +1,104 @@
+#
+# Description: This template supplies a simple flat kvm cluster example.
+#              User can modify it based on his own xCAT management node and compute nodes.
+#              After modification, user can use xcat-inventory to import it to setup a baisic kvm cluster.
+#
+
+#site object is global settings for the whole cluster
+site:
+  clustersite:
+    #must modify 
+    domain: cluster.com
+    #must modify
+    forwarders: 10.5.106.2
+    #must modify
+    nameservers: 192.168.1.5
+    #must modify
+    master: 192.168.1.5
+
+#network object is store networks in the cluster
+network:
+  #netname is used to identify this network definition.
+  provision_network:
+    basic_attr:
+      gateway: <xcatmaster>
+      #must modify
+      mask: 255.255.0.0
+      #must modify
+      net: 192.168.0.0
+    service:
+      tftpserver: <xcatmaster>
+
+#The passwd object is used to update user's authentication token(s)
+passwd:
+  system:
+    password: changeme
+    username: root
+
+#node object define all nodes including compute nodes and service nodes
+node:
+  #vmcn1 is a power kvm node object example
+  vmcn1:
+    device_info:
+      arch: ppc64le
+    device_type: server
+    engines:
+      console_engine:
+        engine_info:
+          serialflow: hard
+          serialport: '0'
+          serialspeed: '115200'
+        engine_type: kvm
+      hardware_mgt_engine:
+        engine_info:
+          vmcpus: '2'
+          #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
+          vmhost: 192.168.1.18
+          vmmemory: '8192'
+          #must modify, vmnics should exist in hypervisor
+          vmnics: br0
+          vmstorage: dir:///var/lib/libvirt/images/
+        engine_type: kvm
+      netboot_engine:
+        engine_type: grub2
+    network_info:
+      primarynic:
+        #must modify
+        ip: 192.168.1.25
+    obj_info:
+      groups: all
+    obj_type: node
+    role: compute 
+
+  #vmcn2 is a x86_64 kvm node object example
+  #vmcn2:
+  #  device_info:
+  #    arch: x86_64
+  #  device_type: server
+  #  engines:
+  #    console_engine:
+  #      engine_info:
+  #        serialflow: hard
+  #        serialport: '0'
+  #        serialspeed: '115200'
+  #      engine_type: kvm
+  #    hardware_mgt_engine:
+  #      engine_info:
+  #        vmcpus: '4'
+  #        #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
+  #        vmhost: 192.168.1.18
+  #        vmmemory: '8192'
+  #        #must modify, vmnics should exist in hypervisor
+  #        vmnics: br0
+  #        vmstorage: dir:///var/lib/libvirt/images/
+  #      engine_type: kvm
+  #    netboot_engine:
+  #      engine_type: xnba
+  #  network_info:
+  #    primarynic:
+  #      #must modify
+  #      ip: 192.168.1.25
+  #  obj_info:
+  #    groups: all
+  #  obj_type: node
+  #  role: compute
