@@ -30,11 +30,13 @@ install -d $RPM_BUILD_ROOT/%{prefix}/bin
 install -d $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient
 install -d $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient/inventory
 install -d $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient/inventory/schema
+install -d $RPM_BUILD_ROOT/%{prefix}/share/xcat/inventory_templates
 
 install -m755 cli/* $RPM_BUILD_ROOT/%{prefix}/bin
 install -m644 xcclient/*.py $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient
 install -m644 xcclient/inventory/*.py $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient/inventory
-cp -a  xcclient/inventory/schema/* $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient/inventory/schema
+cp -a xcclient/inventory/schema/* $RPM_BUILD_ROOT/%{prefix}/lib/python/xcclient/inventory/schema
+cp -a templates/* $RPM_BUILD_ROOT/%{prefix}/share/xcat/inventory_templates   
 
 %clean
 rm -rf $RPM_BUILD_ROOT
