@@ -17,6 +17,7 @@ import logging
 import os
 import sys
 import six
+import inventory.exceptions 
 
 # Decorator to define CLI args
 def arg(*args, **kwargs):
@@ -148,7 +149,7 @@ class ClusterShell(object):
             if args.command in self.subcommands:
                 self.subcommands[args.command].print_help()
             else:
-                raise exceptions.CommandException("'%s' is not a valid subcommand" %
+                raise inventory.exceptions.CommandException("Error: '%s' is not a valid subcommand" %
                                        args.command)
         else:
             self.parser.print_help()
@@ -205,18 +206,6 @@ class XCHelpFormatter(argparse.HelpFormatter):
         heading = '%s%s' % (heading[0].upper(), heading[1:])
         super(XCHelpFormatter, self).start_section(heading)
 
-class CommandException(Exception):
-    """Base Command Exception."""
-
-    message = "An unknown error occurred."
-
-    def __init__(self, message=None, **kwargs):
-        if message:
-            self.message = message
-        try:
-            self._error_msg = self.message % kwargs
-        except Exception:
-            self._error_msg = self.message
 
     def __str__(self):
         return self._error_msg
