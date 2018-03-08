@@ -12,10 +12,20 @@ Command-line interface to xCAT inventory import/export
 from __future__ import print_function
 from xcclient import shell
 from exceptions import *
-import xcclient.inventory.manager as mgr
-
+import re
 import sys
 import traceback
+
+try: 
+    import xcclient.inventory.manager as mgr
+except ImportError,e:
+     if re.match(r'No module named pymysql',str(e),re.I):
+         print(r'Error: '+str(e), file=sys.stderr)
+         print(r"Please install package 'python-PyMySQL-0.7.x' or 'PyMySQL 0.7.x' on PyPI",file=sys.stderr)
+         sys.exit(1)
+     else:
+         print(str(e), file=sys.stderr)
+         sys.exit(1)
 
 class InventoryShell(shell.ClusterShell):
     def add_subcommands(self, subparsers, revision):
