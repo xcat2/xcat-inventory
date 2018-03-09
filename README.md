@@ -51,15 +51,15 @@ If you are prompted `No module named xxx` when you run `xcat-inventory`, you can
 
 ## platform
 
-The `xcat-inventory` is arch independent, i.e, you can install it on `X86_64`,`ppc64`, or `ppc64le` xCAT management nodes 
+The `xcat-inventory` is arch independent, i.e, you can install it on xCAT management nodes with architecture `X86_64`,`ppc64`, or `ppc64le` 
 
-Currently, rpm package is shipped, it can be installed on Linux distribution like Redhat 7.x, CentOS 7.x and SuSE. 
+Currently, only rpm package is shipped, which can be installed on Linux distributions like Redhat 7.x, CentOS 7.x and SuSE. 
 
 The installation and function verification is finished on rhels7.x. 
 
 For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
-`xcat-inventory` is compatible with xCAT with same release
+`xcat-inventory` should be compatible with xCAT with same release
 
 ## command synopsis
 
