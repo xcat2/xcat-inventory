@@ -40,7 +40,9 @@ Several python packages are required:
 * Six: a Python 2 and 3 compatibility library
 
 In most cases, these packages will be installed during `xcat-inventory` installation. 
-If you are prompted that some of them cannot be found during `xcat-inventory` installation, you can download the package from #dep-url# and install it manually 
+
+If you are prompted that some of them cannot be found during `xcat-inventory` installation, you can download the package from #dep-url# and install it manually. 
+
 If you are prompted `No module named xxx` when you run `xcat-inventory`, you can install the missing package with one of the following way: 
 
 * install the corresponding rpm/deb package
@@ -51,7 +53,11 @@ If you are prompted `No module named xxx` when you run `xcat-inventory`, you can
 
 The `xcat-inventory` is arch independent, i.e, you can install it on `X86_64`,`ppc64`, or `ppc64le` xCAT management nodes 
 
-Currently, rpm package is shipped, it can be installed on Linux distribution like Redhat 7.x, CentOS 7.x and SuSE. The installation and function verification is finished on rhels7.x. For other Linux distributions, you might need to handle the dependency issue by yourself. 
+Currently, rpm package is shipped, it can be installed on Linux distribution like Redhat 7.x, CentOS 7.x and SuSE. 
+
+The installation and function verification is finished on rhels7.x. 
+
+For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
 `xcat-inventory` is compatible with xCAT with same release
 
