@@ -1,14 +1,14 @@
 # xcat-inventory - A tool to manipulate inventory data in xCAT cluster
 
-xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.org), the feature includes:
+xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.org), the features include:
 
 - a object based view of the cluster inventory, which is flexible, extensible and well formatted
 
 - interfaces to export/import the cluster inventory data in yaml/json format, which can be then managed under source control
 
-- inventory templates for typical clusters, which help user to defines a cluster easily
+- inventory templates for typical clusters, which help user to define a cluster easily
 
-- ability to intergrate with Ansible(Comming Soon)
+- ability to intergrate with Ansible(Comming soon)
 
 ## Table of Contents
 
