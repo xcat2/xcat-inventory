@@ -12,6 +12,8 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     delrow=1 
     #for flat table, keep the record untouch if the non-key values are None
     skiprow=1
+    tabcols=tabcls.getcolumns()
+
     for item in newdict.keys():
         if  tabkey != item and newdict[item] is not None:
             skiprow=0        
@@ -24,6 +26,11 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
 
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
+        
+        if item not in tabcols:
+            print("Warning: no column '"+item+"' in table "+tabcls.__tablename__+", might caused by mismatch between schema version and xCAT version! ignore column '"+item+"' ...")
+            del newdict[item] 
+            
 
     if not ismatrixtable:
         if skiprow:

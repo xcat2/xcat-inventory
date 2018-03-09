@@ -59,7 +59,6 @@ The installation and function verification is finished on rhels7.x.
 
 For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
-`xcat-inventory` should be compatible with xCAT with same release
 
 ## command synopsis
 
