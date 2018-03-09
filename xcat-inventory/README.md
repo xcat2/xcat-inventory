@@ -15,7 +15,7 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 - [Installing](#installing)
 - [Dependencies](#dependency)
 - [Platform Restrictions](#platform)
-- [Command Synopsis](#commandsynopsis)
+- [Command Synopsis](#command-synopsis)
   - [help](#help)
   - [export](#export)
   - [import](#import)
