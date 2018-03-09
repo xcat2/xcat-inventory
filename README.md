@@ -27,7 +27,7 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 
 ## installing
 
-Download "xcat-inventory" from #url# to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
+Download "xcat-inventory" from [xcat-inventory](http://xcat.org/files/xcat/xcat-dep/2.x_Linux/beta/xcat-inventory/xcat-inventory-2.13.11-snap201803090457.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
 ## dependency
 
@@ -41,7 +41,7 @@ Several python packages are required:
 
 In most cases, these packages will be installed during `xcat-inventory` installation. 
 
-If you are prompted that some of them cannot be found during `xcat-inventory` installation, you can download the package from #dep-url# and install it manually. 
+If you are prompted that some of them cannot be found during `xcat-inventory` installation, you can download the package from [dep-url](http://xcat.org/files/xcat/xcat-dep/2.x_Linux/beta/xcat-inventory/) and install it manually. 
 
 If you are prompted `No module named xxx` when you run `xcat-inventory`, you can install the missing package with one of the following way: 
 
