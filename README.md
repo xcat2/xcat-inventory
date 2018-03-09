@@ -155,7 +155,7 @@ Arguments:
 
 ## usecase
 
-This section presents some typical usecases [xcat-inventory usecase](http://xcat-docs.readthedocs.io/en/latest/advanced/advanced/xcat-inventory/index.html)
+This section presents some typical usecases [xcat-inventory usecase](http://xcat-docs.readthedocs.io/en/latest/advanced/xcat-inventory/index.html)
 
 ## reporting bugs
 
