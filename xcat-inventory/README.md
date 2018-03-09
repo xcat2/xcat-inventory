@@ -25,11 +25,11 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 - [Reporting bugs](#reporting-bugs)
 
 
-##installing
+## installing
 
 Download "xcat-inventory" from #url# to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
-##dependency
+## dependency
 
 Several python packages are required:
 
@@ -47,7 +47,7 @@ If you are prompted `No module named xxx` when you run `xcat-inventory`, you can
 * install the python package with `pip`
 * download the python package tarball from PyPi(https://pypi.python.org/pypi), uncompress it and install the package with `python setup.py install`
 
-##platform
+## platform
 
 The `xcat-inventory` is arch independent, i.e, you can install it on X86_64/ppc64/ppc64le/... xCAT management nodes 
 
@@ -55,9 +55,9 @@ Currently, rpm package is shipped, it can be installed on Linux distribution lik
 
 `xcat-inventory` is compatible with xCAT with same release
 
-##commandsynopsis
+## commandsynopsis
 
-###help
+### help
 
 Show usage info
 
@@ -82,7 +82,7 @@ Optional arguments:
 See "xcat-inventory help COMMAND" for help on a specific command.
 ```
 
-###export
+### export
 
 Export the inventory data from xcat database 
 
@@ -113,7 +113,7 @@ Arguments:
                         yaml. json will be used by default if not specified
  ```
  
- ###import
+ ### import
 
 Import inventory file to xcat database
  
