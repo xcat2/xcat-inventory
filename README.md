@@ -153,8 +153,9 @@ Arguments:
 [root@c910f03c05k21 xcat-inventory]#
 ```
 
+## usercase
 
-
+This section presents some typical usecases [xcat-inventory usecase](http://xcat-docs.readthedocs.io/en/latest/advanced/advanced/xcat-inventory/index.html)
 
 ## reporting bugs
 
