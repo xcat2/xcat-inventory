@@ -30,6 +30,10 @@ class mixin(object):
         pass      
     
     @classmethod
+    def getcolumns(self):
+        return self.__table__.columns.keys()
+
+    @classmethod
     def getTabtype(self):
         return 'matrix'
 
