@@ -4,40 +4,42 @@
 #              After modification, user can use xcat-inventory to import it to setup a baisic cluster.
 #                        
 
-#site object is global settings for the whole cluster
+#global settings
 site:
   clustersite:
-    #must modify
+    #CHANGEME
     domain: cluster.com
-    #must modify
+    #CHANGEME
     forwarders: 10.5.106.2
-    #must modify
+    #CHANGEME
     nameservers: 192.168.1.5
-    #must modify
+    #CHANGEME
     master: 192.168.1.5
 
-#network object is store networks in the cluster
+#network definition
 network:
-  #netname is used to identify this network definition.
+  #provision network
   provision_network:
     basic_attr:
       gateway: <xcatmaster>
-      #must modify 
+      #CHANGEME 
       mask: 255.255.0.0
-      #must modify
+      #CHANGEME
       net: 192.168.0.0
     service:
       tftpserver: <xcatmaster>
 
-#The passwd object is used to update user's authentication token(s)
+
 passwd:
+#OS password on compute nodes
   system:
+    #CHANGEME
     password: changeme
     username: root
 
-#node object define all nodes including compute nodes and service nodes
+#compute nodes
 node:
-  #node1 is an IBM Power system AC922 node object example
+  #openbmc controlled Power LE servers, such as IBM Power system AC922
   node1:
     device_info:
       arch: ppc64le
@@ -47,20 +49,20 @@ node:
         engine_type: openbmc
       hardware_mgt_engine:
         engine_info:
-          #must modify 
+          #CHANGEME 
           bmc: 50.10.2.16
-          #must modify
+          #CHANGEME
           bmcpassword: 0penBmc
-          #must modify
+          #CHANGEME
           bmcusername: root
         engine_type: openbmc
       netboot_engine:
         engine_type: petitboot
     network_info:
       primarynic:
-        #must modify 
+        #CHANGEME 
         ip: 192.168.1.16
-        #must modify
+        #CHANGEME
         mac:
         - 70:e2:84:14:30:c0
     obj_info:
@@ -68,7 +70,7 @@ node:
     obj_type: node
     role: compute
 
-  #node2 is a IBM Power S822LC node object example
+  ## IPMI controlled Power LE servers, such as IBM Power S822LC 
   #node2:
   #  device_info:
   #    arch: ppc64le
@@ -81,20 +83,20 @@ node:
   #      engine_type: ipmi
   #    hardware_mgt_engine:
   #      engine_info:
-  #        #must modify 
+  #        #CHANGEME 
   #        bmc: 50.10.2.16
-  #        #must modify
+  #        #CHANGEME
   #        bmcpassword: admin
-  #        #must modify
+  #        #CHANGEME
   #        bmcusername: ADMIN
   #      engine_type: ipmi
   #    netboot_engine:
   #      engine_type: petitboot
   #  network_info:
   #    primarynic:
-  #      #must modify 
+  #      #CHANGEME 
   #      ip: 192.168.1.16
-  #      #must modify
+  #      #CHANGEME
   #      mac:
   #      - 98:be:94:59:ea:27
   #  obj_info:
@@ -103,7 +105,7 @@ node:
   #  role: compute
   #
 
-  #node3 is a Lenovo X3650 node object example
+  ##X86_64 servers, such as Lenovo X3650 node, dx360M5
   #node3:
   #  device_info:
   #    arch: x86_64
@@ -116,11 +118,11 @@ node:
   #      engine_type: ipmi
   #    hardware_mgt_engine:
   #      engine_info:
-  #        #must modify
+  #        #CHANGEME
   #        bmc: 50.10.2.16
-  #        #must modify
+  #        #CHANGEME
   #        bmcpassword: PASSW0RD
-  #        #must modify
+  #        #CHANGEME
   #        bmcusername: USERID
   #      engine_type: ipmi
   #    netboot_engine:
@@ -129,9 +131,9 @@ node:
   #      engine_type: ipmi
   #  network_info:
   #    primarynic:
-  #      #must modify
+  #      #CHANGEME
   #      ip: 192.168.1.16
-  #      #must modify
+  #      #CHANGEME
   #      mac:
   #      - 34:40:b5:be:77:50
   #  obj_info:

@@ -4,40 +4,41 @@
 #              After modification, user can use xcat-inventory to import it to setup a baisic kvm cluster.
 #
 
-#site object is global settings for the whole cluster
+#global configuration
 site:
   clustersite:
-    #must modify 
+    #CHANGEME 
     domain: cluster.com
-    #must modify
+    #CHANGEME
     forwarders: 10.5.106.2
-    #must modify
+    #CHANGEME
     nameservers: 192.168.1.5
-    #must modify
+    #CHANGEME
     master: 192.168.1.5
 
-#network object is store networks in the cluster
+#network definition
 network:
-  #netname is used to identify this network definition.
+  #provision network
   provision_network:
     basic_attr:
       gateway: <xcatmaster>
-      #must modify
+      #CHANGEME
       mask: 255.255.0.0
-      #must modify
+      #CHANGEME
       net: 192.168.0.0
     service:
       tftpserver: <xcatmaster>
 
-#The passwd object is used to update user's authentication token(s)
 passwd:
+  #OS password on compute nodes
   system:
+    #CHANGEME
     password: changeme
     username: root
 
-#node object define all nodes including compute nodes and service nodes
+#compute nodes
 node:
-  #vmcn1 is a power kvm node object example
+  #Power KVM node
   vmcn1:
     device_info:
       arch: ppc64le
@@ -52,10 +53,12 @@ node:
       hardware_mgt_engine:
         engine_info:
           vmcpus: '2'
-          #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
+          #make sure vmhost(hypervisor) can be accessed via ssh without password
+          #CHANGEME
           vmhost: 192.168.1.18
           vmmemory: '8192'
-          #must modify, vmnics should exist in hypervisor
+          #the bridge name on hypervisor
+          #CHANGEME
           vmnics: br0
           vmstorage: dir:///var/lib/libvirt/images/
         engine_type: kvm
@@ -63,14 +66,14 @@ node:
         engine_type: grub2
     network_info:
       primarynic:
-        #must modify
+        #CHANGEME
         ip: 192.168.1.25
     obj_info:
       groups: all
     obj_type: node
     role: compute 
 
-  #vmcn2 is a x86_64 kvm node object example
+  ##x86_64 KVM node
   #vmcn2:
   #  device_info:
   #    arch: x86_64
@@ -85,10 +88,12 @@ node:
   #    hardware_mgt_engine:
   #      engine_info:
   #        vmcpus: '4'
-  #        #must modify, vmhost is hypervisor, make sure xcat MN and hypervisor are passwordless 
+  #        #make sure xcat management node can access the hypervisor without password
+  #        #CHANGEME 
   #        vmhost: 192.168.1.18
   #        vmmemory: '8192'
-  #        #must modify, vmnics should exist in hypervisor
+  #        # brige name on vmhost(hypervisor)
+  #        #CHANGEME
   #        vmnics: br0
   #        vmstorage: dir:///var/lib/libvirt/images/
   #      engine_type: kvm
@@ -96,7 +101,7 @@ node:
   #      engine_type: xnba
   #  network_info:
   #    primarynic:
-  #      #must modify
+  #      #CHANGEME
   #      ip: 192.168.1.25
   #  obj_info:
   #    groups: all
