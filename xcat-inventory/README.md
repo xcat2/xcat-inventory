@@ -55,7 +55,7 @@ Currently, rpm package is shipped, it can be installed on Linux distribution lik
 
 `xcat-inventory` is compatible with xCAT with same release
 
-## commandsynopsis
+## command synopsis
 
 ### help
 
@@ -150,7 +150,7 @@ Arguments:
 
 
 
-##reporting-bugs
+## reporting bugs
 
 For any bugs or feature request, please open ticket in #github issues#
 
