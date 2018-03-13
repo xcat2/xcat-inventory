@@ -356,6 +356,12 @@ class nimimage(Base,mixin):
     __tablename__ = 'nimimage'
     __table_args__ = {'autoload':True}
 ########################################################################
+class zone(Base,mixin):
+    """"""
+    Base.metadata.bind = DBsession.getEngine('zone')
+    __tablename__ = 'zone'
+    __table_args__ = {'autoload':True}
+########################################################################
 class site(Base,mixin):
     """"""
     Base.metadata.bind = DBsession.getEngine('site')

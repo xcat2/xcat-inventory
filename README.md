@@ -27,7 +27,7 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 
 ## installing
 
-Download "xcat-inventory" package from [xcat-inventory](http://xcat.org/files/xcat/xcat-dep/2.x_Linux/beta/xcat-inventory/xcat-inventory-0.1.1-snap201803091036.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
+Download "xcat-inventory" package from [xcat-inventory](http://xcat.org/files/xcat/xcat-dep/2.x_Linux/beta/xcat-inventory/xcat-inventory-0.1.1-snap201803100117.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
 ## dependency
 
