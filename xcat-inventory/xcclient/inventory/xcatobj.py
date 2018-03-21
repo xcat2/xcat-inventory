@@ -473,5 +473,7 @@ class Passwd(XcatBase):
 class Site(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/site.yaml')
 
+class Zone(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/zone.yaml')
 if __name__ == "__main__":
     pass
