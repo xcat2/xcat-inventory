@@ -28,13 +28,12 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         if  tabkey != item and newdict[item] is None:
             newdict[item]=''
     
-        if tabkey != item and newdict[item]!='':
-            delrow=0
+        if tabkey not in newdict.keys() or tabkey in newdict.keys() and (newdict[tabkey] is not None and str(newdict[tabkey]) !=""):
+            if tabkey != item and newdict[item]!='': 
+                delrow=0
 
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
-        
-
 
     if not ismatrixtable:
         if skiprow:
