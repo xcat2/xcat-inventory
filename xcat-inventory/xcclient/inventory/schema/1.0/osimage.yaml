@@ -3,7 +3,7 @@
     imagetype:
     - "T{osimage.imagetype}"
     - "W:T{winimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'windows' else None }}"
-    - "W:T{osimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'linux' else None }}"
+    - "W:T{linuximage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'linux' else None }}"
     - "C:${{value=V{imagetype}: True if str(value) in ('windows','linux') else False}}"
     basic_attributes:
       distribution: "T{osimage.osvers}"
