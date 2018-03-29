@@ -255,7 +255,6 @@
       mpaurlpath: "T{mpa.urlpath}"
       nodehmcmdmapping: "T{nodehm.cmdmapping}"
       nodehmgetmac: "T{nodehm.getmac}"
-      nodehmpower: "T{nodehm.power}"
       nodelisthidden: "T{nodelist.hidden}"
       noderesnfsdir: "T{noderes.nfsdir}"
       noderesnimserver: "T{noderes.nimserver}"
