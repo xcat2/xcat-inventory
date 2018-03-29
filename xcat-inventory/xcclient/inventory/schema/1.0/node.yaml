@@ -18,6 +18,7 @@
     - "W:T{switches.switch}=${{devtype=V{device_type}: V{obj_name} if devtype == 'switch' else None}}"
     - "W:T{pdu.node}=${{devtype=V{device_type}: V{obj_name} if devtype == 'pdu' else None}}" 
     - "W:T{rack.rackname}=${{devtype=V{device_type}: V{obj_name} if devtype == 'rack' else None}}" 
+    - "W:T{ppchcp.hcp}=${{devtype=V{device_type}: V{obj_name} if devtype == 'hmc' else None}}"
     - "C:${{devtype=V{device_type}: True if str(devtype) in ('switch','pdu','rack','hmc','server') else False}}"
     device_info:
       arch: 
