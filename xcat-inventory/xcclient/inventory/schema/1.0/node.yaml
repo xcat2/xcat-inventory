@@ -8,7 +8,7 @@
     obj_info: 
       groups: 
       - "${{ objtype=V{obj_type} : T{nodelist.groups} if objtype == 'node' else None}}"
-      - "C:${{objtype=V{obj_type},groups=V{obj_info.groups}: False if str(objtype) in ('node') and not groups else True }}"
+      - "C:${{objtype=V{obj_type},groups=V{obj_info.groups}: False if str(objtype) in ['node'] and not groups else True }}"
       grouptype: "${{objtype=V{obj_type} :  T{nodegroup.grouptype} if objtype == 'group' else None}}"
       members: "${{objtype=V{obj_type} : T{nodegroup.members} if objtype == 'group' else None}}"
       filter: "${{ objtype=V{obj_type} : T{nodegroup.wherevals} if objtype == 'group' else None}}"
@@ -60,21 +60,21 @@
         - "T{pdu.seclevel}"
         - "C:${{seclevel=V{security_info.snmp.securitylevel}: True if str(seclevel) in  ('', 'noAuthNoPriv','authNoPriv','authPriv') else False}}"
         version: 
-        - "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ('pdu') else None}}"
+        - "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ['pdu'] else None}}"
         - "C:${{version=V{security_info.snmp.version}: True if str(version) in ('','1','2','3','SNMPv1','SNMPv2','SNMPv3') else False}}"
         authprotocol: 
-        - "${{ devtype=V{device_type}: T{switches.auth} if devtype in ('switch') else T{pdu.authtype} if devtype in ('pdu')  else None  }}" 
+        - "${{ devtype=V{device_type}: T{switches.auth} if devtype in ['switch'] else T{pdu.authtype} if devtype in ['pdu']  else None  }}" 
         - "C:${{authtype=V{security_info.snmp.authprotocol}: True if str(authtype).upper() in ('','MD5','SHA') else False}}"
         privacyprotocol: 
-        - "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else T{pdu.privtype} if devtype in ('pdu')  else  None }}"
+        - "${{devtype=V{device_type}: T{switches.privacy} if devtype == 'switch' else T{pdu.privtype} if devtype in ['pdu']  else  None }}"
         - "C:${{privtype=V{security_info.snmp.privacyprotocol}: True if str(privtype) in ('','AES','DES','authNoPriv') else False}}"
-        community: "${{devtype=V{device_type}: T{pdu.community} if devtype in ('pdu')  else T{switches.password} if devtype == 'switch' else None}}"
-        username: "${{devtype=V{device_type}: T{switches.username} if devtype == 'switch' else T{pdu.snmpuser} if devtype in ('pdu') else None}}"
-        authkey: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else T{pdu.authkey} if devtype in ('pdu') else None}}"
+        community: "${{devtype=V{device_type}: T{pdu.community} if devtype in ['pdu']  else T{switches.password} if devtype == 'switch' else None}}"
+        username: "${{devtype=V{device_type}: T{switches.username} if devtype == 'switch' else T{pdu.snmpuser} if devtype in ['pdu'] else None}}"
+        authkey: "${{devtype=V{device_type}: T{switches.password} if devtype == 'switch' else T{pdu.authkey} if devtype in ['pdu'] else None}}"
         privkey: "T{pdu.privkey}"
       remotecontrol:
-        username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{pdu.username} if devtype in ('pdu') else T{ppchcp.username} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.username} if devtype in ('mm')  else None}}" 
-        password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ('pdu') else T{ppchcp.password} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.password} if devtype in ('mm')  else None}}"
+        username: "${{devtype=V{device_info.characteristics}: T{switches.sshusername} if devtype == 'switch' else T{pdu.username} if devtype in ['pdu'] else T{ppchcp.username} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.username} if devtype in ['mm']  else None}}" 
+        password: "${{devtype=V{device_info.characteristics}: T{switches.sshpassword} if devtype == 'switch' else T{pdu.password}  if devtype in ['pdu'] else T{ppchcp.password} if devtype in ('hmc','ivm','ppc','ppc,osi') else T{mpa.password} if devtype in ['mm']  else None}}"
         remoteprotocol: 
         - "T{switches.protocol}"
         - "C:${{protocol=V{security_info.remotecontrol.remoteprotocol}: True if str(protocol) in ('','ssh','telnet') else False}}"
@@ -119,10 +119,10 @@
           - "C:${{engine_type=V{engines.hardware_mgt_engine.engine_type}: True if str(engine_type) in ('','openbmc','ipmi','hmc','fsp','kvm','mp','bpa','ivm','blade','pdu','switch') else False}}"
           engine_info:
             #openbmc_info:
-            bmc: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmc} if str(engine_type) in ('openbmc') else T{ipmi.bmc} if str(engine_type) in ('ipmi') else None}}"
-            bmcusername: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.username} if str(engine_type) in ('openbmc') else T{ipmi.username} if str(engine_type) in ('ipmi') else None}}"
-            bmcpassword: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.password} if str(engine_type) in ('openbmc') else T{ipmi.password} if str(engine_type) in ('ipmi') else None}}"
-            bmctaggedvlan: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.taggedvlan} if str(engine_type) in ('openbmc') else T{ipmi.taggedvlan} if str(engine_type) in ('ipmi') else None}}"
+            bmc: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.bmc} if str(engine_type) in ['openbmc'] else T{ipmi.bmc} if str(engine_type) in ['ipmi'] else None}}"
+            bmcusername: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.username} if str(engine_type) in ['openbmc'] else T{ipmi.username} if str(engine_type) in ['ipmi'] else None}}"
+            bmcpassword: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.password} if str(engine_type) in ['openbmc'] else T{ipmi.password} if str(engine_type) in ['ipmi'] else None}}"
+            bmctaggedvlan: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{openbmc.taggedvlan} if str(engine_type) in ['openbmc'] else T{ipmi.taggedvlan} if str(engine_type) in ['ipmi'] else None}}"
             consport: "T{openbmc.consport}"
             #ipmi_info:
             bmcid: "T{ipmi.bmcid}"
@@ -149,12 +149,12 @@
             vmstorageformat: "T{vm.storageformat}"
             vmtextconsole: "T{vm.storageformat}"
             #zvm_info:
-            hcp: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.hcp} if str(engine_type) in ('zvm') else T{ppc.hcp} if str(engine_type) in ('hmc') else None }}"
+            hcp: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.hcp} if str(engine_type) in ['zvm'] else T{ppc.hcp} if str(engine_type) in ['hmc'] else None }}"
             zvmuserid: "T{zvm.userid}"
-            parent: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.parent} if str(engine_type) in ('zvm') else T{ppc.parent} if str(engine_type) in ('hmc') else None }}"
-            hwtype: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.nodetype} if str(engine_type) in ('zvm') else T{ppc.nodetype} if str(engine_type) in ('hmc') else T{mp.nodetype} }}"
+            parent: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.parent} if str(engine_type) in ['zvm'] else T{ppc.parent} if str(engine_type) in ['hmc'] else None }}"
+            hwtype: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{zvm.nodetype} if str(engine_type) in ['zvm'] else T{ppc.nodetype} if str(engine_type) in ['hmc'] else T{mp.nodetype} }}"
             #hmc_info: 
-            id: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{ppc.id} if str(engine_type) in ('hmc','kvm')  else T{mp.id} }}"
+            id: "${{engine_type=V{engines.hardware_mgt_engine.engine_type}: T{ppc.id} if str(engine_type) in ['hmc','kvm']  else T{mp.id} }}"
             pprofile: "T{ppc.pprofile}"
             supernode: "T{ppc.supernode}"
             sfp: "T{ppc.sfp}"

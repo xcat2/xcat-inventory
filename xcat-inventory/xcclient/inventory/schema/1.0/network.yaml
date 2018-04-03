@@ -16,10 +16,10 @@
     pool:
       dynamicrange: 
       - "T{networks.dynamicrange}"
-      - "C:${{ value=V{pool.dynamicrange}: True if str(value) in ('') or vutil.isIPaddr(value) or vutil.isIPrange(value) else False}}"
+      - "C:${{ value=V{pool.dynamicrange}: True if str(value) in [''] or vutil.isIPaddr(value) or vutil.isIPrange(value) else False}}"
       staticrange: 
       - "T{networks.staticrange}"
-      - "C:${{ value=V{pool.staticrange}: True if str(value) in ('') or vutil.isIPrange(value) or vutil.isIPaddr(value) else False}}"
+      - "C:${{ value=V{pool.staticrange}: True if str(value) in [''] or vutil.isIPrange(value) or vutil.isIPaddr(value) else False}}"
       staticrangeincrement: "T{networks.staticrangeincrement}"
       nodehostname: "T{networks.nodehostname}"
       ddnsdomain: "T{networks.ddnsdomain}"
