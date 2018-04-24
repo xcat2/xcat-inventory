@@ -8,7 +8,6 @@
 function makepythoncli {
     RPMNAME="$1"
     SPEC_FILE="xcat-inventory.spec"
-    sed -i s/%%REPLACE_CURRENT_VERSION%%/${VERSION}/g $RPMNAME/${SPEC_FILE}
     VERINFO=${VERSION}' (git commit '${GITCOMMIT}')'
     tar --exclude .svn -czvf $RPMROOT/SOURCES/$RPMNAME-${VERSION}.tar.gz $RPMNAME
     rm -f $RPMROOT/SRPMS/$RPMNAME-$VER*rpm $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*rpm
