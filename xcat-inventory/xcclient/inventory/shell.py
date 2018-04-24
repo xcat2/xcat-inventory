@@ -46,7 +46,7 @@ class InventoryShell(shell.ClusterShell):
         else :
             mgr.import_all(args.path, dryrun=args.dryrun,version=args.version,update=args.update)
 
-    @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
+    @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects EXCEPT osimage will be exported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to export, delimited with Comma(,). If not specified, all objects of the specified type will be exported')
     @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file(not implemented yet)')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
