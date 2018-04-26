@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
+# IBM(c) 2018 EPL license http://www.eclipse.org/legal/epl-v10.html
 ###############################################################################
 # -*- coding: utf-8 -*-
 #
@@ -47,7 +47,7 @@ class ClusterShell(object):
         parser.add_argument('-h',
                             '--help',
                             action='store_true',
-                            help=argparse.SUPPRESS)
+                            help="Prints help message")
 
         parser.add_argument('--debug',
                             default=False,
@@ -166,9 +166,17 @@ class ClusterShell(object):
 
         # Handle top-level --help/-h before attempting to parse
         # a command off the command line
-        if not argv or options.help:
+        if not argv:
             self.do_help(options)
             return 0
+
+        if not args:
+            self.do_help(options)
+            return 0
+
+        if args[0] not in self.subcommands.keys():
+            self.do_help(options)
+            raise inventory.exceptions.CommandException("Error: not a valid subcommand to run")
 
         # Parse args again and call whatever callback was selected
         args = subcommand_parser.parse_args(argv)
