@@ -28,7 +28,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-VERSION=`git describe --tags|cut -d- -f 1`
+VERSION=`git describe --tags|cut -d- -f 1 | tail -c +2`
 NUMCOMMITS=`git describe --tags|cut -d- -f 2`
 if [ "$NUMCOMMITS" != "$VERSION"  ]; then
     VERSION=$VERSION
