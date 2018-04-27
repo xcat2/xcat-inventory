@@ -167,6 +167,8 @@ def export_all(location, fmt,version=None):
     dbsession=DBsession()
     wholedict={}
     for objtype in InventoryFactory.getvalidobjtypes():
+        if 'osimage' in objtype:
+            continue
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         wholedict.update(hdl.exportObjs([]))
 
