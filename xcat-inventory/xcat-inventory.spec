@@ -23,6 +23,8 @@ BuildArch: noarch
 %setup -q -n xcat-inventory
 
 %build
+VERINFO=%{version}' (git commit '%{gitcommit}')'
+sed -i s/\#VERSION_SUBSTITUTE\#/"$VERINFO"/g $RPM_BUILD_DIR/$RPM_PACKAGE_NAME/xcclient/inventory/shell.py
 
 %install
 rm -rf $RPM_BUILD_ROOT

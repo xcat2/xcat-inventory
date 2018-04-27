@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
+# IBM(c) 2018 EPL license http://www.eclipse.org/legal/epl-v10.html
 
 # Common script to make any one the xcat rpms.  To build locally, run in the top dir of local svn repository, for example:
 #   ./makepythonrpm xcat-inventory
@@ -8,15 +8,13 @@
 function makepythoncli {
     RPMNAME="$1"
     SPEC_FILE="xcat-inventory.spec"
-    sed -i s/%%REPLACE_CURRENT_VERSION%%/${VER}/g $RPMNAME/${SPEC_FILE}
-    VERINFO=${VER}' (git commit '${GITCOMMIT}')'
-    sed -i s/\#VERSION_SUBSTITUTE\#/"$VERINFO"/g $RPMNAME/xcclient/inventory/shell.py
-    tar --exclude .svn -czvf $RPMROOT/SOURCES/$RPMNAME-${VER}.tar.gz $RPMNAME
-    rm -f $RPMROOT/SRPMS/$RPMNAME-$VER*rpm $RPMROOT/RPMS/noarch/$RPMNAME-$VER*rpm
-    echo "Building $RPMROOT/RPMS/noarch/$RPMNAME-$VER-snap*.noarch.rpm $EMBEDTXT..."
-    rpmbuild --quiet -ta $RPMROOT/SOURCES/$RPMNAME-${VER}.tar.gz --define "version $VER" $REL "$EASE"
+    VERINFO=${VERSION}' (git commit '${GITCOMMIT}')'
+    tar --exclude .svn -czvf $RPMROOT/SOURCES/$RPMNAME-${VERSION}.tar.gz $RPMNAME
+    rm -f $RPMROOT/SRPMS/$RPMNAME-$VER*rpm $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*rpm
+    echo "Building $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*.noarch.rpm $EMBEDTXT..."
+    rpmbuild --quiet -ta $RPMROOT/SOURCES/$RPMNAME-${VERSION}.tar.gz --define "version $VERSION" --define "release c$NUMCOMMITS" --define "gitcommit $GITCOMMIT"
     if [ $? -eq 0 ]; then
-        ls $RPMROOT/RPMS/noarch/$RPMNAME-$VER-snap*.noarch.rpm
+        ls $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*.noarch.rpm
         exit 0
     else  
         exit 1
@@ -30,12 +28,16 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+VERSION=`git describe --tags|cut -d- -f 1 | tail -c +2`
+NUMCOMMITS=`git describe --tags|cut -d- -f 2`
+if [ "$NUMCOMMITS" != "$VERSION"  ]; then
+    VERSION=$VERSION
+fi
+echo $VERSION > Version
+
 OSNAME=$(uname)
-VER=`cat Version`
 GITCOMMIT=$(git rev-parse HEAD)
-REL="--define"
-EASE='usedate 1'
-RPMROOT=/root/rpmbuild
+RPMROOT=~/rpmbuild
 
 rpmbuild --version > /dev/null
 if [ $? -gt 0 ]; then
