@@ -134,8 +134,6 @@ def validate_args(args, action):
            raise CommandException("Error: Invalid file to import: \"%(p)s\"", p=args.path)
         if not os.path.exists(args.path):
             raise CommandException("Error: The specified path does not exist: %(p)s", p=args.path)
-        if not args.exclude:
-            raise CommandException("Error: -x|--exclude is not supported.")
 
     if action == 'export': #extra validation for export
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
