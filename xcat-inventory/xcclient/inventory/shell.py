@@ -47,6 +47,7 @@ class InventoryShell(shell.ClusterShell):
             mgr.import_all(args.path, dryrun=args.dryrun,version=args.version,update=args.update)
 
     @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
+    @shell.arg('-x', '--exclude', dest='exclude', default='', help='types to be excluded when exporting all, delimited with Comma(,).')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to export, delimited with Comma(,). If not specified, all objects of the specified type will be exported')
     @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file(not implemented yet)')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
@@ -56,9 +57,9 @@ class InventoryShell(shell.ClusterShell):
         mgr.validate_args(args, 'export')
         if args.type :
             # do export by type
-            mgr.export_by_type(args.type, args.name, args.path, args.format,version=args.version)
+            mgr.export_by_type(args.type, args.name, args.path, args.format, version=args.version)
         else :
-            mgr.export_all(args.path, args.format,version=args.version)
+            mgr.export_all(args.path, args.format, exclude=args.exclude.split(','), version=args.version)
 
 # main entry for CLI
 def main():

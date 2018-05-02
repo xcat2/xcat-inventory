@@ -138,6 +138,10 @@ def validate_args(args, action):
     if action == 'export': #extra validation for export
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
             raise CommandException("Error: Invalid exporting format: %(f)s", f=args.format)
+        if args.exclude:
+            for et in args.exclude.split(','):
+                if et.lower() not in InventoryFactory.getvalidobjtypes():
+                    raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
 def export_by_type(objtype, names, location, fmt,version=None):
     InventoryFactory.getLatestSchemaVersion()
@@ -163,10 +167,12 @@ def export_by_type(objtype, names, location, fmt,version=None):
     dbsession.close() 
 
 
-def export_all(location, fmt,version=None):
+def export_all(location, fmt, exclude=None, version=None):
     dbsession=DBsession()
     wholedict={}
     for objtype in InventoryFactory.getvalidobjtypes():
+        if exclude and objtype in exclude:
+            continue
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         wholedict.update(hdl.exportObjs([]))
 
