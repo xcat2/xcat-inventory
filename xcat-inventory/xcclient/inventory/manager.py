@@ -13,6 +13,7 @@ from exceptions import *
 
 import os
 import yaml
+import shutil
 
 """
 Command-line interface to xCAT inventory import/export
@@ -71,18 +72,42 @@ class InventoryFactory(object):
             InventoryFactory.__db__=dbfactory(self.dbsession)
         return InventoryFactory.__db__
 
-    def exportObjs(self, objlist, location=None):
+    def exportObjs(self, objlist, location=None,fmt='json'):
+        #print("location="+location)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
         objdict={}
+        myobjdict2dump={}
         objdict[self.objtype]={}
         for key, attrs in obj_attr_dict.items():
             if not key:
                continue
             newobj = myclass.createfromdb(key, attrs)
-            objdict[self.objtype].update(newobj.getobjdict())
+            myobjdict=newobj.getobjdict()
+            myobjdict2dump[self.objtype]=myobjdict
+            objdict[self.objtype].update(myobjdict)
+            osimagefiles=newobj.getfilestosave()
+            if location: 
+                mydir=location+'/'+key
+                if os.path.exists(mydir):
+                    shutil.rmtree(mydir)
+                os.mkdir(mydir) 
+                myfile=mydir+'/'+'definition.yaml'
+                dumpobj(myobjdict2dump,fmt,myfile) 
+                for imgfile in osimagefiles:
+                    if os.path.exists(imgfile):
+                        dstfile=mydir+imgfile
+                        try:
+                            os.makedirs(os.path.dirname(dstfile))
+                        except OSError, e:
+                            if e.errno != os.errno.EEXIST:
+                                raise
+                            pass
+                        shutil.copyfile(imgfile,dstfile)
+                    else:
+                        print("The file \""+imgfile+"\" of osimage object \""+key+"\" does not exist",file=sys.stderr) 
         return objdict
         
     @classmethod
@@ -102,6 +127,7 @@ class InventoryFactory(object):
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
                 newobj = myclass.createfromfile(key, attrs)
+                print(newobj.getfilestosave())
                 dbdict.update(newobj.getdbdata())
         tabs=myclass.gettablist()
         if not update:
@@ -109,15 +135,27 @@ class InventoryFactory(object):
         self.getDBInst().settab(dbdict)
 
 
+def dumpobj(objdict, fmt='json',location=None):
+    if not fmt or fmt.lower() == 'json':
+        dump2json(objdict,location)
+    else:
+        dump2yaml(objdict,location)
+
 def dump2yaml(xcatobj, location=None):
     if not location:
         print(yaml.dump(xcatobj, default_flow_style=False))
+    else:
+        f=open(location,'w')
+        print(yaml.dump(xcatobj, default_flow_style=False),file=f)
 
     #TODO: store in file or directory
 
 def dump2json(xcatobj, location=None):
     if not location:
         print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
+    else:
+        f=open(location,'w')
+        print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')),file=f)
 
     #TODO: store in file or directory
 
@@ -128,6 +166,8 @@ def validate_args(args, action):
         raise CommandException("Error: Invalid objects name: \"%(o)s\"", o=args.name)
     if args.name and not args.type:
         raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
+    if args.path and (not args.type or args.type !='osimage'):
+        raise CommandException("Error: -f|--path is only valid for -t|--type=osimage")
     
     if action == 'import': #extra validation for export
         if not args.path:
@@ -143,7 +183,10 @@ def validate_args(args, action):
                 if et.lower() not in InventoryFactory.getvalidobjtypes():
                     raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
-def export_by_type(objtype, names, location, fmt,version=None):
+def export_by_type(objtype, names, location=None, fmt='json',version=None):
+    if location and not os.path.exists(location):
+        raise CommandException("Error: non-exist path %(f)s",f=location)
+    
     InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
     hdl = InventoryFactory.createHandler(objtype,dbsession,version)
@@ -151,7 +194,7 @@ def export_by_type(objtype, names, location, fmt,version=None):
     if names:
         objlist.extend(names.split(','))
 
-    typedict=hdl.exportObjs(objlist, location)
+    typedict=hdl.exportObjs(objlist, location,fmt)
     nonexistobjlist=list(set(objlist).difference(set(typedict[objtype].keys())))
     if nonexistobjlist:
         raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
@@ -159,11 +202,12 @@ def export_by_type(objtype, names, location, fmt,version=None):
     if version is None or version in ('latest'):
         version=InventoryFactory.getLatestSchemaVersion()
     typedict['schema_version']=version    
-    
-    if not fmt or fmt.lower() == 'json':
-        dump2json(typedict)
-    else:
-        dump2yaml(typedict)
+   
+    if not location: 
+        if not fmt or fmt.lower() == 'json':
+            dump2json(typedict)
+        else:
+            dump2yaml(typedict)
     dbsession.close() 
 
 

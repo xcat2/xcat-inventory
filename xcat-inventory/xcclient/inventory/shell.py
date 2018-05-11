@@ -49,7 +49,7 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
     @shell.arg('-x', '--exclude', dest='exclude', default='', help='types to be excluded when exporting all, delimited with Comma(,).')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to export, delimited with Comma(,). If not specified, all objects of the specified type will be exported')
-    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file(not implemented yet)')
+    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory directory(for osimage type only)')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
     @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
     def do_export(self, args):

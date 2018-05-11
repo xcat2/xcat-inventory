@@ -19,9 +19,13 @@
     - "T{osimage.provmethod}"
     - "C:${{value=V{provision_mode}: True if str(value) in ('install','netboot','statelite') else False}}"
     package_selection:
-      pkglist: "T{linuximage.pkglist}"
+      pkglist: 
+      - "T{linuximage.pkglist}"
+      - "F:${{flist=V{package_selection.pkglist}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
       pkgdir: "T{linuximage.pkgdir}"
-      otherpkglist: "T{linuximage.otherpkglist}"
+      otherpkglist: 
+      - "T{linuximage.otherpkglist}"
+      - "F:${{flist=V{package_selection.otherpkglist}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin/')] }}"
       otherpkgdir: "T{linuximage.otherpkgdir}"
     osupdatename: "T{osimage.osupdatename}"
     kernel_driver:
@@ -35,14 +39,25 @@
     kernel_dump:
       dump: "T{linuximage.dump}"
       crashkernelsize: "T{linuximage.crashkernelsize}"
-    template: "${{imagetype=V{imagetype} :T{winimage.template} if imagetype == 'windows' else T{linuximage.template} if imagetype == 'linux' else None }} "
-    diskpartitionspec: "${{imagetype=V{imagetype} :T{linuximage.partitionfile} if imagetype == 'linux' else T{winimage.partitionfile} if imagetype == 'windows' else None}}"
-    filestosync: "T{osimage.synclists}"
+    template: 
+    - "${{imagetype=V{imagetype} :T{winimage.template} if imagetype == 'windows' else T{linuximage.template} if imagetype == 'linux' else None }} "
+    - "F:${{flist=V{template}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin') ] }}"
+      
+    diskpartitionspec: 
+    - "${{imagetype=V{imagetype} :T{linuximage.partitionfile} if imagetype == 'linux' else T{winimage.partitionfile} if imagetype == 'windows' else None}}"
+    - "F:${{flist=V{diskpartitionspec}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin') ] }}"
+    filestosync: 
+    - "T{osimage.synclists}"
+    - "F:${{flist=V{filestosync}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin') ] }}"
     addkcmdline: "T{linuximage.addkcmdline}"
     boottarget: "T{linuximage.boottarget}"                                 
     genimgoptions:
-      exlist: "T{linuximage.exlist}"
-      postinstall: "T{linuximage.postinstall}"
+      exlist: 
+      - "T{linuximage.exlist}"
+      - "F:${{flist=V{genimgoptions.exlist}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin/')] }}"
+      postinstall: 
+      - "T{linuximage.postinstall}"
+      - "F:${{flist=V{genimgoptions.postinstall}.split(','): [x for x in flist if not vutil.underpath(x,'/opt/xcat/share/xcat/immarvin/')] }}"
       rootimgdir: "T{linuximage.rootimgdir}"
       nodebootif: "T{linuximage.nodebootif}"
       permission: "T{linuximage.permission}"

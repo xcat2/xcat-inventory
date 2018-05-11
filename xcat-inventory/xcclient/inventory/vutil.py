@@ -61,12 +61,14 @@ def isNicips(varin):
                 return False
     return True   
 
+def underpath(filename,path):
+    if re.match(r'^'+os.path.realpath(path)+r'\/',os.path.realpath(filename)):
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     pass
-    #expression='x: isRegex(x)'
-    #f=eval("lambda "+expression)
-    #print (f(sys.argv[1]))
     
 
 
