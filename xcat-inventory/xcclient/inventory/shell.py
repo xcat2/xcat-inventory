@@ -15,6 +15,7 @@ from exceptions import *
 import re
 import sys
 import traceback
+import os
 
 try: 
     import xcclient.inventory.manager as mgr
@@ -31,35 +32,27 @@ class InventoryShell(shell.ClusterShell):
     def add_subcommands(self, subparsers, revision):
         pass
 
-    @shell.arg('-t','--type', metavar='<type>', help='type of the objects to import, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in the inventory file will be imported')
+    @shell.arg('-t','--type', metavar='<type>', help='comma "," delimited types of the objects to import, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in the inventory file will be imported')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to import, delimited with Comma(,). If not specified, all objects of the specified type in the inventory file will be imported')
-    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file to import ')
+    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file or directory to import ')
     @shell.arg('-s','--schema-version',dest='version', metavar='<version>', help='schema version of the inventory file. Valid schema versions: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
     @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to xcat database')
     @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode. IF specified, all objects other than the ones to import will be removed')
     def do_import(self, args):
         """Import inventory file to xcat database"""
         mgr.validate_args(args, 'import')
-        if args.type :
-            #do export by type
-            mgr.import_by_type(args.type, args.name, args.path, dryrun=args.dryrun,version=args.version,update=args.update)
-        else :
-            mgr.import_all(args.path, dryrun=args.dryrun,version=args.version,update=args.update)
+        mgr.importobj(args.path,args.type,args.name,dryrun=args.dryrun,version=args.version,update=args.update)
 
-    @shell.arg('-t','--type', metavar='<type>', help='type of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
+    @shell.arg('-t','--type', metavar='<type>', help='comma "," delimited types of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
     @shell.arg('-x', '--exclude', dest='exclude', default='', help='types to be excluded when exporting all, delimited with Comma(,).')
     @shell.arg('-o','--objects', dest='name',metavar='<name>', help='names of the objects to export, delimited with Comma(,). If not specified, all objects of the specified type will be exported')
-    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory directory(for osimage type only)')
+    @shell.arg('-f','--path', metavar='<path>', help='path of the inventory directory(valid when [-t|--type osimage] is specified or  [-t|--type] is not specified ) or inventory file')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
     @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
     def do_export(self, args):
         """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
-        if args.type :
-            # do export by type
-            mgr.export_by_type(args.type, args.name, args.path, args.format, version=args.version)
-        else :
-            mgr.export_all(args.path, args.format, exclude=args.exclude.split(','), version=args.version)
+        mgr.export_by_type(args.type, args.name, args.path, args.format, version=args.version,exclude=args.exclude.split(','))
 
 # main entry for CLI
 def main():

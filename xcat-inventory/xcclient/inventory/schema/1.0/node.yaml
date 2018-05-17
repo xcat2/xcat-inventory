@@ -23,7 +23,7 @@
     device_info:
       arch: 
       - "T{nodetype.arch}"
-      - "C:${{arch=V{device_info.arch}: False if arch and str(arch) not in ('ppc64','ppc64el','ppc64le','x86_64','armv7l') else True}}"
+      - "C:${{arch=V{device_info.arch}: False if arch and str(arch) not in ('ppc64','ppc64el','ppc64le','x86_64','armv7l','armel') else True}}"
       supportedarchs: 
       - "T{nodetype.supportedarchs}"
       disksize: "T{hwinv.disksize}"

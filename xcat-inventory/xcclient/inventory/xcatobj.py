@@ -218,8 +218,6 @@ class XcatBase(object):
         cls._depdict_tab={}
         cls._depdict_val={}
         cls.__scanschema(cls._schema)
-        #print yaml.dump(cls._depdict_tab,default_flow_style=False)
-        #print yaml.dump(cls._depdict_val,default_flow_style=False)
 
     def __evalschema_tab(self,tabcol):
         mydeptablist=self._depdict_tab[tabcol]['deptablist']
@@ -246,7 +244,6 @@ class XcatBase(object):
                 else:
                     tabvol=self.__evalschema_tab(item)
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
-        #print "lambda "+myexpression
         evalexp=eval("lambda "+myexpression)
         result=evalexp()
         if myschmpath:
@@ -260,7 +257,6 @@ class XcatBase(object):
             self._dbhash[tabcol]=result
         
     def __evalschema_val(self,valpath):
-        ##print(yaml.dump(self._depdict_val))
         mydeptablist=self._depdict_val[valpath]['deptablist']
         mydepvallist=self._depdict_val[valpath]['depvallist']
         myexpression=self._depdict_val[valpath]['expression']
@@ -279,7 +275,6 @@ class XcatBase(object):
                     myval=''
             myexpression=myexpression.replace('V{'+item+'}',"'"+str(myval).replace("'","\\'")+"'")
         try:
-            #print("lambda "+myexpression)
             evalexp=eval("lambda "+myexpression)
             value=evalexp()
         except Exception,e:
@@ -373,7 +368,6 @@ class XcatBase(object):
                         myval=''
                     myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")                    
                 try:
-                    #print myexpression
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
@@ -397,7 +391,6 @@ class XcatBase(object):
                         myval=''
                     myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")
                 try:
-                    #print("lambda "+myexpression);
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
