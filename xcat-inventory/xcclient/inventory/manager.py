@@ -207,8 +207,8 @@ def validate_args(args, action):
                     raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
 def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',version=None,exclude=None):
-    if objtype and objtype != 'osimage' and location and os.path.isdir(location):
-        raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage] or export all without [-t|--type] specified",f=location)
+    if objtype and objtype != 'osimage' and destdir:
+        raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage] or export all without [-t|--type] specified",f=destdir)
 
     InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
@@ -233,8 +233,9 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
         if myobjtype == 'osimage' and destdir:
             if exportall:
                 mylocation=destdir+'/'+myobjtype
-                if not os.path.exists(mylocation):
-                    os.mkdir(mylocation)
+                if os.path.exists(mylocation):
+                    shutil.rmtree(mylocation)
+                os.mkdir(mylocation)
             else:
                 mylocation=destdir
         else:
@@ -434,7 +435,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                          importobjdir(srcdir,dryrun,version,update)
                  else:
                      #this is an osimage inventory directory 
-                     importfromdir(srcdir,'osimage',objnames,dryrun,version,update)
+                     importfromdir(srcdir,'osimage',objnamelist,dryrun,version,update)
                  if 'osimage' in objtypelist:
                      objtypelist.remove('osimage')
    
