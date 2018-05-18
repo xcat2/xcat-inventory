@@ -364,7 +364,12 @@ def importobjdir(location,dryrun=None,version=None,update=True):
                 if e.errno != os.errno.EEXIST:
                     raise
                 pass
-            shutil.copyfile(srcfile,myfile)
+            if os.path.exists(myfile):
+                print("Warning: the "+myfile+" already exists, will be overwritten", file=sys.stderr)
+            if os.path.samefile(srcfile,myfile):
+                print("Warning: \"%s\" and \"%s\" are the same file, skip copy"%(srcfile,myfile),file=sys.stderr)
+            else:
+                shutil.copyfile(srcfile,myfile)
         else:
             print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported")
