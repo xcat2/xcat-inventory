@@ -110,7 +110,7 @@ class InventoryFactory(object):
                             pass
                         shutil.copyfile(imgfile,dstfile)
                     else:
-                        print("The file \""+imgfile+"\" of "+self.objtype+" object \""+key+"\" does not exist",file=sys.stderr) 
+                        print("Warning: The file \""+imgfile+"\" of "+self.objtype+" object \""+key+"\" does not exist",file=sys.stderr) 
         return objdict
         
     @classmethod
@@ -177,13 +177,24 @@ def validate_args(args, action):
         raise CommandException("Error: Invalid object names: \"%(o)s\"", o=args.name)
     if args.name and not args.type:
         raise CommandException("Error: Missing object type for object: %(o)s", o=args.name)
-
+    if args.path and args.directory:
+        raise CommandException("Error: -f|--path and -d|--dir cannot be used together!")
+    if args.directory:
+        if not os.path.exists(args.directory):
+            raise CommandException("Error: the specified directory %(d)s does not exist!", d=args.directory)
+        if not os.path.isdir(args.directory):
+            raise CommandException("Error: the specified directory %(d)s is not a directory!", d=args.directory)
+    if args.path and os.path.exists(args.path) and not os.path.isfile(args.path):
+            raise CommandException("Error: the specified file %(f)s already exists, is not a file!", f=args.path)
+       
     
     if action == 'import': #extra validation for export
-        if not args.path:
-           raise CommandException("Error: Invalid file to import: \"%(p)s\"", p=args.path)
-        if not os.path.exists(args.path):
-            raise CommandException("Error: The specified path does not exist: %(p)s", p=args.path)
+        if not args.path and not args.directory:
+           raise CommandException("Error: expect inventory file(-f|--path) or inventory directory(-d|--direcotry)!")
+        if args.path and not os.path.exists(args.path):
+            raise CommandException("Error: The specified inventory file does not exist: %(p)s", p=args.path)
+        if args.directory and not os.path.exists(args.directory):
+            raise CommandException("Error: The specified inventory directory does not exist: %(p)s", p=args.path)
 
     if action == 'export': #extra validation for export
         #if args.path and (not args.type or args.type !='osimage'):
@@ -195,13 +206,7 @@ def validate_args(args, action):
                 if et.lower() not in InventoryFactory.getvalidobjtypes():
                     raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
-def export_by_type(objtype, names, location=None, fmt='json',version=None,exclude=None):
-    if location:
-        if not objtype and not os.path.isdir(location):
-            raise CommandException("Error: non-exist directory %(f)s",f=location)
-        elif objtype and objtype!='osimage' and os.path.exists(location) and not os.path.isfile(location):
-            raise CommandException("Error: the specified path %(f)s already exists and is not a file!", f=location)
-    
+def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',version=None,exclude=None):
     if objtype and objtype != 'osimage' and location and os.path.isdir(location):
         raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage] or export all without [-t|--type] specified",f=location)
 
@@ -216,23 +221,22 @@ def export_by_type(objtype, names, location=None, fmt='json',version=None,exclud
     else:
         objtypelist.extend(InventoryFactory.getvalidobjtypes())
         exportall=1
-        
 
     if names:
         objlist.extend(names.split(','))
-    wholedict={} 
 
+    wholedict={} 
     for myobjtype in objtypelist:
         if exclude and myobjtype in exclude:
             continue
         hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
-        if myobjtype == 'osimage' and location and os.path.isdir(location):
+        if myobjtype == 'osimage' and destdir:
             if exportall:
-                mylocation=location+'/'+myobjtype
+                mylocation=destdir+'/'+myobjtype
                 if not os.path.exists(mylocation):
                     os.mkdir(mylocation)
             else:
-                mylocation=location
+                mylocation=destdir
         else:
             mylocation=None
         
@@ -240,26 +244,31 @@ def export_by_type(objtype, names, location=None, fmt='json',version=None,exclud
         nonexistobjlist=list(set(objlist).difference(set(typedict[myobjtype].keys())))
         if nonexistobjlist:
             raise ObjNonExistException("Error: cannot find "+myobjtype+" objects: %(f)s!", f=','.join(nonexistobjlist))
-        if not location or os.path.isfile(location) or myobjtype!='osimage' :
+        if destdir and myobjtype == 'osimage':
+            print("The %s objects has been exported to directory %s"%(myobjtype,destdir))
+
+        #do not add osimage objects to %wholedict when export inventory data to a directory
+        if not destdir or myobjtype!='osimage':
             wholedict.update(typedict)
       
     if version is None or version in ('latest'):
         version=InventoryFactory.getLatestSchemaVersion()
     wholedict['schema_version']=version    
    
-    if 'osimage' in objtypelist and exportall!=1 and location and os.path.isdir(location):
+    if 'osimage' in objtypelist and destdir:
         objtypelist.remove('osimage')
 
     if objtypelist:
-        if location:
-            if exportall==1 and os.path.isdir(location):
-                if not fmt or fmt.lower() == 'json':
-                    mylocation=location+'/cluster.json'
-                else:
-                    mylocation=location+'/cluster.yaml'
-                dumpobj(wholedict, fmt,mylocation)
+        if destdir and exportall==1:
+            if not fmt or fmt.lower() == 'json':
+                mylocation=destdir+'/cluster.json'
             else:
-                dumpobj(wholedict, fmt,location)
+                mylocation=destdir+'/cluster.yaml'
+            dumpobj(wholedict, fmt,mylocation)
+            print("The cluster inventory data has been dumped to %s"%(mylocation))
+        elif destfile:
+            dumpobj(wholedict, fmt,destfile)
+            print("The inventory data has been dumped to %s"%(destfile))
         else: 
             if not fmt or fmt.lower() == 'json':
                 dump2json(wholedict)
@@ -356,14 +365,12 @@ def importobjdir(location,dryrun=None,version=None,update=True):
                 pass
             shutil.copyfile(srcfile,myfile)
         else:
-            print("the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
+            print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
+    print("The object "+objname+" has been imported")
 
-def importfromdir(location,objtype='osimage',objnames=None,dryrun=None,version=None,update=True):
-    objnamelist=[]
-    if not objnames:
+def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True):
+    if not objnamelist:
         objnamelist=os.listdir(location)
-    else:
-        objnamelist=objnames.split(',')
     for objname in objnamelist:
         if os.path.exists(location+'/'+objname):
             objdir=location+'/'+objname
@@ -371,52 +378,69 @@ def importfromdir(location,objtype='osimage',objnames=None,dryrun=None,version=N
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
      
-def importobj(location,objtype,objnames=None,dryrun=None,version=None,update=True):
+def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True):
      objtypelist=[]
+     importallobjtypes=0
      if objtype:
          objtypelist=objtype.split(',')
+     else:
+         importallobjtypes=1
 
      objnamelist=[]
      if objnames:
          objnamelist=objnames.split(',')
 
-     if os.path.isfile(location):
-         importfromfile(objtypelist, objnamelist, location,dryrun,version,update)
-     elif os.path.isdir(location):
+     if srcfile and os.path.isfile(srcfile):
+         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update)
+     elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
-         if os.path.exists(location+'/'+'cluster.yaml'):
-             clusterfile=location+'/'+'cluster.yaml'
-         elif os.path.exists(location+'/'+'cluster.json'):
-             clusterfile=location+'/'+'cluster.json'
+         if os.path.isfile(srcdir+'/'+'cluster.yaml'):
+             clusterfile=srcdir+'/'+'cluster.yaml'
+         elif os.path.isfile(srcdir+'/'+'cluster.json'):
+             clusterfile=srcdir+'/'+'cluster.json'
 
-         #this is a cluster directory
+         #this is a cluster inventory directory
          if clusterfile:
              myobjtypelist=[]
              myobjtypelist.extend(objtypelist)
 
-             if 'osimage' in myobjtypelist:
-                 myobjtypelist.remove('osimage')
-                 if myobjtypelist:
+             if 'osimage' in myobjtypelist or importallobjtypes:
+                 if 'osimage' in myobjtypelist:
+                     myobjtypelist.remove('osimage')
+                 if myobjtypelist or importallobjtypes:
                      importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update)
-                 importfromdir(location+'/osimage/','osimage',objnames,dryrun,version,update)
+                 importfromdir(srcdir+'/osimage/','osimage',objnamelist,dryrun,version,update)
              else:
                  importfromfile(objtypelist,objnamelist,clusterfile,dryrun,version,update)
          else:
              objfile=None
-             if os.path.exists(location+'/'+'definition.yaml'):
-                 objfile=location+'/'+'definition.yaml'
-             elif os.path.exists(location+'/'+'definition.json'):
-                 objfile=location+'/'+'definition.json'
+             if os.path.isfile(srcdir+'/'+'definition.yaml'):
+                 objfile=srcdir+'/'+'definition.yaml'
+             elif os.path.isfile(srcdir+'/'+'definition.json'):
+                 objfile=srcdir+'/'+'definition.json'
 
-             #this is a osimage derectory
-             if 'osimage' in objtypelist:
+             if 'osimage' in objtypelist or importallobjtypes:
                  if objfile:
-                     importobjdir(location,'osimage',objnames,dryrun,version,update)
+                     curobjname=os.path.basename(os.path.realpath(srcdir))
+                     #this is an osimage derectory
+                     if objnames:
+                         if curobjname in objnamelist: 
+                             importfromdir(srcdir+'/../','osimage',[curobjname],dryrun,version,update)
+                             objnamelist.remove(curobjname)
+                         if objnamelist:
+                             raise InvalidFileException("Error: non-exist objects: \""+','.join(objnamelist)+"\" in inventory directory "+srcdir+"!")        
+                     else:
+                         #import current object
+                         importobjdir(srcdir,dryrun,version,update)
                  else:
-                     importfromdir(location,'osimage',objnames,dryrun,version,update)
-             else:
-                 raise InvalidFileException("Error: invalid directory "+location+"!")
-                 
-     else:
-         raise InvalidFileException("Error: invalid path \""+location+"\""+"!")
+                     #this is an osimage inventory directory 
+                     importfromdir(srcdir,'osimage',objnames,dryrun,version,update)
+                 if 'osimage' in objtypelist:
+                     objtypelist.remove('osimage')
+   
+             if objtypelist:
+                 raise InvalidFileException("Error: non-exist object types: \""+','.join(objtypelist)+"\" in inventory directory "+srcdir+"!")
+          
 
+              
+                 
