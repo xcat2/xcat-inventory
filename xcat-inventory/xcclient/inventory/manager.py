@@ -89,15 +89,15 @@ class InventoryFactory(object):
             objdict[self.objtype].update(myobjdict)
             osimagefiles=newobj.getfilestosave()
             if location: 
-                mydir=location+'/'+key
+                mydir=os.path.join(location,key)
                 if os.path.exists(mydir):
                     shutil.rmtree(mydir)
                 os.mkdir(mydir) 
-                myfile=mydir+'/'+'definition.yaml'
+                myfile=os.path.join(mydir,'definition.yaml')
                 if fmt=='yaml':
-                    myfile=mydir+'/'+'definition.yaml'
+                    myfile=os.path.join(mydir,'definition.yaml')
                 elif fmt=='json':
-                    myfile=mydir+'/'+'definition.json'
+                    myfile=os.path.join(mydir,'definition.json')
                 dumpobj(myobjdict2dump,fmt,myfile) 
                 for imgfile in osimagefiles:
                     if os.path.exists(imgfile):
@@ -110,7 +110,7 @@ class InventoryFactory(object):
                             pass
                         shutil.copyfile(imgfile,dstfile)
                     else:
-                        print("Warning: The file \""+imgfile+"\" of "+self.objtype+" object \""+key+"\" does not exist",file=sys.stderr) 
+                        print("Warning: The file \"%s\" of \"%s\" object \"%s\" does not exist"%(imgfile,self.objtype,key),file=sys.stderr) 
         return objdict
         
     @classmethod
@@ -167,7 +167,7 @@ def dump2json(xcatobj, location=None):
 def validate_args(args, action):
     if args.type is not None:
         objtypelist=[]
-        objtypelist.extend(args.type.split(','))
+        objtypelist.extend([n.strip() for n in args.type.split(',')])
         invalidobjtypes=list(set(objtypelist).difference(set(InventoryFactory.getvalidobjtypes())))
         if invalidobjtypes:
             raise CommandException("Error: Invalid object type: \"%(t)s\"", t=','.join(invalidobjtypes))
@@ -202,7 +202,7 @@ def validate_args(args, action):
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
             raise CommandException("Error: Invalid exporting format: %(f)s", f=args.format)
         if args.exclude:
-            for et in args.exclude.split(','):
+            for et in [n.strip() for n in args.exclude.split(',')]:
                 if et.lower() not in InventoryFactory.getvalidobjtypes():
                     raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
@@ -217,13 +217,13 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
     objtypelist=[]
     exportall=0
     if objtype:
-        objtypelist.extend(objtype.split(','))
+        objtypelist.extend([n.strip() for n in objtype.split(',')])
     else:
         objtypelist.extend(InventoryFactory.getvalidobjtypes())
         exportall=1
 
     if names:
-        objlist.extend(names.split(','))
+        objlist.extend([n.strip() for n in names.split(',')])
 
     wholedict={} 
     for myobjtype in objtypelist:
@@ -232,7 +232,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
         hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
         if myobjtype == 'osimage' and destdir:
             if exportall:
-                mylocation=destdir+'/'+myobjtype
+                mylocation=os.path.join(destdir,myobjtype)
                 if os.path.exists(mylocation):
                     shutil.rmtree(mylocation)
                 os.mkdir(mylocation)
@@ -262,9 +262,9 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
     if objtypelist:
         if destdir and exportall==1:
             if not fmt or fmt.lower() == 'json':
-                mylocation=destdir+'/cluster.json'
+                mylocation=os.path.join(destdir,'cluster.json')
             else:
-                mylocation=destdir+'/cluster.yaml'
+                mylocation=os.path.join(destdir,'cluster.yaml')
             dumpobj(wholedict, fmt,mylocation)
             print("The cluster inventory data has been dumped to %s"%(mylocation))
         elif destfile:
@@ -339,10 +339,10 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
 
 def importobjdir(location,dryrun=None,version=None,update=True):
     objfile=None
-    if os.path.exists(location+'/'+'definition.yaml'):
-        objfile=location+'/'+'definition.yaml'
-    elif os.path.exists(location+'/'+'definition.json'):
-        objfile=location+'/'+'definition.json'    
+    if os.path.exists(os.path.join(location,'definition.yaml')):
+        objfile=os.path.join(location,'definition.yaml')
+    elif os.path.exists(os.path.join(location,'definition.json')):
+        objfile=os.path.join(location,'definition.json')    
     else:
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
     objfilesdict=importfromfile(None,None,objfile,dryrun,version,update)
@@ -378,8 +378,8 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
     if not objnamelist:
         objnamelist=os.listdir(location)
     for objname in objnamelist:
-        if os.path.exists(location+'/'+objname):
-            objdir=location+'/'+objname
+        if os.path.exists(os.path.join(location,objname)):
+            objdir=os.path.join(location,objname)
             importobjdir(objdir,dryrun,version,update)
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
@@ -388,22 +388,22 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
      objtypelist=[]
      importallobjtypes=0
      if objtype:
-         objtypelist=objtype.split(',')
+         objtypelist=[n.strip() for n in objtype.split(',')]
      else:
          importallobjtypes=1
 
      objnamelist=[]
      if objnames:
-         objnamelist=objnames.split(',')
+         objnamelist=[n.strip() for n in objnames.split(',')]
 
      if srcfile and os.path.isfile(srcfile):
          importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update)
      elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
-         if os.path.isfile(srcdir+'/'+'cluster.yaml'):
-             clusterfile=srcdir+'/'+'cluster.yaml'
-         elif os.path.isfile(srcdir+'/'+'cluster.json'):
-             clusterfile=srcdir+'/'+'cluster.json'
+         if os.path.isfile(os.path.join(srcdir,'cluster.yaml')):
+             clusterfile=os.path.join(srcdir,'cluster.yaml')
+         elif os.path.isfile(os.path.join(srcdir,'cluster.json')):
+             clusterfile=os.path.join(srcdir,'cluster.json')
 
          #this is a cluster inventory directory
          if clusterfile:
@@ -415,15 +415,15 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                      myobjtypelist.remove('osimage')
                  if myobjtypelist or importallobjtypes:
                      importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update)
-                 importfromdir(srcdir+'/osimage/','osimage',objnamelist,dryrun,version,update)
+                 importfromdir(os.path.join(srcdir,'osimage'),'osimage',objnamelist,dryrun,version,update)
              else:
                  importfromfile(objtypelist,objnamelist,clusterfile,dryrun,version,update)
          else:
              objfile=None
-             if os.path.isfile(srcdir+'/'+'definition.yaml'):
-                 objfile=srcdir+'/'+'definition.yaml'
-             elif os.path.isfile(srcdir+'/'+'definition.json'):
-                 objfile=srcdir+'/'+'definition.json'
+             if os.path.isfile(os.path.join(srcdir,'definition.yaml')):
+                 objfile=os.path.join(srcdir,'definition.yaml')
+             elif os.path.isfile(os.path.join(srcdir,'definition.json')):
+                 objfile=os.path.join(srcdir,'definition.json')
 
              if 'osimage' in objtypelist or importallobjtypes:
                  if objfile:

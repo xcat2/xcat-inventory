@@ -54,7 +54,7 @@ class InventoryShell(shell.ClusterShell):
     def do_export(self, args):
         """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
-        mgr.export_by_type(args.type, args.name, args.path,args.directory,args.format, version=args.version,exclude=args.exclude.split(','))
+        mgr.export_by_type(args.type, args.name, args.path, args.directory, args.format, version=args.version, exclude=args.exclude.split(','))
 
 # main entry for CLI
 def main():

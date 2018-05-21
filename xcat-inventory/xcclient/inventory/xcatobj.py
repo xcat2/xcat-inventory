@@ -394,7 +394,7 @@ class XcatBase(object):
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
-                    raise  InvalidValueException("Error: encountered some error when get the files to save in ["+key+"] of object \""+self.name+"\": "+str(e)) 
+                    raise  InvalidValueException("Error: encountered some error when get the files to save in [%s] of object \"%s\": %s"%(key,self.name,str(e))) 
                 if value:
                     filelist.extend(filter(None,value))
         return filelist
