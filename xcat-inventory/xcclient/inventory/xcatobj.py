@@ -63,6 +63,7 @@ class XcatBase(object):
 
     _depdict_tab=None
     _depdict_val=None
+    _files={}
 
     def __init__(self, objname, dbhash=None, objdict=None, schema=None):
         self.name=objname
@@ -83,7 +84,8 @@ class XcatBase(object):
         validateregex=re.compile("^C:(.+)$")
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
-    
+        filevalregex=re.compile("^F:(.+)$")
+ 
         def __parselambda(expression):
             mtchdval=re.findall(valregex,expression)
             if not mtchdval:
@@ -127,8 +129,9 @@ class XcatBase(object):
         fwdrules=[] 
         revrules=[]
         validaterules=[]
+        filerules=[]
         for item in rawvaluelist:
-            if not re.match(valregex,item) and not re.match(revregex,item) and not re.match(validateregex,item):
+            if not re.match(valregex,item) and not re.match(revregex,item) and not re.match(validateregex,item) and not re.match(filevalregex,item):
                 item='${{:'+item+'}}'
                 fwdrules.append(item)
             elif re.match(valregex,item): 
@@ -137,6 +140,24 @@ class XcatBase(object):
                 revrules.append(item)
             elif re.match(validateregex,item):
                 validaterules.append(item)
+            elif re.match(filevalregex,item):
+                filerules.append(item)
+  
+        if filerules:
+            if schmpath not in cls._files.keys(): 
+                cls._files[schmpath]={}
+            cls._files[schmpath]['file2savefilter']={}
+            cls._files[schmpath]['file2savefilter']['depvallist']=[]
+            cls._files[schmpath]['file2savefilter']['expression']=[]
+            for item in filerules:
+                myexpression=re.findall(filevalregex,item)[0]
+                ret=__parselambda(myexpression)
+                if ret['expression']:
+                    cls._files[schmpath]['file2savefilter']['expression'].append(ret['expression'])
+                if ret['valsinparam']:
+                    cls._files[schmpath]['file2savefilter']['depvallist'].extend(ret['valsinparam']) 
+                if ret['valsinbody']:
+                    cls._files[schmpath]['file2savefilter']['depvallist'].extend(ret['valsinbody'])
 
         cls._depdict_val[schmpath]['validate']={}
         cls._depdict_val[schmpath]['validate']['depvallist']=[]
@@ -197,8 +218,6 @@ class XcatBase(object):
         cls._depdict_tab={}
         cls._depdict_val={}
         cls.__scanschema(cls._schema)
-        #print yaml.dump(cls._depdict_tab,default_flow_style=False)
-        #print yaml.dump(cls._depdict_val,default_flow_style=False)
 
     def __evalschema_tab(self,tabcol):
         mydeptablist=self._depdict_tab[tabcol]['deptablist']
@@ -225,7 +244,6 @@ class XcatBase(object):
                 else:
                     tabvol=self.__evalschema_tab(item)
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
-        #print "lambda "+myexpression
         evalexp=eval("lambda "+myexpression)
         result=evalexp()
         if myschmpath:
@@ -315,8 +333,6 @@ class XcatBase(object):
         del ret[self.name]['obj_name']
         return ret
   
-  
-
     def validatelayout(self,objdict):
         def _dictcmp(schemadict,objdict,invalidkeylist,curpath=''):
            if isinstance(objdict,dict):
@@ -352,7 +368,6 @@ class XcatBase(object):
                         myval=''
                     myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")                    
                 try:
-                    #print myexpression
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
@@ -360,6 +375,30 @@ class XcatBase(object):
                 if not value:
                     raise  InvalidValueException("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
 
+    @classmethod
+    def getfilerules(cls):
+        print yaml.dump(cls._files)
+
+    def getfilestosave(self):
+        filelist=[]
+        for key in self._files.keys():
+            depvallist=self._files[key]['file2savefilter']['depvallist']
+            expression=self._files[key]['file2savefilter']['expression'] 
+            for myexpression in expression:
+                for val in depvallist:
+                    myval=Util_getdictval(self._mydict,val)
+                    if myval is None:
+                        myval=''
+                    myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")
+                try:
+                    evalexp=eval("lambda "+myexpression)
+                    value=evalexp()
+                except Exception,e:                    
+                    raise  InvalidValueException("Error: encountered some error when get the files to save in [%s] of object \"%s\": %s"%(key,self.name,str(e))) 
+                if value:
+                    filelist.extend(filter(None,value))
+        return filelist
+                
 
     def setobjdict(self,objdict):
         self.validatelayout(objdict)
