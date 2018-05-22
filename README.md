@@ -64,93 +64,80 @@ For other Linux distributions, you might need to handle the dependency issue by 
 
 ### help
 
-Show usage info
+Show usage info:
 
 ```
-[root@c910f03c05k21 xcat-inventory]# xcat-inventory help
-usage: xcat-inventory [--debug] [-v] [-V] <subcommand> ...
-
-xCAT inventory management tool
-
-Positional arguments:
-  <subcommand>
-    export       Export the inventory data from xcat database
-    help         Display help about this program or one of its subcommands.
-    import       Import inventory file to xcat database
-
-Optional arguments:
-  --debug        Prints debugging output into the log file (not implemented
-                 yet).
-  -v, --verbose  Prints verbose output (not implemented yet).
-  -V, --version  Shows the program version and exits.
-
-See "xcat-inventory help COMMAND" for help on a specific command.
+[root@c910f03c05k21 inventory]# xcat-inventory help
+[root@c910f03c05k21 inventory]# xcat-inventory export -h
+[root@c910f03c05k21 inventory]# xcat-inventory import -h
 ```
 
 ### export
 
-Export the inventory data from xcat database 
+Export the inventory data from xcat database: 
 
+* dump cluster inventory data to screen
 ```
-[root@c910f03c05k21 xcat-inventory]# xcat-inventory help export
-usage: xcat-inventory export [-t <type>] [-o <name>] [-f <path>]
-                             [-s <version>] [--format <format>]
-
-Export the inventory data from xcat database
-
-Arguments:
-  -t <type>, --type <type>
-                        type of objects to export, valid values:
-                        node,network,passwd,route,site,osimage,policy. If not
-                        specified, all objects in xcat databse will be
-                        exported
-  -o <name>, --objects <name>
-                        names of the objects to export, delimited with
-                        Comma(,). If not specified, all objects of the
-                        specified type will be exported
-  -f <path>, --path <path>
-                        path of the inventory file(not implemented yet)
-  -s <version>, --schema-version <version>
-                        schema version of the inventory data. Valid values:
-                        2.0,3.0,latest,1.0. If not specified, the "latest"
-                        schema version will be used
-  --format <format>     format of the inventory data, valid values: json,
-                        yaml. json will be used by default if not specified
- ```
+[root@c910f03c05k21 inventory]# xcat-inventory export
+```
+* dump cluster inventory data to screen in yaml format
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export --format yaml
+```
+* dumo cluster inventory data to screen in json format
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export --format json
+```
+* dump cluster inventory data to a file 
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export -f /tmp/cluster
+```
+* dump osimage inventory data to a file
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -f /tmp/osimage
+``` 
+* dump the inventory data of osimage "rhels6.5-x86_64-netboot-compute" to a file
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels6.5-x86_64-netboot-compute  -f /tmp/osimage
+```
+* export cluster inventory data to a directory, all objects except "osimage" are dumped to a file "cluster.json" or "cluster.yaml", "osimage" objects are exported to osimage directories under a subdirectory "osimage". Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files, such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export -d /tmp/mm/
+The osimage objects has been exported to directory /tmp/mm/osimage
+The cluster inventory data has been dumped to /tmp/mm/cluster.json
+```
+* export an osimage objec to a directory
+```
+[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
+```
  
  ### import
 
-Import inventory file to xcat database
+* Import cluster inventory file to xcat database
  
- ```                    
-[root@c910f03c05k21 xcat-inventory]# xcat-inventory help import
-usage: xcat-inventory import [-t <type>] [-o <name>] [-f <path>]
-                             [-s <version>] [--dry] [-c]
-
-Import inventory file to xcat database
-
-Arguments:
-  -t <type>, --type <type>
-                        type of the objects to import, valid values:
-                        node,network,passwd,route,site,osimage,policy. If not
-                        specified, all objects in the inventory file will be
-                        imported
-  -o <name>, --objects <name>
-                        names of the objects to import, delimited with
-                        Comma(,). If not specified, all objects of the
-                        specified type in the inventory file will be imported
-  -f <path>, --path <path>
-                        path of the inventory file to import
-  -s <version>, --schema-version <version>
-                        schema version of the inventory file. Valid schema
-                        versions: 2.0,3.0,latest,1.0. If not specified, the
-                        "latest" schema version will be used
-  --dry                 Dry run mode, nothing will be commited to xcat
-                        database
-  -c, --clean           clean mode. IF specified, all objects other than the
-                        ones to import will be removed
-[root@c910f03c05k21 xcat-inventory]#
+```                    
+[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster
 ```
+* Import "node" and "network" objects from inventory file to xcat database
+```
+[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster  -t node,network
+```
+* Import a network object from cluster inventory file
+```
+[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster  -t network -o 192_168_122_0-255_255_255_0
+```
+* Import cluster inventory data from an inventory directory
+```
+[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/
+```
+* Import an osimage object from cluster inventory directory
+```
+[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/ -t osimage -o sles12.2-ppc64le-install-compute
+```
+* Import an osimage inventory directory
+```
+[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/osimage/rhels7.4-x86_64-netboot-compute/
+``` 
 
 ## usecase
 
