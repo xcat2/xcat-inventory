@@ -358,18 +358,24 @@ def importobjdir(location,dryrun=None,version=None,update=True):
     for myfile in objfiles:
         srcfile=location+myfile
         if os.path.exists(srcfile):
-            try:
-                os.makedirs(os.path.dirname(myfile))
-            except OSError, e:
-                if e.errno != os.errno.EEXIST:
-                    raise
-                pass
+            if dryrun:
+                print("creating directory: %s. Dryrun mode, do nothing..."%(os.path.dirname(myfile)))
+            else:
+                try:
+                    os.makedirs(os.path.dirname(myfile))
+                except OSError, e:
+                    if e.errno != os.errno.EEXIST:
+                        raise
+                    pass
             if os.path.exists(myfile):
-                print("Warning: the "+myfile+" already exists, will be overwritten", file=sys.stderr)
-            if os.path.samefile(srcfile,myfile):
+                print("Warning: the %s already exists, will be overwritten"%(myfile), file=sys.stderr)
+            if os.path.exists(myfile) and os.path.samefile(srcfile,myfile):
                 print("Warning: \"%s\" and \"%s\" are the same file, skip copy"%(srcfile,myfile),file=sys.stderr)
             else:
-                shutil.copyfile(srcfile,myfile)
+                if dryrun:
+                    print("copying file: %s ----> %s. Dryrun mode, do nothing..."%(srcfile,myfile))
+                else:
+                    shutil.copyfile(srcfile,myfile)
         else:
             print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported")
