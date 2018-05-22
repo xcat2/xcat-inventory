@@ -100,12 +100,15 @@ Export the inventory data from xcat database:
 ```
 [root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels6.5-x86_64-netboot-compute  -f /tmp/osimage
 ```
-* export cluster inventory data to a directory, all objects except "osimage" are dumped to a file "cluster.json" or "cluster.yaml", "osimage" objects are exported to osimage directories under a subdirectory "osimage". Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files, such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
+* export cluster inventory data to a directory
 ```
 [root@c910f03c05k21 inventory]# xcat-inventory export -d /tmp/mm/
 The osimage objects has been exported to directory /tmp/mm/osimage
 The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
+   all objects except "osimage" are dumped to a file "cluster.json" or "cluster.yaml", "osimage" objects are exported to osimage directories under a subdirectory "osimage". 
+
+   Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files, such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
 * export an osimage objec to a directory
 ```
 [root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
