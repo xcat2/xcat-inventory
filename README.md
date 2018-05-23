@@ -67,9 +67,9 @@ For other Linux distributions, you might need to handle the dependency issue by 
 Show usage info:
 
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory help
-[root@c910f03c05k21 inventory]# xcat-inventory export -h
-[root@c910f03c05k21 inventory]# xcat-inventory import -h
+# xcat-inventory help
+# xcat-inventory export -h
+# xcat-inventory import -h
 ```
 
 ### export
@@ -78,31 +78,31 @@ Export the inventory data from xcat database:
 
 * dump cluster inventory data to screen
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export
+# xcat-inventory export
 ```
 * dump cluster inventory data to screen in yaml format
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export --format yaml
+# xcat-inventory export --format yaml
 ```
 * dumo cluster inventory data to screen in json format
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export --format json
+# xcat-inventory export --format json
 ```
 * dump cluster inventory data to a file 
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export -f /tmp/cluster
+# xcat-inventory export -f /tmp/cluster
 ```
 * dump osimage inventory data to a file
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -f /tmp/osimage
+# xcat-inventory export -t osimage -f /tmp/osimage
 ``` 
 * dump the inventory data of osimage "rhels6.5-x86_64-netboot-compute" to a file
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels6.5-x86_64-netboot-compute  -f /tmp/osimage
+# xcat-inventory export -t osimage -o rhels6.5-x86_64-netboot-compute  -f /tmp/osimage
 ```
 * export cluster inventory data to a directory
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export -d /tmp/mm/
+# xcat-inventory export -d /tmp/mm/
 The osimage objects has been exported to directory /tmp/mm/osimage
 The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
@@ -111,7 +111,7 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
    Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files, such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
 * export an osimage objec to a directory
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
+# xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
 ```
  
  ### import
@@ -119,27 +119,27 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 * Import cluster inventory file to xcat database
  
 ```                    
-[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster
+# xcat-inventory import -f /tmp/cluster
 ```
 * Import "node" and "network" objects from inventory file to xcat database
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster  -t node,network
+# xcat-inventory import -f /tmp/cluster  -t node,network
 ```
 * Import a network object from cluster inventory file
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory import -f /tmp/cluster  -t network -o 192_168_122_0-255_255_255_0
+# xcat-inventory import -f /tmp/cluster  -t network -o 192_168_122_0-255_255_255_0
 ```
 * Import cluster inventory data from an inventory directory
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/
+# xcat-inventory import -d /tmp/mm/
 ```
 * Import an osimage object from cluster inventory directory
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/ -t osimage -o sles12.2-ppc64le-install-compute
+# xcat-inventory import -d /tmp/mm/ -t osimage -o sles12.2-ppc64le-install-compute
 ```
 * Import an osimage inventory directory
 ```
-[root@c910f03c05k21 inventory]# xcat-inventory import -d /tmp/mm/osimage/rhels7.4-x86_64-netboot-compute/
+# xcat-inventory import -d /tmp/mm/osimage/rhels7.4-x86_64-netboot-compute/
 ``` 
 
 ## usecase
