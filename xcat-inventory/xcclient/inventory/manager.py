@@ -184,8 +184,17 @@ def validate_args(args, action):
             raise CommandException("Error: the specified directory %(d)s does not exist!", d=args.directory)
         if not os.path.isdir(args.directory):
             raise CommandException("Error: the specified directory %(d)s is not a directory!", d=args.directory)
-    if args.path and os.path.exists(args.path) and not os.path.isfile(args.path):
-            raise CommandException("Error: the specified file %(f)s already exists, is not a file!", f=args.path)
+    if args.path:
+        if os.path.exists(args.path):
+            if not os.path.isfile(args.path):
+                raise CommandException("Error: the specified file %(f)s already exists, is not a file!", f=args.path)
+        else:
+            mydir=os.path.dirname(args.path)
+            myfile=os.path.basename(args.path)
+            if not myfile:
+                raise CommandException("Error: %(f)s is not a file!", f=args.path)
+            if not os.path.isdir(mydir):
+                raise CommandException("Error: the directory %(f)s does not exist or is not a directory!", f=mydir)
        
     
     if action == 'import': #extra validation for export
