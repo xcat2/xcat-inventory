@@ -10,6 +10,7 @@ from dbsession import DBsession
 from dbfactory import dbfactory
 from xcatobj import *
 from exceptions import *
+from utils import *
 
 import os
 import yaml
@@ -72,7 +73,7 @@ class InventoryFactory(object):
             InventoryFactory.__db__=dbfactory(self.dbsession)
         return InventoryFactory.__db__
 
-    def exportObjs(self, objlist, location=None,fmt='json'):
+    def exportObjs(self, objlist, location=None,fmt='json',comment=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         tabs=myclass.gettablist()
@@ -86,6 +87,7 @@ class InventoryFactory(object):
             newobj = myclass.createfromdb(key, attrs)
             myobjdict=newobj.getobjdict()
             myobjdict2dump[self.objtype]=myobjdict
+            myobjdict2dump['schema_version']=self.getcurschemaversion()
             objdict[self.objtype].update(myobjdict)
             osimagefiles=newobj.getfilestosave()
             if location: 
@@ -99,6 +101,8 @@ class InventoryFactory(object):
                 elif fmt=='json':
                     myfile=os.path.join(mydir,'definition.json')
                 dumpobj(myobjdict2dump,fmt,myfile) 
+                with open(myfile, "a") as f:
+                    f.write(comment)
                 for imgfile in osimagefiles:
                     if os.path.exists(imgfile):
                         dstfile=mydir+imgfile
@@ -139,6 +143,11 @@ class InventoryFactory(object):
         self.getDBInst().settab(dbdict)
         return objfiles
 
+    def getcurschemaversion(self):
+        if self.schemapath:
+            return os.path.basename(os.path.dirname(os.path.realpath(self.schemapath)))
+        else:
+            return 'latest'
 
 def dumpobj(objdict, fmt='json',location=None):
     if not fmt or fmt.lower() == 'json':
@@ -221,6 +230,11 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
     InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
+    
+    xcatversion='XCAT Version'
+    (retcode,out,err)=runCommand('XCATBYPASS=0 lsxcatd -v')
+    if retcode==0:
+        xcatversion=out
 
     objlist = []
     objtypelist=[]
@@ -250,7 +264,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
         else:
             mylocation=None
         
-        typedict=hdl.exportObjs(objlist,mylocation,fmt)
+        typedict=hdl.exportObjs(objlist,mylocation,fmt,"#%s"%(xcatversion))
         nonexistobjlist=list(set(objlist).difference(set(typedict[myobjtype].keys())))
         if nonexistobjlist:
             raise ObjNonExistException("Error: cannot find "+myobjtype+" objects: %(f)s!", f=','.join(nonexistobjlist))
@@ -275,15 +289,20 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
             else:
                 mylocation=os.path.join(destdir,'cluster.yaml')
             dumpobj(wholedict, fmt,mylocation)
+            with open(mylocation, "a") as myfile:
+                myfile.write("#%s"%(xcatversion))
             print("The cluster inventory data has been dumped to %s"%(mylocation))
         elif destfile:
             dumpobj(wholedict, fmt,destfile)
+            with open(destfile, "a") as myfile:
+                myfile.write("#%s"%(xcatversion))
             print("The inventory data has been dumped to %s"%(destfile))
         else: 
             if not fmt or fmt.lower() == 'json':
                 dump2json(wholedict)
             else:
                 dump2yaml(wholedict)
+            print("#%s"%(xcatversion))
     dbsession.close() 
 
 
