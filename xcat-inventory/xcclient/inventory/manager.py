@@ -95,7 +95,6 @@ class InventoryFactory(object):
                 if os.path.exists(mydir):
                     shutil.rmtree(mydir)
                 os.mkdir(mydir) 
-                myfile=os.path.join(mydir,'definition.yaml')
                 if fmt=='yaml':
                     myfile=os.path.join(mydir,'definition.yaml')
                 elif fmt=='json':
@@ -228,6 +227,8 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
     if objtype and objtype != 'osimage' and destdir:
         raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage] or export all without [-t|--type] specified",f=destdir)
 
+    if not fmt:
+        fmt='json'
     InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
     
