@@ -108,7 +108,7 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
    all objects except "osimage" are dumped to a file "cluster.json" or "cluster.yaml", "osimage" objects are exported to osimage directories under a subdirectory "osimage". 
 
-   Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files, such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
+   Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files(files which are not under directory /opt/xcat/share/xcat/), such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
 * export an osimage objec to a directory
 ```
 # xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
