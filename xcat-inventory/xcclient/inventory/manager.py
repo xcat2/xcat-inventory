@@ -341,7 +341,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
         for myobjtype in objtypelist:
             nonexistobjlist=list(set(objlist).difference(set(obj_attr_dict[myobjtype].keys())))
             if nonexistobjlist:
-                raise ObjNonExistException("Error: cannot find objects: %(f)s!", f=','.join(nonexistobjlist))
+                raise ObjNonExistException("Error: cannot find %(t)s objects: %(f)s!",t=myobjtype,f=','.join(nonexistobjlist))
             hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
