@@ -126,7 +126,7 @@ class InventoryFactory(object):
             raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
         
         
-    def importObjs(self, objlist, obj_attr_dict,update=True):
+    def importObjs(self, objlist, obj_attr_dict,update=True,path=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         dbdict = {}
@@ -134,12 +134,13 @@ class InventoryFactory(object):
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
                 newobj = myclass.createfromfile(key, attrs)
-                objfiles[key]=newobj.getfilestosave()
+                objfiles[key]=newobj.getfilestosave(path)
                 dbdict.update(newobj.getdbdata())
         tabs=myclass.gettablist()
         if not update:
             self.getDBInst().cleartab(tabs)
         self.getDBInst().settab(dbdict)
+        print(objfiles)
         return objfiles
 
     def getcurschemaversion(self):
@@ -345,13 +346,13 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
-            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update))
+            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,os.path.dirname(location)))
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
-            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update))
+            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,os.path.dirname(location)))
 
     if not dryrun:
         try:
