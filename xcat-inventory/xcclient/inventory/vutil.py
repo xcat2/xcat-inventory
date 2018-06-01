@@ -67,6 +67,36 @@ def underpath(filename,path):
     else:
         return False
 
+
+# return a list of the files in list "infilelist" and the files included in them
+def getfileanddeplist(infilelist):
+    #helper function to return a dict whose keys are file "filename" specified and files included by it 
+    def getincfiledict(filename,filedict={}):
+        regex_include=r'^#INCLUDE:([^#]+)#$'
+        if filename in filedict.keys():
+            return
+        filedict[filename]=1
+        if os.path.isfile(filename):
+            with open(filename) as fileobj:
+                filelines = fileobj.readlines()
+            olddir=os.getcwd()
+            curdir=os.path.dirname(filename)
+            os.chdir(curdir)
+            for line in filelines:
+                matchobj_include=re.search(regex_include,line.strip()) 
+                if matchobj_include:
+                    incfile=matchobj_include.group(1)
+                    incfile=os.path.realpath(incfile)
+                    if incfile not in filedict.keys():
+                        getincfiledict(incfile,filedict)
+            os.chdir(olddir)
+        return 
+
+    filedict={}
+    for filename in infilelist:
+        getincfiledict(filename,filedict)
+    return filedict.keys()
+
 if __name__ == "__main__":
     pass
     
