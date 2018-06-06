@@ -38,6 +38,7 @@
       - "T{osimage.postscripts}"
       postbootscripts: 
       - "T{osimage.postbootscripts}"
+    environvars: "T{osimage.environvar}"
     kernel_dump:
       dump: "T{linuximage.dump}"
       crashkernelsize: "T{linuximage.crashkernelsize}"
