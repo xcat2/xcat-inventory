@@ -72,7 +72,7 @@ def underpath(filename,path):
 def getfileanddeplist(infilelist):
     #helper function to return a dict whose keys are file "filename" specified and files included by it 
     def getincfiledict(filename,filedict={}):
-        regex_include=r'^#INCLUDE:([^#]+)#$'
+        regex_include=r'^#INCLUDE:\s*([^#]+)#$'
         if filename in filedict.keys():
             return
         filedict[filename]=1
@@ -85,7 +85,7 @@ def getfileanddeplist(infilelist):
             for line in filelines:
                 matchobj_include=re.search(regex_include,line.strip()) 
                 if matchobj_include:
-                    incfile=matchobj_include.group(1)
+                    incfile=matchobj_include.group(1).strip()
                     incfile=os.path.realpath(incfile)
                     if incfile not in filedict.keys():
                         getincfiledict(incfile,filedict)
