@@ -379,7 +379,7 @@ class XcatBase(object):
     def getfilerules(cls):
         print yaml.dump(cls._files)
 
-    def getfilestosave(self):
+    def getfilestosave(self,objdir):
         filelist=[]
         for key in self._files.keys():
             depvallist=self._files[key]['file2savefilter']['depvallist']
@@ -387,6 +387,41 @@ class XcatBase(object):
             for myexpression in expression:
                 for val in depvallist:
                     myval=Util_getdictval(self._mydict,val)
+                    if myval is None:
+                        myval=''
+                    elif objdir:
+                        myfilelist=myval.split(',')
+                        newmyfilelist=[]
+                        for myfile in myfilelist:
+                             if not os.path.isabs(myfile):
+                                 newmyfilelist.append(os.path.join(objdir,myfile))
+                             else:
+                                 newmyfilelist.append(myfile)
+                              
+                        myval=','.join(newmyfilelist)
+                        Util_setdictval(self._mydict,val,myval)
+                        self.__dict2db()
+                        print("myfilelist=%s"%(newmyfilelist))
+                    myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")
+                try:
+                    evalexp=eval("lambda "+myexpression)
+                    value=evalexp()
+                except Exception,e:                    
+                    raise  InvalidValueException("Error: encountered some error when get the files to save in [%s] of object \"%s\": %s"%(key,self.name,str(e))) 
+                if value:
+                    filelist.extend(filter(None,value))
+        return filelist
+                
+
+    def convertobjpath(self,objdir):
+        filelist=[]
+        for key in self._files.keys():
+            depvallist=self._files[key]['file2savefilter']['depvallist']
+            expression=self._files[key]['file2savefilter']['expression'] 
+            for myexpression in expression:
+                for val in depvallist:
+                    myval=Util_getdictval(self._mydict,val)
+                    print("myval=%s"%(myval))
                     if myval is None:
                         myval=''
                     myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")
@@ -398,7 +433,6 @@ class XcatBase(object):
                 if value:
                     filelist.extend(filter(None,value))
         return filelist
-                
 
     def setobjdict(self,objdict):
         self.validatelayout(objdict)
