@@ -41,3 +41,5 @@ class BadSchemaException(BaseException):
     pass
 class DBException(BaseException):
     pass
+class ParseException(BaseException):
+    pass

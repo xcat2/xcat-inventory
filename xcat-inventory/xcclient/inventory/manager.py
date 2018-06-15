@@ -15,7 +15,7 @@ from utils import *
 import os
 import yaml
 import shutil
-from jinja2 import Template,Environment,meta
+from jinja2 import Template,Environment,meta,FileSystemLoader
 
 """
 Command-line interface to xCAT inventory import/export
@@ -312,10 +312,14 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
 
 def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True):
-    with open(location) as file:
-        rawcontents=file.read()
-   
-    filetmpl=Environment().from_string(rawcontents)
+    dirpath=os.path.dirname(os.path.realpath(location))
+    filename=os.path.basename(os.path.realpath(location))
+    
+    jinjaenv=Environment(loader=FileSystemLoader(dirpath)); 
+    jinjasrc=jinjaenv.loader.get_source(jinjaenv,filename)[0]
+    jinjatmpl=jinjaenv.get_template(filename)
+    jinjast = jinjaenv.parse(jinjasrc)
+    jinjavarlist=meta.find_undeclared_variables(jinjast)
     vardict={}
       
     vargitrepo=None
@@ -340,7 +344,11 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
 
     if varswdir is not None:
         vardict['SWDIR']=varswdir
-    contents=filetmpl.render(vardict) 
+    unresolvedvars=list(set(jinjavarlist).difference(set(vardict.keys())))
+    if unresolvedvars:
+        raise ParseException("unresolved variables in \"%s\": \"%s\", please export them in environment variables"%(location,','.join(unresolvedvars))) 
+    
+    contents=jinjatmpl.render(vardict) 
  
     envar=''
     if vardict:
