@@ -15,6 +15,7 @@ from utils import *
 import os
 import yaml
 import shutil
+from jinja2 import Template,Environment,meta,FileSystemLoader
 
 """
 Command-line interface to xCAT inventory import/export
@@ -126,13 +127,15 @@ class InventoryFactory(object):
             raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
         
         
-    def importObjs(self, objlist, obj_attr_dict,update=True):
+    def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         dbdict = {}
         objfiles={}
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
+                if self.objtype == 'osimage' and envar is not None:
+                    Util_setdictval(attrs,'environvars',envar)   
                 newobj = myclass.createfromfile(key, attrs)
                 objfiles[key]=newobj.getfilestosave()
                 dbdict.update(newobj.getdbdata())
@@ -309,9 +312,49 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
 
 def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True):
+    dirpath=os.path.dirname(os.path.realpath(location))
+    filename=os.path.basename(os.path.realpath(location))
+    
+    jinjaenv=Environment(loader=FileSystemLoader(dirpath)); 
+    jinjasrc=jinjaenv.loader.get_source(jinjaenv,filename)[0]
+    jinjatmpl=jinjaenv.get_template(filename)
+    jinjast = jinjaenv.parse(jinjasrc)
+    jinjavarlist=meta.find_undeclared_variables(jinjast)
+    vardict={}
+      
+    vargitrepo=None
+    varswdir=None
+    if 'GITREPO' in os.environ.keys():
+        vargitrepo=os.environ['GITREPO']
+    else:
+        oldcwd=os.getcwd()
+        os.chdir(os.path.dirname(location))
+        (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
+        if retcode==0:
+            vargitrepo=out.strip()
+        os.chdir(oldcwd)
+    
+    if vargitrepo is not None:
+        vardict['GITREPO']=vargitrepo
+  
+    if 'SWDIR' in os.environ.keys():
+        varswdir=os.environ['SWDIR']
+    else:
+        varswdir="/install/REPO" 
+
+    if varswdir is not None:
+        vardict['SWDIR']=varswdir
+    unresolvedvars=list(set(jinjavarlist).difference(set(vardict.keys())))
+    if unresolvedvars:
+        raise ParseException("unresolved variables in \"%s\": \"%s\", please export them in environment variables"%(location,','.join(unresolvedvars))) 
+    
+    contents=jinjatmpl.render(vardict) 
+ 
+    envar=''
+    if vardict:
+        envar=','.join([key+'='+vardict[key] for key in vardict.keys()])
+ 
     dbsession=DBsession()
-    with open(location) as file:
-        contents=file.read()
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
@@ -345,13 +388,13 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
-            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update))
+            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
-            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update))
+            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
 
     if not dryrun:
         try:
