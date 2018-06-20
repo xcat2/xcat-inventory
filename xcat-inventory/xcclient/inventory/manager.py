@@ -328,7 +328,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
         vargitrepo=os.environ['GITREPO']
     else:
         oldcwd=os.getcwd()
-        os.chdir(os.path.dirname(location))
+        os.chdir(os.path.dirname(os.path.realpath(location)))
         (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
         if retcode==0:
             vargitrepo=out.strip()
@@ -359,7 +359,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
         try: 
             obj_attr_dict = yaml.load(contents)
         except Exception,e:
-            raise InvalidFileException("Error: failed to load file "+location+": "+str(e))
+            raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(location,location,location))
   
     versinfile=None
     if 'schema_version' in obj_attr_dict.keys():
