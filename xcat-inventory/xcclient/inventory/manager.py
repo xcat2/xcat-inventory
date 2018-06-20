@@ -339,8 +339,6 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
   
     if 'SWDIR' in os.environ.keys():
         varswdir=os.environ['SWDIR']
-    else:
-        varswdir="/install/REPO" 
 
     if varswdir is not None:
         vardict['SWDIR']=varswdir
