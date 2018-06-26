@@ -33,6 +33,8 @@ class CommandException(BaseException):
     pass
 class InvalidFileException(BaseException):
     pass
+class InternalException(BaseException):
+    pass
 class InvalidValueException(BaseException):
     pass
 class BadDBHdlException(BaseException):

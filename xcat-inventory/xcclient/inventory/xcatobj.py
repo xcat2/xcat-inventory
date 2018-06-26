@@ -196,7 +196,7 @@ class XcatBase(object):
             if item in self._dbhash.keys():
                 tabval=self._dbhash[item]
             else:
-                tabvol=self.__evalschema_tab(item) 
+                tabval=self.__evalschema_tab(item) 
             myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")   
         tabmatched=re.findall(r'T\{(\S+)\}',myexpression)
         if tabmatched:
@@ -204,9 +204,9 @@ class XcatBase(object):
                 if myschmpath: 
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(item).replace("'","\\'")+"'")
                 else:
-                    tabvol=self.__evalschema_tab(item)
+                    tabval=self.__evalschema_tab(item)
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
-        evalexp=eval("lambda "+myexpression)
+        evalexp=eval("lambda "+myexpression) 
         result=evalexp()
         if myschmpath:
             if 0==cmp(result,tabcol):
@@ -320,6 +320,8 @@ class XcatBase(object):
         return       
         
     def validatevalue(self,objdict):
+        errmsglist=[]
+        retcode=True
         for key in self._depdict_val.keys():
             depvallist=self._depdict_val[key]['validate']['depvallist']
             expression=self._depdict_val[key]['validate']['expression']
@@ -333,9 +335,11 @@ class XcatBase(object):
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
-                    raise  InvalidValueException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
+                    raise  InternalException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
                 if not value:
-                    raise  InvalidValueException("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
+                    retcode=False
+                    errmsglist.append("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
+        return [retcode,errmsglist]
 
     @classmethod
     def getfilerules(cls):
@@ -364,7 +368,9 @@ class XcatBase(object):
 
     def setobjdict(self,objdict):
         self.validatelayout(objdict)
-        self.validatevalue(objdict)
+        retcode,msglist=self.validatevalue(objdict)
+        if not retcode:
+            raise InvalidValueException('\n'.join(msglist)) 
         self._mydict=deepcopy(objdict)
         self._mydict['obj_name']=self.name
         self._dbhash.clear()

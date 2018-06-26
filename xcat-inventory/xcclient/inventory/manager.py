@@ -132,13 +132,20 @@ class InventoryFactory(object):
         myclass.loadschema(self.schemapath)
         dbdict = {}
         objfiles={}
+        exptmsglist=[]
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
                 if self.objtype == 'osimage' and envar is not None:
                     Util_setdictval(attrs,'environvars',envar)   
-                newobj = myclass.createfromfile(key, attrs)
+                try:
+                    newobj = myclass.createfromfile(key, attrs)
+                except InvalidValueException,e:
+                    exptmsglist.append(str(e)) 
+                    continue
                 objfiles[key]=newobj.getfilestosave()
                 dbdict.update(newobj.getdbdata())
+        if(exptmsglist):
+            raise InvalidValueException('\n'.join(exptmsglist))
         tabs=myclass.gettablist()
         if not update:
             self.getDBInst().cleartab(tabs)
@@ -375,6 +382,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
    
     InventoryFactory.validateObjLayout(obj_attr_dict) 
     objfiledict={}
+    exptmsglist=[]
     if objtypelist: 
         nonexistobjtypelist=list(set(objtypelist).difference(set(obj_attr_dict.keys())))
         if nonexistobjtypelist:
@@ -386,14 +394,24 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
-            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+            try: 
+                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+            except InvalidValueException,e:
+                exptmsglist.append(str(e))
+                continue
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
-            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+            try: 
+                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+            except InvalidValueException,e:
+                exptmsglist.append(str(e))
+                continue
 
+    if exptmsglist:
+        raise InvalidValueException('\n'.join(exptmsglist))
     if not dryrun:
         try:
             dbsession.commit()   
