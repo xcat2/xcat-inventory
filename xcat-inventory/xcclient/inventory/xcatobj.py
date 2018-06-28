@@ -324,6 +324,8 @@ class XcatBase(object):
         return       
         
     def validatevalue(self,objdict):
+        errmsglist=[]
+        retcode=True
         for key in self._depdict_val.keys():
             depvallist=self._depdict_val[key]['validate']['depvallist']
             expression=self._depdict_val[key]['validate']['expression']
@@ -337,9 +339,11 @@ class XcatBase(object):
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
                 except Exception,e:                    
-                    raise  InvalidValueException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
+                    raise  InternalException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
                 if not value:
-                    raise  InvalidValueException("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
+                    retcode=False
+                    errmsglist.append("Error: failed to validate attribute ["+key+"] of object \""+self.name+"\", criteria: \""+myexpression+"\"") 
+        return [retcode,errmsglist]
 
     @classmethod
     def getfilerules(cls):
@@ -368,7 +372,9 @@ class XcatBase(object):
 
     def setobjdict(self,objdict):
         self.validatelayout(objdict)
-        self.validatevalue(objdict)
+        retcode,msglist=self.validatevalue(objdict)
+        if not retcode:
+            raise InvalidValueException('\n'.join(msglist)) 
         self._mydict=deepcopy(objdict)
         self._mydict['obj_name']=self.name
         self._dbhash.clear()
