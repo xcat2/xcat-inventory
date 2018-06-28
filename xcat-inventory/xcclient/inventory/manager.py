@@ -474,8 +474,10 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
     print("The object "+objname+" has been imported")
 
 def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None):
+    importall=0
     if not objnamelist:
-        objnamelist=os.listdir(location)
+        objnamelist = [filename for filename in os.listdir(location) if os.path.isdir(os.path.join(location,filename))]
+        importall=1
     if update==False:
         if dbsession is None:
             dbsession=DBsession()
@@ -485,7 +487,13 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
     for objname in objnamelist:
         if os.path.exists(os.path.join(location,objname)):
             objdir=os.path.join(location,objname)
-            importobjdir(objdir,dryrun,version,update,dbsession)
+            if importall:
+                try:
+                    importobjdir(objdir,dryrun,version,update,dbsession)
+                except Exception,e:
+                    print("processing osimage directory %s: %s"%(objdir,str(e)),file=sys.stderr)
+            else:
+                importobjdir(objdir,dryrun,version,update,dbsession)
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
     if dbsession:
