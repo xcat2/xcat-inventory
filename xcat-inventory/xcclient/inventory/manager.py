@@ -149,8 +149,13 @@ class InventoryFactory(object):
         tabs=myclass.gettablist()
         if not update:
             self.getDBInst().cleartab(tabs)
-        self.getDBInst().settab(dbdict)
+        if dbdict:
+            self.getDBInst().settab(dbdict)
         return objfiles
+
+    
+    def removeObjs(self):
+        self.importObjs(None,{},False,None)
 
     def getcurschemaversion(self):
         if self.schemapath:
@@ -318,7 +323,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
 
 
-def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True):
+def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None):
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
     
@@ -358,8 +363,8 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     envar=''
     if vardict:
         envar=','.join([key+'='+vardict[key] for key in vardict.keys()])
- 
-    dbsession=DBsession()
+    if dbsession is None: 
+        dbsession=DBsession()
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
@@ -425,7 +430,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     return objfiledict
 
 
-def importobjdir(location,dryrun=None,version=None,update=True):
+def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
     objfile=None
     if os.path.exists(os.path.join(location,'definition.yaml')):
         objfile=os.path.join(location,'definition.yaml')
@@ -433,7 +438,7 @@ def importobjdir(location,dryrun=None,version=None,update=True):
         objfile=os.path.join(location,'definition.json')    
     else:
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
-    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update)
+    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update,dbsession)
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:
@@ -468,15 +473,25 @@ def importobjdir(location,dryrun=None,version=None,update=True):
             print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported")
 
-def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True):
+def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None):
     if not objnamelist:
         objnamelist=os.listdir(location)
+    if update==False:
+        if dbsession is None:
+            dbsession=DBsession()
+        hdl = InventoryFactory.createHandler(objtype,dbsession,version)
+        hdl.removeObjs()
+        update=True
     for objname in objnamelist:
         if os.path.exists(os.path.join(location,objname)):
             objdir=os.path.join(location,objname)
-            importobjdir(objdir,dryrun,version,update)
+            importobjdir(objdir,dryrun,version,update,dbsession)
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
+    if dbsession:
+        dbsession.commit()
+        dbsession.close()
+
      
 def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True):
      objtypelist=[]
