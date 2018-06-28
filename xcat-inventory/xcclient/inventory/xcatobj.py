@@ -210,7 +210,7 @@ class XcatBase(object):
                 else:
                     tabval=self.__evalschema_tab(item)
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
-        evalexp=eval("lambda "+myexpression,ctxdict)
+        evalexp=eval("lambda "+myexpression,None,ctxdict)
         result=evalexp()
         if myschmpath:
             if 0==cmp(result,tabcol):
@@ -233,15 +233,19 @@ class XcatBase(object):
             if tabval is None:
                 tabval=''
             myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
+        ctxdict={} 
         for item in mydepvallist:
             myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=self.__evalschema_val(item)
                 if myval is None:
                     myval=''
-            myexpression=myexpression.replace('V{'+item+'}',"'"+str(myval).replace("'","\\'")+"'")
+            newitem=item.replace('.','_').replace('{','_').replace('}','_')
+            newitem="V_%s"%(newitem)
+            ctxdict[newitem]=myval
+            myexpression=myexpression.replace('V{'+item+'}',newitem)
         try:
-            evalexp=eval("lambda "+myexpression)
+            evalexp=eval("lambda "+myexpression,None,ctxdict)
             value=evalexp()
         except Exception,e:
             raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\": "+str(e))
@@ -355,13 +359,17 @@ class XcatBase(object):
             depvallist=self._files[key]['file2savefilter']['depvallist']
             expression=self._files[key]['file2savefilter']['expression'] 
             for myexpression in expression:
+                ctxdict={}
                 for val in depvallist:
                     myval=Util_getdictval(self._mydict,val)
                     if myval is None:
                         myval=''
-                    myexpression=myexpression.replace('V{'+val+'}',"'"+str(myval).replace("'","\\'")+"'")
+                    newitem=val.replace('.','_').replace('{','_').replace('}','_')
+                    newitem="V_%s"%(newitem)
+                    ctxdict[newitem]=myval
+                    myexpression=myexpression.replace('V{'+val+'}',newitem)
                 try:
-                    evalexp=eval("lambda "+myexpression)
+                    evalexp=eval("lambda "+myexpression,None,ctxdict)
                     value=evalexp()
                 except Exception,e:                    
                     raise  InvalidValueException("Error: encountered some error when get the files to save in [%s] of object \"%s\": %s"%(key,self.name,str(e))) 
