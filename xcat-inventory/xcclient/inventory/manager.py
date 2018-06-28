@@ -132,18 +132,30 @@ class InventoryFactory(object):
         myclass.loadschema(self.schemapath)
         dbdict = {}
         objfiles={}
+        exptmsglist=[]
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
                 if self.objtype == 'osimage' and envar is not None:
                     Util_setdictval(attrs,'environvars',envar)   
-                newobj = myclass.createfromfile(key, attrs)
+                try:
+                    newobj = myclass.createfromfile(key, attrs)
+                except InvalidValueException,e:
+                    exptmsglist.append(str(e)) 
+                    continue
                 objfiles[key]=newobj.getfilestosave()
                 dbdict.update(newobj.getdbdata())
+        if(exptmsglist):
+            raise InvalidValueException('\n'.join(exptmsglist))
         tabs=myclass.gettablist()
         if not update:
             self.getDBInst().cleartab(tabs)
-        self.getDBInst().settab(dbdict)
+        if dbdict:
+            self.getDBInst().settab(dbdict)
         return objfiles
+
+    
+    def removeObjs(self):
+        self.importObjs(None,{},False,None)
 
     def getcurschemaversion(self):
         if self.schemapath:
@@ -311,7 +323,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
 
 
-def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True):
+def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None):
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
     
@@ -351,8 +363,8 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     envar=''
     if vardict:
         envar=','.join([key+'='+vardict[key] for key in vardict.keys()])
- 
-    dbsession=DBsession()
+    if dbsession is None: 
+        dbsession=DBsession()
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
@@ -375,6 +387,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
    
     InventoryFactory.validateObjLayout(obj_attr_dict) 
     objfiledict={}
+    exptmsglist=[]
     if objtypelist: 
         nonexistobjtypelist=list(set(objtypelist).difference(set(obj_attr_dict.keys())))
         if nonexistobjtypelist:
@@ -386,14 +399,24 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
-            objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+            try: 
+                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+            except InvalidValueException,e:
+                exptmsglist.append(str(e))
+                continue
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
-            objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+            try: 
+                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+            except InvalidValueException,e:
+                exptmsglist.append(str(e))
+                continue
 
+    if exptmsglist:
+        raise InvalidValueException('\n'.join(exptmsglist))
     if not dryrun:
         try:
             dbsession.commit()   
@@ -407,7 +430,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     return objfiledict
 
 
-def importobjdir(location,dryrun=None,version=None,update=True):
+def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
     objfile=None
     if os.path.exists(os.path.join(location,'definition.yaml')):
         objfile=os.path.join(location,'definition.yaml')
@@ -415,7 +438,7 @@ def importobjdir(location,dryrun=None,version=None,update=True):
         objfile=os.path.join(location,'definition.json')    
     else:
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
-    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update)
+    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update,dbsession)
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:
@@ -450,15 +473,25 @@ def importobjdir(location,dryrun=None,version=None,update=True):
             print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported")
 
-def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True):
+def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None):
     if not objnamelist:
         objnamelist=os.listdir(location)
+    if update==False:
+        if dbsession is None:
+            dbsession=DBsession()
+        hdl = InventoryFactory.createHandler(objtype,dbsession,version)
+        hdl.removeObjs()
+        update=True
     for objname in objnamelist:
         if os.path.exists(os.path.join(location,objname)):
             objdir=os.path.join(location,objname)
-            importobjdir(objdir,dryrun,version,update)
+            importobjdir(objdir,dryrun,version,update,dbsession)
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
+    if dbsession:
+        dbsession.commit()
+        dbsession.close()
+
      
 def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True):
      objtypelist=[]
