@@ -97,6 +97,11 @@ def getfileanddeplist(infilelist):
         getincfiledict(filename,filedict)
     return filedict.keys()
 
+def strsubst(string,subdict={}):
+    for k in subdict.keys():
+        string=string.replace(k,subdict[k])
+    return string
+
 if __name__ == "__main__":
     pass
     

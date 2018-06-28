@@ -186,17 +186,21 @@ class XcatBase(object):
         mydepvallist=self._depdict_tab[tabcol]['depvallist']
         myexpression=self._depdict_tab[tabcol]['expression']
         myschmpath=self._depdict_tab[tabcol]['schmpath']
+        ctxdict={}
         for item in mydepvallist:
             myval=Util_getdictval(self._mydict,item)
             if myval is None:
                 myval=''
-            myexpression=myexpression.replace('V{'+item+'}',"'"+str(myval).replace("'","\\'")+"'")
+            newitem=item.replace('.','_').replace('{','_').replace('}','_')
+            newitem="V_%s"%(newitem)
+            ctxdict[newitem]=myval
+            myexpression=myexpression.replace('V{'+item+'}',newitem)
         for item in mydeptablist:
             tabval=''
             if item in self._dbhash.keys():
                 tabval=self._dbhash[item]
             else:
-                tabvol=self.__evalschema_tab(item) 
+                tabval=self.__evalschema_tab(item) 
             myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")   
         tabmatched=re.findall(r'T\{(\S+)\}',myexpression)
         if tabmatched:
@@ -204,9 +208,9 @@ class XcatBase(object):
                 if myschmpath: 
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(item).replace("'","\\'")+"'")
                 else:
-                    tabvol=self.__evalschema_tab(item)
+                    tabval=self.__evalschema_tab(item)
                     myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
-        evalexp=eval("lambda "+myexpression)
+        evalexp=eval("lambda "+myexpression,ctxdict)
         result=evalexp()
         if myschmpath:
             if 0==cmp(result,tabcol):
