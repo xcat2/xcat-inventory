@@ -2,8 +2,8 @@
   node:
     obj_type: 
     - "${{ groupname=T{nodegroup.groupname}, nodename=T{nodelist.node},objname=V{obj_name} :'node' if nodename == objname else 'group'}}"
-    - "W:T{nodegroup.groupname}=${{objtype=V{obj_type}: V{obj_name} if objtype=='group' else None}}"
-    - "W:T{nodelist.node}=${{objtype=V{obj_type}: V{obj_name} if objtype=='node' else None}}"
+    - "W:T{nodegroup.groupname}=${{objtype=V{obj_type},value=V{obj_name}: value if objtype=='group' else None}}"
+    - "W:T{nodelist.node}=${{objtype=V{obj_type},value=V{obj_name}: value if objtype=='node' else None}}"
     - "C:${{objtype=V{obj_type}: True if str(objtype) in ('node','group') else False}}"
     obj_info: 
       groups: 
@@ -15,10 +15,10 @@
       description: "T{nodelist.comments}"
     device_type: 
     - "${{ switchname=T{switches.switch}, pduname=T{pdu.node}, objname=V{obj_name}, rackname=T{rack.rackname},hcpname=T{ppchcp.hcp}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'rack' if rackname == objname else 'hmc' if hcpname == objname else 'server' }}"
-    - "W:T{switches.switch}=${{devtype=V{device_type}: V{obj_name} if devtype == 'switch' else None}}"
-    - "W:T{pdu.node}=${{devtype=V{device_type}: V{obj_name} if devtype == 'pdu' else None}}" 
-    - "W:T{rack.rackname}=${{devtype=V{device_type}: V{obj_name} if devtype == 'rack' else None}}" 
-    - "W:T{ppchcp.hcp}=${{devtype=V{device_type}: V{obj_name} if devtype == 'hmc' else None}}"
+    - "W:T{switches.switch}=${{devtype=V{device_type},value=V{obj_name}: value if devtype == 'switch' else None}}"
+    - "W:T{pdu.node}=${{devtype=V{device_type},value=V{obj_name}: value if devtype == 'pdu' else None}}" 
+    - "W:T{rack.rackname}=${{devtype=V{device_type},value=V{obj_name}: value if devtype == 'rack' else None}}" 
+    - "W:T{ppchcp.hcp}=${{devtype=V{device_type},value=V{obj_name}: value if devtype == 'hmc' else None}}"
     - "C:${{devtype=V{device_type}: True if str(devtype) in ('switch','pdu','rack','hmc','server') else False}}"
     device_info:
       arch: 
@@ -191,7 +191,7 @@
             terminalserver: "T{nodehm.termserver}"
     role: 
     - "${{ snname=T{servicenode.node},objname=V{obj_name}: 'service' if snname ==objname else 'compute'}}"
-    - "W:T{servicenode.node}=${{role=V{role}: V{obj_name} if role == 'service' else None}}"
+    - "W:T{servicenode.node}=${{role=V{role},value=V{obj_name}: value if role == 'service' else None}}"
     - "C:${{role=V{role}: True if str(role) in ('compute','service') else False}}"
     role_info:
       xcatmaster: "T{noderes.xcatmaster}"

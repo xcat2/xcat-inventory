@@ -2,8 +2,8 @@
   osimage:
     imagetype:
     - "T{osimage.imagetype}"
-    - "W:T{winimage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'windows' else None }}"
-    - "W:T{linuximage.imagename}=${{imgtype=V{imagetype}: V{obj_name} if imgtype == 'linux' else None }}"
+    - "W:T{winimage.imagename}=${{imgtype=V{imagetype},value=V{obj_name} : value if imgtype == 'windows' else None }}"
+    - "W:T{linuximage.imagename}=${{imgtype=V{imagetype},value=V{obj_name}: value if imgtype == 'linux' else None }}"
     - "C:${{value=V{imagetype}: True if str(value) in ('windows','linux') else False}}"
     basic_attributes:
       distribution: "T{osimage.osvers}"
@@ -48,7 +48,7 @@
       - "W:T{osimage.postbootscripts}=${{value=V{scripts.postbootscripts}: ','.join(value) if type(value) == type([]) else value}}"
     environvars: 
       - "${{:''}}"
-      - "W:T{osimage.environvar}=${{:V{environvars} if V{environvars} else None }}"
+      - "W:T{osimage.environvar}=${{value=V{environvars}:value if value else None }}"
     kernel_dump:
       dump: "T{linuximage.dump}"
       crashkernelsize: "T{linuximage.crashkernelsize}"
@@ -58,8 +58,8 @@
       
     diskpartitionspec: 
     - "${{imagetype=V{imagetype}, envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {}: vutil.strsubst(T{linuximage.partitionfile},envars) if imagetype == 'linux' else vutil.strsubst(T{winimage.partitionfile},envars) if imagetype == 'windows' else None}}"
-    - "W:T{linuximage.partitionfile}=${{imagetype=V{imagetype}: V{diskpartitionspec} if imagetype == 'linux' else None }}"
-    - "W:T{winimage.partitionfile}=${{imagetype=V{imagetype}: V{diskpartitionspec} if imagetype == 'windows' else None }}"
+    - "W:T{linuximage.partitionfile}=${{imagetype=V{imagetype},value=V{diskpartitionspec}: value if imagetype == 'linux' else None }}"
+    - "W:T{winimage.partitionfile}=${{imagetype=V{imagetype},value=V{diskpartitionspec}: value if imagetype == 'windows' else None }}"
     - "F:${{flist=V{diskpartitionspec}.split(','): [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
     filestosync: 
     - "${{value=T{osimage.synclists},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None}} "
