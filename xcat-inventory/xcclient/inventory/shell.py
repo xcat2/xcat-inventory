@@ -39,10 +39,11 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-s','--schema-version',dest='version', metavar='<version>', help='schema version of the inventory file. Valid schema versions: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
     @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to xcat database')
     @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode. IF specified, all objects other than the ones to import will be removed')
+    @shell.arg('-e','--env', dest='env', metavar='<env_var>', action='append', help='the values of variables in object definitions(only available for osimage object), syntax: "<variable name>=<variable value>" , this option can be used multiple times to specify multiple variables')
     def do_import(self, args):
         """Import inventory file to xcat database"""
         mgr.validate_args(args, 'import')
-        mgr.importobj(args.path,args.directory,args.type,args.name,dryrun=args.dryrun,version=args.version,update=args.update)
+        mgr.importobj(args.path,args.directory,args.type,args.name,dryrun=args.dryrun,version=args.version,update=args.update,envs=args.env)
 
     @shell.arg('-t','--type', metavar='<type>', help='comma "," delimited types of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
     @shell.arg('-x', '--exclude', dest='exclude', default='', help='types to be excluded when exporting all, delimited with Comma(,).')
