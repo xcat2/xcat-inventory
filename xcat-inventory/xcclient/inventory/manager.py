@@ -39,9 +39,12 @@ class InventoryFactory(object):
         return cls.__InventoryClass__.keys()
 
     @staticmethod
-    def createHandler(objtype,dbsession,schemaversion='latest'):
+    def createHandler(objtype,dbsession,schemaversion=None):
         if schemaversion is None:
-            schemaversion='latest'
+            schemaversion=InventoryFactory.getValidSchemaVersion(objtype)
+        if schemaversion is None:
+            raise BadSchemaException("Error: no available schema of %s found!"%(objtype)) 
+            
         validversions=InventoryFactory.getAvailableSchemaVersions()
         if schemaversion not in validversions:
             raise BadSchemaException("Error: invalid schema version \""+schemaversion+"\", the valid schema versions: "+','.join(validversions)) 
@@ -61,11 +64,26 @@ class InventoryFactory(object):
             filepath = os.path.join(schemapath, item)  
             if os.path.isdir(filepath):  
                 schemaversions.append(item)
+        schemaversions.sort(reverse = True)
         return schemaversions
+
+    @staticmethod
+    def getValidSchemaVersion(objtype='node'):
+        schemavers=InventoryFactory.getAvailableSchemaVersions()
+        for ver in schemavers:
+            schemapath=os.path.join(os.path.dirname(__file__), 'schema/'+str(ver)+'/'+objtype+'.yaml')
+            try:
+                myclass = InventoryFactory.__InventoryClass__[objtype]
+                myclass.validate_schema_version(schemapath)
+            except:
+                continue
+            return ver   
+        return None
  
     @staticmethod
     def getLatestSchemaVersion():
-        schemapath=os.path.join(os.path.dirname(__file__), 'schema/latest')
+        latestver=InventoryFactory.getAvailableSchemaVersions()[0]
+        schemapath=os.path.join(os.path.dirname(__file__), 'schema/'+latestver)
         realpath=os.path.realpath(schemapath)
         return os.path.basename(realpath)
    
@@ -159,9 +177,7 @@ class InventoryFactory(object):
 
     def getcurschemaversion(self):
         if self.schemapath:
-            return os.path.basename(os.path.dirname(os.path.realpath(self.schemapath)))
-        else:
-            return 'latest'
+            return os.path.basename(os.path.dirname(self.schemapath))
 
 def dumpobj(objdict, fmt='json',location=None):
     if not fmt or fmt.lower() == 'json':
@@ -269,6 +285,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
         if exclude and myobjtype in exclude:
             continue
         hdl = InventoryFactory.createHandler(myobjtype,dbsession,version)
+        schemaversion=hdl.getcurschemaversion()
         if myobjtype == 'osimage' and destdir:
             if exportall:
                 mylocation=os.path.join(destdir,myobjtype)
@@ -291,9 +308,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
         if not destdir or myobjtype!='osimage':
             wholedict.update(typedict)
       
-    if version is None or version in ('latest'):
-        version=InventoryFactory.getLatestSchemaVersion()
-    wholedict['schema_version']=version    
+    wholedict['schema_version']=schemaversion    
    
     if 'osimage' in objtypelist and destdir:
         objtypelist.remove('osimage')
