@@ -141,6 +141,10 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
 # xcat-inventory import -d /tmp/mm/osimage/rhels7.4-x86_64-netboot-compute/
 ``` 
+* Import osimage inventory file with variables
+```
+# xcat-inventory import -e GITREPO=/tmp/ -e SWDIR=/tmp -f /tmp/osimage/osimage.withvar.yaml
+```
 
 ## usecase
 
