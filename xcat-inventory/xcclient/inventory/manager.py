@@ -323,7 +323,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
 
 
-def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None):
+def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
     
@@ -334,26 +334,11 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     jinjavarlist=meta.find_undeclared_variables(jinjast)
     vardict={}
       
-    vargitrepo=None
-    varswdir=None
-    if 'GITREPO' in os.environ.keys():
-        vargitrepo=os.environ['GITREPO']
-    else:
-        oldcwd=os.getcwd()
-        os.chdir(os.path.dirname(os.path.realpath(location)))
-        (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
-        if retcode==0:
-            vargitrepo=out.strip()
-        os.chdir(oldcwd)
-    
-    if vargitrepo is not None:
-        vardict['GITREPO']=vargitrepo
-  
-    if 'SWDIR' in os.environ.keys():
-        varswdir=os.environ['SWDIR']
+    if envs:
+        for env in envs:
+            key, value = env.split('=')
+            vardict[key] = value
 
-    if varswdir is not None:
-        vardict['SWDIR']=varswdir
     unresolvedvars=list(set(jinjavarlist).difference(set(vardict.keys())))
     if unresolvedvars:
         raise ParseException("unresolved variables in \"%s\": \"%s\", please export them in environment variables"%(location,','.join(unresolvedvars))) 
@@ -430,7 +415,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     return objfiledict
 
 
-def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
+def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     objfile=None
     if os.path.exists(os.path.join(location,'definition.yaml')):
         objfile=os.path.join(location,'definition.yaml')
@@ -438,7 +423,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
         objfile=os.path.join(location,'definition.json')    
     else:
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
-    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update,dbsession)
+    objfilesdict=importfromfile(None,None,objfile,dryrun,version,update,dbsession,envs)
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:
@@ -473,7 +458,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None):
             print("Warning: the file \""+srcfile+"\" of osimage \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported")
 
-def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None):
+def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     importall=0
     if not objnamelist:
         objnamelist = [filename for filename in os.listdir(location) if os.path.isdir(os.path.join(location,filename))]
@@ -489,11 +474,11 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
             objdir=os.path.join(location,objname)
             if importall:
                 try:
-                    importobjdir(objdir,dryrun,version,update,dbsession)
+                    importobjdir(objdir,dryrun,version,update,dbsession,envs)
                 except Exception,e:
                     print("processing osimage directory %s: %s"%(objdir,str(e)),file=sys.stderr)
             else:
-                importobjdir(objdir,dryrun,version,update,dbsession)
+                importobjdir(objdir,dryrun,version,update,dbsession,envs)
         else:
             print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
     if dbsession:
@@ -501,7 +486,7 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
         dbsession.close()
 
      
-def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True):
+def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True,envs=None):
      objtypelist=[]
      importallobjtypes=0
      if objtype:
@@ -514,7 +499,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
          objnamelist=[n.strip() for n in objnames.split(',')]
 
      if srcfile and os.path.isfile(srcfile):
-         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update)
+         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,envs=envs)
      elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
          if os.path.isfile(os.path.join(srcdir,'cluster.yaml')):
@@ -531,10 +516,10 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                  if 'osimage' in myobjtypelist:
                      myobjtypelist.remove('osimage')
                  if myobjtypelist or importallobjtypes:
-                     importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update)
-                 importfromdir(os.path.join(srcdir,'osimage'),'osimage',objnamelist,dryrun,version,update)
+                     importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,envs=envs)
+                 importfromdir(os.path.join(srcdir,'osimage'),'osimage',objnamelist,dryrun,version,update,envs=envs)
              else:
-                 importfromfile(objtypelist,objnamelist,clusterfile,dryrun,version,update)
+                 importfromfile(objtypelist,objnamelist,clusterfile,dryrun,version,update,envs=envs)
          else:
              objfile=None
              if os.path.isfile(os.path.join(srcdir,'definition.yaml')):
@@ -548,16 +533,16 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                      #this is an osimage derectory
                      if objnames:
                          if curobjname in objnamelist: 
-                             importfromdir(srcdir+'/../','osimage',[curobjname],dryrun,version,update)
+                             importfromdir(srcdir+'/../','osimage',[curobjname],dryrun,version,update,envs=envs)
                              objnamelist.remove(curobjname)
                          if objnamelist:
                              raise InvalidFileException("Error: non-exist objects: \""+','.join(objnamelist)+"\" in inventory directory "+srcdir+"!")        
                      else:
                          #import current object
-                         importobjdir(srcdir,dryrun,version,update)
+                         importobjdir(srcdir,dryrun,version,update,envs=envs)
                  else:
                      #this is an osimage inventory directory 
-                     importfromdir(srcdir,'osimage',objnamelist,dryrun,version,update)
+                     importfromdir(srcdir,'osimage',objnamelist,dryrun,version,update,envs=envs)
                  if 'osimage' in objtypelist:
                      objtypelist.remove('osimage')
    
