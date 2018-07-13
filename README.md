@@ -145,6 +145,7 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
 # xcat-inventory import -e GITREPO=/tmp/ -e SWDIR=/tmp -f /tmp/osimage/osimage.withvar.yaml
 ```
+The format of variables in osimage inventory file is `{{<variable name>}}`
 
 ## usecase
 
