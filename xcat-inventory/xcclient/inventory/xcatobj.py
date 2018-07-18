@@ -429,6 +429,8 @@ class Node(XcatBase):
                 for key in rawnicsdict.keys():
                     rawvaluelist=rawnicsdict[key].split(',')
                     for nicent in rawvaluelist:
+                        if not nicent:
+                            continue
                         try:
                             (nic,attrstr)=nicent.split('!')
                             if nic not in nicsdict.keys():
