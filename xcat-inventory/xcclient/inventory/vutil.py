@@ -106,10 +106,9 @@ def strsubst(string,subdict={}):
 
 def xcatversion():
     (retcode,out,err)=utils.runCommand("XCATBYPASS=1 lsxcatd -v|cut -d' ' -f2")
-    print(retcode,out,err)
     if retcode!=0:
         return None
-    return LooseVersion(out) 
+    return LooseVersion(out.strip()) 
 
 
 if __name__ == "__main__":

@@ -1,10 +1,1 @@
-!!python/dict  
-  policy:
-    name: "T{policy.name}"
-    host: "T{policy.host}"
-    commands: "T{policy.commands}"
-    noderange: "T{policy.noderange}"
-    parameters: "T{policy.parameters}"
-    time: "T{policy.time}"
-    rule: "T{policy.rule}"
-    usercomment: "T{policy.comments}"
+../0.2/policy.yaml

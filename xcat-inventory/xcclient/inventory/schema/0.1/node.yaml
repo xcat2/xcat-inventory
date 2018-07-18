@@ -1,7 +1,7 @@
 !!python/dict
   node:
-    criteria:
-    - "C:${{xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases >=2.13.11, current xCAT version is %s'%(str(xcatversion))) if xcatversion<'2.13.11' else (True,'')}}"
+    criteria: 
+    - "C:${{op=action,xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases <2.14, current xCAT version is %s'%(str(xcatversion))) if xcatversion>='2.14' and op=='export' else (True,'')}}"
     obj_type: 
     - "${{ groupname=T{nodegroup.groupname}, nodename=T{nodelist.node},objname=V{obj_name} :'node' if nodename == objname else 'group'}}"
     - "W:T{nodegroup.groupname}=${{objtype=V{obj_type},value=V{obj_name}: value if objtype=='group' else None}}"

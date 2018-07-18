@@ -1,7 +1,7 @@
 !!python/dict
   osimage:
     criteria:
-    - "C:${{xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases >=2.14.3, current xCAT version is %s'%(str(xcatversion))) if xcatversion<'2.14.3' else (True,'')}}"
+    - "C:${{op=action,xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases < 2.14.2, current xCAT version is %s'%(str(xcatversion))) if xcatversion>='2.14.2' and op=='export' else (True,'')}}"
     imagetype:
     - "T{osimage.imagetype}"
     - "W:T{winimage.imagename}=${{imgtype=V{imagetype},value=V{obj_name} : value if imgtype == 'windows' else None }}"
@@ -50,7 +50,6 @@
       - "W:T{osimage.postbootscripts}=${{value=V{scripts.postbootscripts}: ','.join(value) if type(value) == type([]) else value}}"
     environvars: 
       - "${{:''}}"
-      - "W:T{osimage.environvar}=${{value=V{environvars}:value if value else None }}"
     kernel_dump:
       dump: "T{linuximage.dump}"
       crashkernelsize: "T{linuximage.crashkernelsize}"

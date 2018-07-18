@@ -75,7 +75,7 @@ class InventoryFactory(object):
             try:
                 myclass = InventoryFactory.__InventoryClass__[objtype]
                 myclass.validate_schema_version(schemapath)
-            except:
+            except Exception,e:
                 continue
             return ver   
         return None
@@ -95,6 +95,7 @@ class InventoryFactory(object):
     def exportObjs(self, objlist, location=None,fmt='json',comment=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
+        myclass.validate_schema_version(None,'export')
         tabs=myclass.gettablist()
         obj_attr_dict = self.getDBInst().gettab(tabs, objlist)
         objdict={}
@@ -148,6 +149,7 @@ class InventoryFactory(object):
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
+        myclass.validate_schema_version(None,'import')
         dbdict = {}
         objfiles={}
         exptmsglist=[]

@@ -1,7 +1,7 @@
 !!python/dict  
   site:
     criteria:
-    - "C:${{xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases <2.14.3, current xCAT version is %s'%(str(xcatversion))) if xcatversion>='2.14.3' else (True,'')}}"
+    - "C:${{xcatversion=vutil.xcatversion(): (False,'This schema is valid for xCAT releases >=2.4.2, current xCAT version is %s'%(str(xcatversion))) if xcatversion<'2.14.2' else (True,'')}}"
     auditnosyslog: "T{site.auditnosyslog}"
     auditskipcmds: "T{site.auditskipcmds}"
     blademaxp: "T{site.blademaxp}"
@@ -114,3 +114,4 @@
     xcatsslciphers: "T{site.xcatsslciphers}"
     xcatsslversion: "T{site.xcatsslversion}"
     emptyzonesenable: "T{site.emptyzonesenable}"
+    secureroot: "T{site.secureroot}"
