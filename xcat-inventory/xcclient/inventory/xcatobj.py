@@ -324,7 +324,6 @@ class XcatBase(object):
         schmkey=schemacontent.keys()[0]
         cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
-        #cls.validate_schema_version()
         cls.scanschema()
 
 
@@ -467,21 +466,44 @@ class Node(XcatBase):
             rawnicsdict=Util_getdictval(ret[self.name],nicspath)
             if rawnicsdict:
                 nicsdict={}
-                for key in rawnicsdict.keys():
-                    rawvaluelist=rawnicsdict[key].split(',')
-                    for nicent in rawvaluelist:
-                        if not nicent:
-                            continue
-                        try:
-                            (nic,attrstr)=nicent.split('!')
+                try:
+                    for key in rawnicsdict.keys():
+                        string=rawnicsdict[key]
+                        regexattr2=re.findall(r'((,|^)\|([^\|]*)\|([^\|]*)\|)',string)
+                        for i in regexattr2:
+                            # remove the matched part from string
+                            string=string.replace(i[0],'')
+                            regcond=i[2]
+                            regbody=i[3]
+                            while True:
+                                bodyattr2=re.findall(r'((,)?([^,^!]*)!([^!]*))(?:,[^,]+!|$)',regbody)
+                                if not bodyattr2:
+                                    break
+                                for j in bodyattr2:
+                                    regbody=regbody.replace(j[0],'')  
+                                    nic=j[2]
+                                    regexpr=j[3]
+                                    if nic not in nicsdict.keys():
+                                        nicsdict[nic]={}
+                                    nicsdict[nic][key]='|'+regcond+'|'+nic+'!'+regexpr+'|'   
+                        regexattr=re.findall(r'((,|^)([^\|^,]*)!(\|[^\|]*\|[^\|]*\|))',string)
+                        for i in regexattr:
+                            # remove the matched part from string
+                            string=string.replace(i[0],'')
+                            nic=i[2]
+                            nicattr=i[3]
+                            if nic not in nicsdict.keys():
+                                nicsdict[nic]={}   
+                            nicsdict[nic][key]=nicattr
+                        plainattr=re.findall(r'(,|^)([^\|^,]*)!([^\|^,][^,]*)',string)
+                        for i in plainattr:
+                            nic=i[1]
+                            nicattr=i[2]
                             if nic not in nicsdict.keys():
                                 nicsdict[nic]={}
-                            if re.match(r'^[^\|]\S+\|\S+[^\|]$',attrstr):
-                                nicsdict[nic][key]=attrstr.split('|')
-                            else:
-                                nicsdict[nic][key]=[attrstr]
-                        except Exception,e:
-                            raise InvalidValueException("Error: invalid value \""+nicent+"\" for object "+self.name+" found "+"in nics table") 
+                            nicsdict[nic][key]=nicattr.split('|')
+                except Exception,e:
+                    raise InvalidValueException("Error: invalid value \""+nicent+"\" for object "+self.name+" found "+"in nics table") 
                 Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
@@ -511,7 +533,14 @@ class Node(XcatBase):
                     for attr in nicattr.keys():
                          if attr not in nicsattrdict.keys():
                              nicsattrdict[attr]=[]
-                         nicsattrdict[attr].append(nic+'!'+'|'.join(nicattr[attr]))
+                         attrvalue=''
+                         if type(nicattr[attr]) == list:
+                             attrvalue='|'.join(nicattr[attr])
+                         else:
+                             attrvalue=nicattr[attr]
+                         if '!' not in attrvalue:
+                             attrvalue=nic+'!'+attrvalue
+                         nicsattrdict[attr].append(attrvalue)
                 for item in nicsattrdict.keys():
                     nicsattrdict[item]=','.join(nicsattrdict[item])
                 Util_setdictval(tmpdict,nicspath,nicsattrdict)
@@ -537,5 +566,8 @@ class Site(XcatBase):
 
 class Zone(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/zone.yaml')
+
+class Credential(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/credential.yaml')
 if __name__ == "__main__":
     pass
