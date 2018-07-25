@@ -1,9 +1,1 @@
-!!python/dict  
-  passwd:
-    username: "T{passwd.username}"
-    password: "T{passwd.password}"
-    cryptmethod: 
-    - "T{passwd.cryptmethod}"
-    - "C:${{option=V{cryptmethod}: True if str(option) in ('','md5','sha256','sha512') else False}}"
-    authdomain: "T{passwd.authdomain}"
-    usercomment: "T{passwd.comments}"
+../0.2/passwd.yaml

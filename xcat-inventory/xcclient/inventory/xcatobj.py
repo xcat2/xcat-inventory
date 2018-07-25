@@ -272,20 +272,61 @@ class XcatBase(object):
         if not cls._schema:
             cls.loadschema(cls._schema_loc__)
         return cls(objname, objdict=objdict)
+  
+    @classmethod
+    def validate_schema_version(cls,schemapath=None,action='export'):
+        if schemapath is None:
+            schemapath=cls._schema_loc__
+            schema=cls._schema
+        else:
+            try:
+                schemacontent=yaml.load(file(schemapath,'r'))
+            except Exception, e:
+                raise BadSchemaException("Error: Invalid schema file \""+schemapath+"\"!")
+            schmkey=schemacontent.keys()[0]
+            schema=schemacontent[schmkey]
+   
+        ctxdict={}
+        if schema and 'criteria' in schema.keys():
+            criteria=schema['criteria']
+            criterialist=[]
+            ctxdict['action']=action
+            if type(criteria) == str:
+                criterialist.append(criteria)
+            elif type(criteria) == list:
+                criterialist=criteria
+            for expression in criterialist:
+                validateregex=re.compile("^C:\$\{\{(.+)\}\}$")
+                mtchdval=re.findall(validateregex,expression)
+                rule=mtchdval[0]
 
+                try:
+                    evalexp=eval("lambda "+rule,None,ctxdict)
+                    (value,errmsg)=evalexp()
+                except Exception,e:
+                    raise  InternalException("Error: encountered some error when validating version of schema \"%s\": %s"%(schemapath,str(e)))
+                if not value:
+                    raise BadSchemaException("Error: invalid schema %s: %s"%(schemapath,errmsg))
+            del(schema['criteria'])
+            if cls._depdict_val and 'criteria' in cls._depdict_val.keys():
+                del(cls._depdict_val['criteria'])
+         
+        
     @classmethod
     def loadschema(cls,schema=None):
         if schema is None:
             schema=cls._schema_loc__
         #cls._schema=yaml.load(file(schema,'r'))['node']
         try: 
-            schema=yaml.load(file(schema,'r'))
+            schemacontent=yaml.load(file(schema,'r'))
         except Exception, e:
             raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
-        schmkey=schema.keys()[0]
-        cls._schema=schema[schmkey] 
-        cls.scanschema()
+        schmkey=schemacontent.keys()[0]
+        cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
+        #cls.validate_schema_version()
+        cls.scanschema()
+
 
     @classmethod
     def gettablist(cls):

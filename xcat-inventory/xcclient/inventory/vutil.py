@@ -11,6 +11,8 @@ import os
 import yaml
 import sys
 import re
+import utils
+from distutils.version import LooseVersion, StrictVersion
 
 def isIPaddr(varin):
     ValidIpAddressRegex = "^([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.(([0-9]|[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([0-9]|[0-9]{2}|0[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
@@ -101,6 +103,13 @@ def strsubst(string,subdict={}):
     for k in subdict.keys():
         string=string.replace(k,subdict[k])
     return string
+
+def xcatversion():
+    (retcode,out,err)=utils.runCommand("XCATBYPASS=1 lsxcatd -v|cut -d' ' -f2")
+    if retcode!=0:
+        return None
+    return LooseVersion(out.strip()) 
+
 
 if __name__ == "__main__":
     pass
