@@ -324,7 +324,6 @@ class XcatBase(object):
         schmkey=schemacontent.keys()[0]
         cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
-        #cls.validate_schema_version()
         cls.scanschema()
 
 
@@ -470,8 +469,6 @@ class Node(XcatBase):
                 for key in rawnicsdict.keys():
                     rawvaluelist=rawnicsdict[key].split(',')
                     for nicent in rawvaluelist:
-                        if not nicent:
-                            continue
                         try:
                             (nic,attrstr)=nicent.split('!')
                             if nic not in nicsdict.keys():
@@ -537,5 +534,8 @@ class Site(XcatBase):
 
 class Zone(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/zone.yaml')
+
+class Credential(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/credential.yaml')
 if __name__ == "__main__":
     pass
