@@ -27,7 +27,7 @@ def isPort(varin):
     return (re.match(PortRegex,str(varin),re.IGNORECASE) is not None)
 
 def isRegex(varin):
-    RegexPattern=r'^\|.*\|$'
+    RegexPattern=r'.*\|(,|$)'
     return (re.match(RegexPattern,str(varin)) is not None)
 
 def isIPrange(varin):
