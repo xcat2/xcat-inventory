@@ -27,6 +27,8 @@ class BaseException(Exception):
     def __str__(self):
         return self._error_msg
 
+class ObjTypeNonExistException(BaseException):
+    pass
 class ObjNonExistException(BaseException):
     pass
 class CommandException(BaseException):
