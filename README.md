@@ -42,6 +42,63 @@ Receiving objects: 100% (1844/1844), 401.48 KiB | 0 bytes/s, done.
 Resolving deltas: 100% (1072/1072), done.
 [root@boston01 ~]#
 ```
+
+```
+[root@boston01 ~]# cd xcat-inventory
+[root@boston01 xcat-inventory]# ./makepythonrpm xcat-inventory
+xcat-inventory/
+xcat-inventory/cli/
+xcat-inventory/cli/xcat-inventory
+:
+:
+:
+xcat-inventory/requirements.txt
+Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
+/root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
+[root@boston01 xcat-inventory]#
+```
+
+```
+[root@boston01 xcat-inventory]# yum -y install /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
+Loaded plugins: product-id, search-disabled-repos, subscription-manager
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+Examining /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm: 1:xcat-inventory-0.1.4-c10.noarch
+Marking /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm as an update to 1:xcat-inventory-0.1.4-c4.noarch
+Resolving Dependencies
+--> Running transaction check
+---> Package xcat-inventory.noarch 1:0.1.4-c4 will be updated
+---> Package xcat-inventory.noarch 1:0.1.4-c10 will be an update
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+=============================================================================================================================
+ Package                    Arch               Version                    Repository                                    Size
+=============================================================================================================================
+Updating:
+ xcat-inventory             noarch             1:0.1.4-c10                /xcat-inventory-0.1.4-c10.noarch             258 k
+
+Transaction Summary
+=============================================================================================================================
+Upgrade  1 Package
+
+Total size: 258 k
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Updating   : 1:xcat-inventory-0.1.4-c10.noarch                                                                         1/2
+  Cleanup    : 1:xcat-inventory-0.1.4-c4.noarch                                                                          2/2
+  Verifying  : 1:xcat-inventory-0.1.4-c10.noarch                                                                         1/2
+  Verifying  : 1:xcat-inventory-0.1.4-c4.noarch                                                                          2/2
+
+Updated:
+  xcat-inventory.noarch 1:0.1.4-c10
+
+Complete!
+[root@boston01 xcat-inventory]#
+```
 ## Dependency
 
 Several python packages are required:
