@@ -13,6 +13,7 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 ## Table of Contents
 
 - [Installing](#installing)
+- [Building](#building)
 - [Dependencies](#dependency)
 - [Platform Restrictions](#platform)
 - [Command Synopsis](#command-synopsis)
@@ -29,6 +30,18 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 
 Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.4/xcat-inventory-0.1.4-c4.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
+## Building
+
+```
+[root@boston01 ~]# git clone https://github.com/xcat2/xcat-inventory.git
+Cloning into 'xcat-inventory'...
+remote: Counting objects: 1844, done.
+remote: Compressing objects: 100% (7/7), done.
+remote: Total 1844 (delta 0), reused 6 (delta 0), pack-reused 1837
+Receiving objects: 100% (1844/1844), 401.48 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (1072/1072), done.
+[root@boston01 ~]#
+```
 ## Dependency
 
 Several python packages are required:
