@@ -12,24 +12,24 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 
 ## Table of Contents
 
-- [Installing](#installing)
-- [Dependencies](#dependency)
-- [Platform Restrictions](#platform)
-- [Command Synopsis](#command-synopsis)
-  - [help](#help)
-  - [export](#export)
-  - [import](#import)
-- [Typical use cases](#usecase)
+- [Installing](#Installing)
+- [Dependencies](#Dependency)
+- [Platform Restrictions](#Platform)
+- [Command Synopsis](#Command-synopsis)
+  - [help](#Help)
+  - [export](#Export)
+  - [import](#Import)
+- [Typical use cases](#Usecase)
   - [Version control of cluster inventory data](#versioncontrol)
   - [define and create a xCAT cluster inventory](#definecluster)
-- [Reporting bugs](#reporting-bugs)
+- [Reporting bugs](#Reporting-bugs)
 
 
-## installing
+## Installing
 
 Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.4/xcat-inventory-0.1.4-c4.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
-## dependency
+## Dependency
 
 Several python packages are required:
 
@@ -49,7 +49,7 @@ If you are prompted `No module named xxx` when you run `xcat-inventory`, you can
 * install the python package with `pip`
 * download the python package tarball from PyPi(https://pypi.python.org/pypi), uncompress it and install the package with `python setup.py install`
 
-## platform
+## Platform
 
 The `xcat-inventory` is arch independent, i.e, you can install it on xCAT management nodes with architecture `X86_64`,`ppc64`, or `ppc64le` 
 
@@ -60,9 +60,9 @@ The installation and function verification is finished on rhels7.x.
 For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
 
-## command synopsis
+## Command synopsis
 
-### help
+### Help
 
 Show usage info:
 
@@ -72,7 +72,7 @@ Show usage info:
 # xcat-inventory import -h
 ```
 
-### export
+### Export
 
 Export the inventory data from xcat database: 
 
@@ -114,7 +114,7 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 # xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
 ```
  
- ### import
+ ### Import
 
 * Import cluster inventory file to xcat database
  
@@ -147,11 +147,11 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
 The format of variables in osimage inventory file is `{{<variable name>}}`
 
-## usecase
+## Usecase
 
 This section presents some typical usecases [xcat-inventory usecase](http://xcat-docs.readthedocs.io/en/latest/advanced/xcat-inventory/index.html)
 
-## reporting bugs
+## Reporting bugs
 
 For any bugs or feature request, please open ticket in [issues](https://github.com/xcat2/xcat-inventory/issues)
 
