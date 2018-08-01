@@ -5,6 +5,29 @@ import pprint
 import yaml
 import json
 import sys
+import subprocess
+import re
+
+
+class InvalidFileException(Exception):
+    pass
+
+def runCommand(cmd, env=None):
+    """
+    Run one command only, when you don't want to bother setting up
+    the Popen stuff.
+        (retcode,out,err)=runCommand('lsxcatd -v')
+    """
+    try:
+        p = subprocess.Popen(cmd,
+        env=env,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+        out, err = p.communicate()
+    except OSError,e:
+        return p.returncode,out, err
+    return p.returncode,out, err
 
 
 def loadfile(filename):
@@ -17,24 +40,24 @@ def loadfile(filename):
             try:
                 contents = yaml.load(f)
             except Exception,e:
-                raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(location,location,location))
+                raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
         return contents
     return None
 
-def dump2yaml(xcatobj, location=None):
-    if not location:
+def dump2yaml(xcatobj, filename=None):
+    if not filename:
         print(yaml.safe_dump(xcatobj, default_flow_style=False,allow_unicode=True))
     else:
-        f=open(location,'w')
+        f=open(filename,'w')
         print(yaml.safe_dump(xcatobj, default_flow_style=False,allow_unicode=True),file=f)
 
     #TODO: store in file or directory
 
-def dump2json(xcatobj, location=None):
-    if not location:
+def dump2json(xcatobj, filename=None):
+    if not filename:
         print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')))
     else:
-        f=open(location,'w')
+        f=open(filename,'w')
         print(json.dumps(xcatobj, sort_keys=True, indent=4, separators=(',', ': ')),file=f)
 
 
@@ -45,15 +68,30 @@ if(len(sys.argv)!=3):
     print("invdiff <file1> <file2>",file=sys.stderr)
     exit(1)
 
+print("\n====================BEGIN=====================\n")
 fn1=sys.argv[1]
 fn2=sys.argv[2]
 
 
-d1=loadfile(filename=fn1)
-d2=loadfile(filename=fn2)
-
-
+try:
+    d1=loadfile(filename=fn1)
+    d2=loadfile(filename=fn2)
+except InvalidFileException,e:
+    (retcode,out,err)=runCommand("diff -u %s %s"%(fn1,fn2))    
+    if out:
+        out=re.sub(r"%s"%(fn1),fn2,out)
+        print(out,file=sys.stdout) 
+    if err:
+        err=re.sub(r"%s"%(fn1),fn2,err)
+        print(err,file=sys.stderr) 
+    print("\n===================END======================\n")
+    exit(retcode)
 
 
 dt=deepdiff.DeepDiff(d1,d2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='text',verbose_level=2)
+print("\n--- %s\n+++ %s"%(fn2,fn2))
+
+
+
 print(dump2yaml(dict(dt)))
+print("\n====================END=====================\n")
