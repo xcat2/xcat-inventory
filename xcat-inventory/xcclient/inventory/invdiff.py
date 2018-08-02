@@ -102,7 +102,7 @@ except InvalidFileException,e:
     exit(retcode)
 
 
-dt=deepdiff.DeepDiff(d1,d2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='text',verbose_level=2)
+dt=deepdiff.DeepDiff(d1,d2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='text',verbose_level=1)
 
 print("\n--- %s\n+++ %s"%(fn3,fn3))
 pprint.pprint(dt,indent=2)
