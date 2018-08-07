@@ -113,5 +113,7 @@
       isdeletable: "T{osimage.isdeletable}"
       nimimagetmp: "T{nimimage.tmp}"
       otherifce: "T{linuximage.otherifce}"
-      comments: "T{linuximage.comments}"
+      comments: 
+      - "${{value=T{linuximage.comments}: value.split(',') if value else None}}"
+      - "W:T{linuximage.comments}=${{value=V{deprecated.comments}: ','.join(value) if type(value)==list else value }}"
       krpmver: "T{linuximage.krpmver}"
