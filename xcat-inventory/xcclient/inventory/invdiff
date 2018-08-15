@@ -1,33 +1,13 @@
 #!/usr/bin/python
+
 from __future__ import print_function
+import utils
+from exceptions import *
 import deepdiff
-import pprint
 import yaml
 import json
 import sys
-import subprocess
 import re
-
-
-class InvalidFileException(Exception):
-    pass
-
-def runCommand(cmd, env=None):
-    """
-    Run one command only, when you don't want to bother setting up
-    the Popen stuff.
-        (retcode,out,err)=runCommand('lsxcatd -v')
-    """
-    try:
-        p = subprocess.Popen(cmd,
-        env=env,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-        out, err = p.communicate()
-    except OSError,e:
-        return p.returncode,out, err
-    return p.returncode,out, err
 
 
 def loadfile(filename):
@@ -49,16 +29,12 @@ def loadfile(filename):
 
 
 class format_diff_output(object):
-
     def __init__(self, format_type):
         self.format_type = format_type 
         self.flag_dict = {'-diff': '-', '+diff': '+'}
 
     def _get_path_as_list(self, path):
-        path_str = path.replace(']', '')
-        path_str = re.sub('[\'\]]', '', path_str)
-        path_list = path_str.split('[')
-        del(path_list[0])
+        path_list = re.findall(r'(?<=\[\').+?(?=\'\])', path)
         return path_list
 
     def _update_dict(self, old_dict, new_dict):
@@ -76,7 +52,7 @@ class format_diff_output(object):
             if key in old_dict:
                 self._update_dict(old_dict[key], new_dict[key])
             else:
-                old_dict.update(new_dict)
+                old_dict.update({key: new_dict[key]})
         return old_dict 
 
     def _format_yaml(self, yamlstr):
@@ -197,23 +173,28 @@ class format_diff_output(object):
             diff_yaml = yaml.safe_dump(final_dict, default_flow_style=False,allow_unicode=True)
             return (self._format_yaml(diff_yaml))
 
-if(len(sys.argv)!=4):
+if(len(sys.argv) < 3):
     print("invdiff <file1> <file2>",file=sys.stderr)
     exit(1)
 
 print("\n====================BEGIN=====================\n")
-fn1=sys.argv[1]
-fn2=sys.argv[2]
-fn3=sys.argv[3]
+fn1=sys.argv.pop(1)
+fn2=sys.argv.pop(1)
+if sys.argv:
+    srctype =sys.argv.pop(1)
 
 try:
     d1, infmt = loadfile(filename=fn1)
     d2, infmt = loadfile(filename=fn2)
-except InvalidFileException,e:
-    (retcode,out,err)=runCommand("diff -u %s %s"%(fn1,fn2)) 
+except Exception,e:
+    (retcode,out,err)=utils.runCommand("diff -u %s %s"%(fn1,fn2)) 
     if out:
+        out=re.sub(r"%s.*"%(fn1),fn2,out)
+        out=re.sub(r"%s.*"%(fn2),fn2,out)
         print(out,file=sys.stdout) 
     if err:
+        err=re.sub(r"%s.*"%(fn1),fn2,err)
+        err=re.sub(r"%s.*"%(fn2),fn2,err)
         print(err,file=sys.stderr) 
     print("\n===================END======================\n")
     exit(retcode)
@@ -221,6 +202,9 @@ except InvalidFileException,e:
 dt = deepdiff.DeepDiff(d1,d2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='tree',verbose_level=1)
 diff_out = format_diff_output(infmt).get_diff_string(dt)
 
-print("\n--- %s\n+++ %s"%(fn1,fn2))
+if srctype == 'git':
+    print("\n--- %s\n+++ %s"%(fn2,fn2))
+else:
+    print("\n--- %s\n+++ %s"%(fn1,fn2))
 print (diff_out)
 print("\n====================END=====================\n")
