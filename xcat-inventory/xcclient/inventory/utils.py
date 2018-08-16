@@ -8,6 +8,8 @@
 import os
 import re
 import subprocess
+import json
+import yaml
 
 def runCommand(cmd, env=None):
     """
@@ -66,4 +68,21 @@ def Util_setdictval(mydict,keystr,value):
             Util_setdictval(mydict[key],remdkey,value)
         else:
             mydict[key]=value
+
+def loadfile(filename):
+    contents={}
+    fmt = 'json'
+    with open(filename,"r") as fh:
+        f=fh.read()
+        if not f.startswith('{'):
+            fmt = 'yaml'
+        try:
+            contents=json.loads(f)
+        except ValueError:
+            try:
+                contents = yaml.load(f)
+            except Exception,e:
+                raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
+        return contents, fmt
+    return None, fmt
 
