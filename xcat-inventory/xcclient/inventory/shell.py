@@ -57,14 +57,6 @@ class InventoryShell(shell.ClusterShell):
         mgr.validate_args(args, 'export')
         mgr.export_by_type(args.type, args.name, args.path, args.directory, args.format, version=args.version, exclude=args.exclude.split(','))
 
-    @shell.arg('-o', '--origin', metavar='origin', help='origin file want to be compared')
-    @shell.arg('-n', '--new', metavar='new', help='new file want to be compared')
-    @shell.arg('-t', '--type', metavar='<type>', help='file source type, supported "git", "normal", default is "normal"')
-    def do_diff(self, args):
-        """Diff two files"""
-        from inventorydiff import InventoryDiff
-        InventoryDiff(args.origin, args.new, args.type).ShowDiff()
-
 # main entry for CLI
 def main():
     try:
