@@ -96,7 +96,7 @@ class InventoryFactory(object):
             InventoryFactory.__db__=dbfactory(self.dbsession)
         return InventoryFactory.__db__
 
-    def exportObjs(self, objlist, location=None,fmt='json',comment=None):
+    def exportObjs(self, objlist, location=None,fmt='yaml',comment=None):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'export')
@@ -192,11 +192,12 @@ class InventoryFactory(object):
         if self.schemapath:
             return os.path.basename(os.path.dirname(self.schemapath))
 
-def dumpobj(objdict, fmt='json',location=None):
-    if not fmt or fmt.lower() == 'json':
-        dump2json(objdict,location)
-    else:
+def dumpobj(objdict, fmt='yaml',location=None):
+    if not fmt or fmt.lower() == 'yaml':
         dump2yaml(objdict,location)
+    else:
+        dump2json(objdict,location)
+
 
 def dump2yaml(xcatobj, location=None):
     if not location:
@@ -267,12 +268,12 @@ def validate_args(args, action):
                 if et.lower() not in InventoryFactory.getvalidobjtypes():
                     raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
-def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',version=None,exclude=None):
+def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',version=None,exclude=None):
     if objtype and objtype not in InventoryFactory.getObjTypesWithFiles()  and destdir:
         raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage|credential] or export all without [-t|--type] specified",f=destdir)
 
     if not fmt:
-        fmt='json'
+        fmt='yaml'
     InventoryFactory.getLatestSchemaVersion()
     dbsession=DBsession()
     
@@ -329,10 +330,11 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
 
     if objtypelist:
         if destdir and exportall==1:
-            if not fmt or fmt.lower() == 'json':
-                mylocation=os.path.join(destdir,'cluster.json')
-            else:
+            if not fmt or fmt.lower() == 'yaml':
                 mylocation=os.path.join(destdir,'cluster.yaml')
+            else:
+                mylocation=os.path.join(destdir,'cluster.json')
+
             dumpobj(wholedict, fmt,mylocation)
             with open(mylocation, "a") as myfile:
                 myfile.write("#%s"%(xcatversion))
@@ -343,10 +345,11 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='json',versi
                 myfile.write("#%s"%(xcatversion))
             print("The inventory data has been dumped to %s"%(destfile))
         else: 
-            if not fmt or fmt.lower() == 'json':
-                dump2json(wholedict)
-            else:
+            if not fmt or fmt.lower() == 'yaml':
                 dump2yaml(wholedict)
+            else:
+                dump2json(wholedict)
+
             print("#%s"%(xcatversion))
     dbsession.close() 
 
