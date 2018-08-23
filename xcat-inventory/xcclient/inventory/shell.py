@@ -51,7 +51,7 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file')
     @shell.arg('-d','--dir', dest='directory',metavar='<directory>', help='path of the inventory directory')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
-    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
+    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. yaml will be used by default if not specified ')
     def do_export(self, args):
         """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
