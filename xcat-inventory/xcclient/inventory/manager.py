@@ -223,7 +223,7 @@ def validate_args(args, action):
         objtypelist.extend([n.strip() for n in args.type.split(',')])
         invalidobjtypes=list(set(objtypelist).difference(set(InventoryFactory.getvalidobjtypes())))
         if invalidobjtypes:
-            raise CommandException("Error: Invalid object type: \"%(t)s\"", t=','.join(invalidobjtypes))
+            raise CommandException("Error: Invalid object type: \"%(t)s\". Valid types: \"%(ts)s\"", t=','.join(invalidobjtypes),ts=','.join(InventoryFactory.getvalidobjtypes()))
         if len(objtypelist)!=1 and args.name:
             raise CommandException("Error: object names cannot be specified with multiple object types!")
     if args.name == '':
