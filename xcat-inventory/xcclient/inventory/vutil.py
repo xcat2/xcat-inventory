@@ -12,6 +12,7 @@ import yaml
 import sys
 import re
 import utils
+import globalvars
 from distutils.version import LooseVersion, StrictVersion
 
 def isIPaddr(varin):
@@ -105,10 +106,7 @@ def strsubst(string,subdict={}):
     return string
 
 def xcatversion():
-    (retcode,out,err)=utils.runCommand("XCATBYPASS=1 lsxcatd -v|cut -d' ' -f2")
-    if retcode!=0:
-        return None
-    return LooseVersion(out.strip()) 
+    return LooseVersion(globalvars.xcat_verno)    
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ import re
 import sys
 import traceback
 import os
+import utils
 
 try: 
     import xcclient.inventory.manager as mgr
@@ -67,6 +68,7 @@ class InventoryShell(shell.ClusterShell):
 
 # main entry for CLI
 def main():
+    utils.initglobal()
     try:
         InventoryShell('xcat-inventory','#VERSION_SUBSTITUTE#').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
     except KeyboardInterrupt:
