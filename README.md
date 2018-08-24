@@ -45,6 +45,12 @@ Resolving deltas: 100% (1072/1072), done.
 
 ```
 [root@boston01 ~]# cd xcat-inventory
+[root@boston01 ~]# git checkout master
+Already on 'master'
+[root@boston01 ~]# git pull upstream master --tags
+From github.com:xcat2/xcat-inventory
+ * branch            master     -> FETCH_HEAD
+Already up-to-date.
 [root@boston01 xcat-inventory]# ./makepythonrpm xcat-inventory
 xcat-inventory/
 xcat-inventory/cli/
