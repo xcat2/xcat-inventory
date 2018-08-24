@@ -11,7 +11,7 @@ from dbfactory import dbfactory
 from xcatobj import *
 from exceptions import *
 from utils import *
-
+import globalvars
 import os
 import yaml
 import shutil
@@ -278,9 +278,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
     dbsession=DBsession()
     
     xcatversion='XCAT Version'
-    (retcode,out,err)=runCommand('XCATBYPASS=1 lsxcatd -v')
-    if retcode==0:
-        xcatversion=out
+    xcatversion=globalvars.xcat_version
 
     objlist = []
     objtypelist=[]

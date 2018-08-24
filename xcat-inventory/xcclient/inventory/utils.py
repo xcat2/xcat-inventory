@@ -10,6 +10,7 @@ import re
 import subprocess
 import json
 import yaml
+import globalvars
 
 def runCommand(cmd, env=None):
     """
@@ -86,3 +87,17 @@ def loadfile(filename):
         return contents, fmt
     return None, fmt
 
+#initialize the global vars in globalvars.py
+def initglobal():
+    if os.path.exists("/var/run/xcatd.pid"):
+        globalvars.isxcatrunning=1
+    else:
+        globalvars.isxcatrunning=0 
+    if globalvars.isxcatrunning:
+        (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
+    else:
+        (retcode,out,err)=runCommand("XCATBYPASS=1 lsxcatd -v")
+    if retcode!=0:
+        xcat_version=""
+    globalvars.xcat_version=out.strip()
+    globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
