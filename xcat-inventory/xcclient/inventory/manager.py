@@ -357,6 +357,47 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
     dbsession.close() 
 
 
+#get git related variable dict
+#return None if not in a git
+def getgitinfo(location):
+    #vardict['GITBRANCH']=''
+    #vardict['GITTAG']='' 
+    #vardict['GITCOMMIT']=''
+    #vardict['GITROOT']=''
+    vardict={}
+    oldcwd=os.getcwd()
+    os.chdir(os.path.dirname(location))
+    (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
+    if retcode==0:
+        out=out.strip()
+        vardict['GITROOT']=out.strip()
+    else:
+        #not a git repo
+        os.chdir(oldcwd)
+        return None
+
+    (retcode,out,err)=runCommand("git branch|grep '*'|cut -d' ' -f2-")
+    if retcode==0:
+        out=out.strip()
+        matched=re.search(r'\(detached from (.*)\)',out)
+        if matched:
+            out=matched.group(1).strip()
+        vardict['GITBRANCH']=out
+
+    (retcode,out,err)=runCommand("git describe  --candidates 0")
+    if retcode==0:
+        out=out.strip()
+        matched=re.search(r'\(detached from (.*)',out)
+        vardict['GITTAG']=out.strip()
+    
+    (retcode,out,err)=runCommand("git rev-parse --short=4 HEAD")
+    if retcode==0:
+        out=out.strip()
+        vardict['GITCOMMIT']=out.strip()
+    os.chdir(oldcwd)
+    return vardict
+
+
 
 def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     dirpath=os.path.dirname(os.path.realpath(location))
@@ -374,44 +415,13 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             key, value = env.split('=')
             vardict[key] = value
 
+    # the value '{{OBJNAME}}' indicates that a variable substitute should be taken during import
     if 'OBJNAME' in list(jinjavarlist):
         vardict['OBJNAME']='{{OBJNAME}}'
 
-    oldcwd=os.getcwd()
-    os.chdir(os.path.dirname(location))
-    (retcode,out,err)=runCommand("git branch|grep '*'|cut -d' ' -f2-")
-    if retcode==0:
-        out=out.strip()
-        matched=re.search(r'\(detached from (.*)\)',out)
-        if matched:
-            out=matched.group(1).strip()
-        vardict['GITBRANCH']=out
-    else:
-        vardict['GITBRANCH']=''
-
-    (retcode,out,err)=runCommand("git describe  --candidates 0")
-    if retcode==0:
-        out=out.strip()
-        matched=re.search(r'\(detached from (.*)',out)
-        vardict['GITTAG']=out.strip()
-    else:
-        vardict['GITTAG']=''
-    
-    (retcode,out,err)=runCommand("git rev-parse --short=4 HEAD")
-    if retcode==0:
-        out=out.strip()
-        vardict['GITCOMMIT']=out.strip()
-    else:
-        vardict['GITCOMMIT']=''
-
-    (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
-    if retcode==0:
-        out=out.strip()
-        vardict['GITROOT']=out.strip()
-    else:
-        vardict['GITROOT']=''
-
-    os.chdir(oldcwd)
+    gitvardict=getgitinfo(location) 
+    if gitvardict:
+        vardict.update(gitvardict)
 
     unresolvedvars=list(set(jinjavarlist).difference(set(vardict.keys())))
     if unresolvedvars:
@@ -652,8 +662,8 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
 
               
 def envlist():
-    print("#<%s> : %s#\n"%('Notice','refer the variables in the inventory file with format "{{variable name}}"'))
-    print('%-15s : %-100s'%('variable name','description')) 
+    print("%s : %s\n"%('Notice','refer the variables in the inventory file with format "{{variable name}}"'))
+    print('%-15s : %s'%('variable name','description')) 
     for key in globalvars.implicitEnvVars.keys():
-        print('%-15s : %-100s'%(key,globalvars.implicitEnvVars[key]['description'])) 
+        print('%-15s : %s'%(key,globalvars.implicitEnvVars[key]['description'])) 
 
