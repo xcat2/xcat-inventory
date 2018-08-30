@@ -221,7 +221,13 @@ The cluster inventory data has been dumped to /tmp/mm/cluster.json
 ```
 # xcat-inventory import -e GITREPO=/tmp/ -e SWDIR=/tmp -f /tmp/osimage/osimage.withvar.yaml
 ```
-The format of variables in osimage inventory file is `{{<variable name>}}`
+The format of variables in osimage inventory file is `{{<variable name>}}`. 
+* Builtin variables in inventory file
+xcat-inventory exposes several builtin variables, the values of the variables are determined during `xcat-inventory import` implicitly, do not need to specify with `-e` explicitly. Please find the description and usage of the builtin variables with: 
+```
+# xcat-inventory envlist
+```
+
 
 ## Usecase
 
