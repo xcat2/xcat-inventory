@@ -102,7 +102,8 @@ def getfileanddeplist(infilelist):
 
 def strsubst(string,subdict={}):
     for k in subdict.keys():
-        string=string.replace(k,subdict[k])
+        if k:
+            string=string.replace(k,subdict[k])
     return string
 
 def xcatversion():
