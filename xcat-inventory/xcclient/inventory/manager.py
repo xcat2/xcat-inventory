@@ -166,8 +166,13 @@ class InventoryFactory(object):
         exptmsglist=[]
         for key, attrs in obj_attr_dict.items():
             if not objlist or key in objlist:
+                if 'OBJNAME' in envar.keys():
+                    envar['OBJNAME']=key
+                    Util_subvarsindict(attrs,envar)    
+                else:
+                    envar['OBJNAME']=key
                 if self.objtype == 'osimage' and envar is not None:
-                    Util_setdictval(attrs,'environvars',envar)   
+                    Util_setdictval(attrs,'environvars',','.join([item+'='+envar[item] for item in envar.keys()]))   
                 try:
                     newobj = myclass.createfromfile(key, attrs)
                 except InvalidValueException,e:
@@ -369,15 +374,52 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             key, value = env.split('=')
             vardict[key] = value
 
+    if 'OBJNAME' in list(jinjavarlist):
+        vardict['OBJNAME']='{{OBJNAME}}'
+
+    oldcwd=os.getcwd()
+    os.chdir(os.path.dirname(location))
+    (retcode,out,err)=runCommand("git branch|grep '*'|cut -d' ' -f2-")
+    if retcode==0:
+        out=out.strip()
+        matched=re.search(r'\(detached from (.*)\)',out)
+        if matched:
+            out=matched.group(1).strip()
+        vardict['GITBRANCH']=out
+    else:
+        vardict['GITBRANCH']=''
+
+    (retcode,out,err)=runCommand("git describe  --candidates 0")
+    if retcode==0:
+        out=out.strip()
+        matched=re.search(r'\(detached from (.*)',out)
+        vardict['GITTAG']=out.strip()
+    else:
+        vardict['GITTAG']=''
+    
+    (retcode,out,err)=runCommand("git rev-parse --short=4 HEAD")
+    if retcode==0:
+        out=out.strip()
+        vardict['GITCOMMIT']=out.strip()
+    else:
+        vardict['GITCOMMIT']=''
+
+    (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
+    if retcode==0:
+        out=out.strip()
+        vardict['GITROOT']=out.strip()
+    else:
+        vardict['GITROOT']=''
+
+    os.chdir(oldcwd)
+
     unresolvedvars=list(set(jinjavarlist).difference(set(vardict.keys())))
     if unresolvedvars:
         raise ParseException("unresolved variables in \"%s\": \"%s\", please export them in environment variables"%(location,','.join(unresolvedvars))) 
     
     contents=jinjatmpl.render(vardict) 
  
-    envar=''
-    if vardict:
-        envar=','.join([key+'='+vardict[key] for key in vardict.keys()])
+    envar=vardict
     if dbsession is None: 
         dbsession=DBsession()
     try:
@@ -609,4 +651,9 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
           
 
               
-                 
+def envlist():
+    print("#<%s> : %s#\n"%('Notice','refer the variables in the inventory file with format "{{variable name}}"'))
+    print('%-15s : %-100s'%('variable name','description')) 
+    for key in globalvars.implicitEnvVars.keys():
+        print('%-15s : %-100s'%(key,globalvars.implicitEnvVars[key]['description'])) 
+

@@ -66,6 +66,9 @@ class InventoryShell(shell.ClusterShell):
         from inventorydiff import InventoryDiff
         InventoryDiff(args.origin, args.new, args.type).ShowDiff()
 
+    def do_envlist(self,args):
+        """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""
+        mgr.envlist()
 # main entry for CLI
 def main():
     utils.initglobal()

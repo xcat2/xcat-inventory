@@ -78,7 +78,9 @@
       - "${{value=T{linuximage.postinstall},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.postinstall}=${{value=V{genimgoptions.postinstall}: ','.join(value) if type(value) == type([]) else value}}"
       - "F:${{flist=V{genimgoptions.postinstall}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
-      rootimgdir: "T{linuximage.rootimgdir}"
+      rootimgdir: 
+      - "${{value=T{linuximage.rootimgdir},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : vutil.strsubst(value,envars) if value else None }} "
+      - "W:T{linuximage.rootimgdir}=${{value=V{genimgoptions.rootimgdir}: value}}"
       nodebootif: "T{linuximage.nodebootif}"
       permission: "T{linuximage.permission}"
       rootfstype: 

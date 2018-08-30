@@ -41,6 +41,19 @@ def Util_rmnullindict(mydict):
                 del mydict[key]
 
 
+# replace the "{{x}}" variables in the value of dict "mydict" 
+# with the values of "vardict[x]"
+def Util_subvarsindict(mydict,vardict):
+    for key in mydict.keys():
+        if isinstance(mydict[key],dict):
+            Util_subvarsindict(mydict[key],vardict)
+        elif isinstance(mydict[key],list):
+            for idx,val in enumerate(mydict[key]):
+                if isinstance(val,str):
+                    mydict[key][idx]=re.sub(r'\{\{(.*)\}\}',lambda m:vardict.get(m.group(1)),val)
+        elif isinstance(mydict[key],str):
+            mydict[key]=re.sub(r'\{\{(.*)\}\}',lambda m:vardict.get(m.group(1)),mydict[key])
+            
 
 # get the dict value mydict[a][b][c] with key path a.b.c
 def Util_getdictval(mydict,keystr):
