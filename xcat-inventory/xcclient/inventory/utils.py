@@ -11,6 +11,7 @@ import subprocess
 import json
 import yaml
 import globalvars
+from exceptions import *
 
 def runCommand(cmd, env=None):
     """
@@ -84,6 +85,9 @@ def Util_setdictval(mydict,keystr,value):
             mydict[key]=value
 
 def loadfile(filename):
+    if not os.path.exists(filename):
+        raise FileNotExistException("Error: File %s does not exist, please check..." % filename)
+
     contents={}
     fmt = 'json'
     with open(filename,"r") as fh:

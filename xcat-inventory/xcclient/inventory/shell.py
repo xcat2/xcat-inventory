@@ -52,23 +52,25 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file')
     @shell.arg('-d','--dir', dest='directory',metavar='<directory>', help='path of the inventory directory')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
-    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. yaml will be used by default if not specified ')
+    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
     def do_export(self, args):
         """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
         mgr.export_by_type(args.type, args.name, args.path, args.directory, args.format, version=args.version, exclude=args.exclude.split(','))
 
-    @shell.arg('-o', '--origin', metavar='origin', help='origin file want to be compared')
-    @shell.arg('-n', '--new', metavar='new', help='new file want to be compared')
-    @shell.arg('-t', '--type', metavar='<type>', help='file source type, supported "git", "normal", default is "normal"')
+    @shell.arg('--files', dest='files', metavar='FILE', nargs=2, help='specify source type is file and specify 2 files')
+    @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='specify source type is file compared with xCAT DB and specify the file')
+    @shell.arg('--git', dest='git', action="store_true", default=False, help='git source. If true, the file source is from git')
     def do_diff(self, args):
-        """Diff two files"""
-        from inventorydiff import InventoryDiff
-        InventoryDiff(args.origin, args.new, args.type).ShowDiff()
+        """Diff files or file vs xCAT DB"""
+        from inventorydiff import validate_args, InventoryDiff
+        objs, objtype = validate_args(args)
+        InventoryDiff(objs, objtype, args.git).ShowDiff()
 
     def do_envlist(self,args):
         """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""
         mgr.envlist()
+
 # main entry for CLI
 def main():
     utils.initglobal()

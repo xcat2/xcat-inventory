@@ -9,7 +9,6 @@ import json
 import sys
 import re
 
-
 class format_diff_output(object):
     def __init__(self, format_type):
         self.format_type = format_type 
@@ -157,48 +156,107 @@ class format_diff_output(object):
 
 class InventoryDiff(object):
 
-    def __init__(self, obj1, obj2, srctype='other', objtype='f'):
-        self.obj1 = obj1
-        self.obj2 = obj2
-        self.srctype = srctype
+    def __init__(self, objs, objtype, isgit=False):
         self.objtype = objtype
+        if objtype == 'f':
+            self.obj1 = objs.pop(0)
+        else:
+            self.obj1 = 'xCAT_DB'
+        self.obj2 = objs.pop(0)
+        self.isgit = isgit
         self.fmt = 'json'
 
-    def _get_data(self):
-        try:
-            d1, self.fmt = utils.loadfile(filename=self.obj1)
-            d2, self.fmt = utils.loadfile(filename=self.obj2)
-        except Exception,e:
-            (retcode,out,err)=utils.runCommand("diff -u %s %s"%(self.obj1,self.obj2))
-            if out:
-                out=re.sub(r"%s.*"%(self.obj1),self.obj2,out)
-                out=re.sub(r"%s.*"%(self.obj2),self.obj2,out)
-            if err:
-                err=re.sub(r"%s.*"%(self.obj1),self.obj2,err)
-                err=re.sub(r"%s.*"%(self.obj2),self.obj2,err)
-            return 1, out, err
-        return 0, d1, d2
+    def _get_file_data(self, data_file):
+        data, self.fmt = utils.loadfile(filename=data_file)
+        return data
+
+    def _diff_with_cmd(self):
+        (retcode,out,err)=utils.runCommand("diff -u %s %s"%(self.obj1,self.obj2))
+        if out:
+            out=re.sub(r"%s.*"%(self.obj1),self.obj2,out)
+            out=re.sub(r"%s.*"%(self.obj2),self.obj2,out)
+        if err:
+            err=re.sub(r"%s.*"%(self.obj1),self.obj2,err)
+            err=re.sub(r"%s.*"%(self.obj2),self.obj2,err)
+        return out, err
+
+    def _filter_DB_keys(self, d1, d2):
+        for key in d1.keys():
+            if key not in d2:
+                del d1[key]
+                continue
+            if type(d1[key]) != dict:
+                continue
+            for subkey in d1[key].keys():
+                if subkey not in d2[key]:
+                    del d1[key][subkey]
 
     def ShowDiff(self):
-        print("\n====================BEGIN=====================\n")
+        rc = None
+        out = None
         if self.objtype == 'f':
-            rc, d1, d2 = self._get_data()
+            try:
+                d1 = self._get_file_data(self.obj1)
+                d2 = self._get_file_data(self.obj2)
+            except FileNotExistException as e:
+                err = e.message
+                rc = 1
+            except InvalidFileException as e:
+                out, err = self._diff_with_cmd()
+                rc = 1
+        elif self.objtype == 'fvso':
+            try:
+                d2 = self._get_file_data(self.obj2) 
+                if type(d2) != dict:
+                    err = 'Error: Format of data from file \'%s\' is not correct, please check...' % self.obj2
+                    rc = 1
+            except FileNotExistException as e:
+                err = e.message
+                rc = 1
+            except InvalidFileException as e:
+                err = 'Error: Could not get json or yaml data from file \'%s\', please check or export object to diff files' % self.obj2
+                rc = 1 
+
+            if not rc:
+                import xcclient.inventory.manager as mgr
+                d1 = mgr.export_by_type(None, None, fmt='dict')
+                self._filter_DB_keys(d1, d2)
         else:
-            rc = 0
             d1 = self.obj1
             d2 = self.obj2
 
-        if rc:
-                print(d1)
-                print(d2)
-        else:
+        if rc and err:
+            return print(err)
+
+        print("\n====================BEGIN=====================\n")
+        if not rc:
             dt = deepdiff.DeepDiff(d1,d2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='tree',verbose_level=1)
             diff_out = format_diff_output(self.fmt).get_diff_string(dt)
 
-            if self.srctype == 'git':
+            if self.isgit:
                 print("\n--- %s\n+++ %s"%(self.obj2, self.obj2))
             else:
-                print("\n--- %s\n+++ %s"%(self.obj1,self.obj2))
-            print (diff_out)
+                print("\n--- %s\n+++ %s"%(self.obj1, self.obj2))
+
+            if diff_out and diff_out != '{}':
+                print(diff_out)
+            else:
+                print('No difference')
+        else:
+            if out:
+                print(out) 
         print("\n====================END=====================\n")
 
+def validate_args(args):
+    if args.files and args.source:
+        raise CommandException("Error: --files and --source cannot be used together!")
+    if not args.files and not args.source:
+        raise CommandException("Error: No valid source type!")
+
+    if args.files:
+        objs = args.files
+        objtype = 'f'
+    elif args.source:
+        objs = args.source
+        objtype = 'fvso'
+    return (objs, objtype)
