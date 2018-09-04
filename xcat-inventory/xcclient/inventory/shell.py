@@ -52,20 +52,20 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('-f','--path', metavar='<path>', help='path of the inventory file')
     @shell.arg('-d','--dir', dest='directory',metavar='<directory>', help='path of the inventory directory')
     @shell.arg('-s','--schema-version', dest='version',metavar='<version>', help='schema version of the inventory data. Valid values: '+','.join(mgr.InventoryFactory.getAvailableSchemaVersions())+'. '+'If not specified, the "latest" schema version will be used')
-    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. json will be used by default if not specified ')
+    @shell.arg('--format', metavar='<format>', help='format of the inventory data, valid values: json, yaml. yaml will be used by default if not specified ')
     def do_export(self, args):
         """Export the inventory data from xcat database"""
         mgr.validate_args(args, 'export')
         mgr.export_by_type(args.type, args.name, args.path, args.directory, args.format, version=args.version, exclude=args.exclude.split(','))
 
-    @shell.arg('--files', dest='files', metavar='FILE', nargs=2, help='specify source type is file and specify 2 files')
-    @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='specify source type is file compared with xCAT DB and specify the file')
-    @shell.arg('--git', dest='git', action="store_true", default=False, help='git source. If true, the file source is from git')
+    @shell.arg('--files', dest='files', metavar='FILE', nargs=2, help='compare the given 2 files')
+    @shell.arg('--fn', dest='fn', metavar='FILENAME', help='the filename want to show, be used with "--files"')
+    @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='compare the given inventory file with xCAT DB, default is just compare objects file contains')
+    @shell.arg('--all', dest='all', action="store_true", default=False, help='compare the given inventory file with the whole xCAT DB, be used with "--source"')
     def do_diff(self, args):
         """Diff files or file vs xCAT DB"""
-        from inventorydiff import validate_args, InventoryDiff
-        objs, objtype = validate_args(args)
-        InventoryDiff(objs, objtype, args.git).ShowDiff()
+        from inventorydiff import InventoryDiff
+        InventoryDiff(args, True).inventory_diff()
 
     def do_envlist(self,args):
         """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""
