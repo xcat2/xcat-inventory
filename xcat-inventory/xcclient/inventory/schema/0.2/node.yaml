@@ -63,7 +63,7 @@
         - "C:${{seclevel=V{security_info.snmp.securitylevel}: True if str(seclevel) in  ('', 'noAuthNoPriv','authNoPriv','authPriv') else False}}"
         version: 
         - "${{devtype=V{device_type}: T{switches.snmpversion} if devtype == 'switch' else T{pdu.snmpversion} if devtype in ['pdu'] else None}}"
-        - "C:${{version=V{security_info.snmp.version}: True if str(version) in ('','1','2','3','SNMPv1','SNMPv2','SNMPv3') else False}}"
+        - "C:${{version=V{security_info.snmp.version}: True if str(version) in ('','1','2','2c','3','SNMPv1','SNMPv2','SNMPv3') else False}}"
         authprotocol: 
         - "${{ devtype=V{device_type}: T{switches.auth} if devtype in ['switch'] else T{pdu.authtype} if devtype in ['pdu']  else None  }}" 
         - "C:${{authtype=V{security_info.snmp.authprotocol}: True if str(authtype).upper() in ('','MD5','SHA') else False}}"
@@ -98,7 +98,6 @@
         switch: "T{switch.switch}"
         switchport: 
         - "T{switch.port}"
-        - "C:${{swport=V{network_info.primarynic.switchport}: False if swport and not vutil.isPort(swport) and not vutil.isRegex(swport) else True}}"
         switchvlan: "T{switch.vlan}"
         switchinterface: "T{switch.interface}"
       nics:
