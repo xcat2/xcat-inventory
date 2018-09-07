@@ -63,7 +63,7 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='compare the given inventory file with xCAT DB')
     @shell.arg('--all', dest='all', action="store_true", default=False, help='compare the given inventory file with the whole xCAT DB, be used with "--source". If not specified, will only compare the objects in given inventory file by default.')
     def do_diff(self, args):
-        """Diff files or file vs xCAT DB"""
+        """show inventory diff between files or file vs xCAT DB"""
         from inventorydiff import InventoryDiff
         InventoryDiff(args).inventory_diff()
 
