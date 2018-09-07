@@ -58,14 +58,14 @@ class InventoryShell(shell.ClusterShell):
         mgr.validate_args(args, 'export')
         mgr.export_by_type(args.type, args.name, args.path, args.directory, args.format, version=args.version, exclude=args.exclude.split(','))
 
-    @shell.arg('--files', dest='files', metavar='FILE', nargs=2, help='compare the given 2 files')
-    @shell.arg('--fn', dest='fn', metavar='FILENAME', help='the filename want to show, be used with "--files"')
-    @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='compare the given inventory file with xCAT DB, default is just compare objects file contains')
-    @shell.arg('--all', dest='all', action="store_true", default=False, help='compare the given inventory file with the whole xCAT DB, be used with "--source"')
+    @shell.arg('--files', dest='files', metavar='FILE', nargs=2, help='compare the given 2 inventory files')
+    @shell.arg('--filename', dest='filename', metavar='FILENAME', nargs=1, help='the filename want to show, be used with "--files"')
+    @shell.arg('--source', dest='source', metavar='FILE', nargs=1, help='compare the given inventory file with xCAT DB')
+    @shell.arg('--all', dest='all', action="store_true", default=False, help='compare the given inventory file with the whole xCAT DB, be used with "--source". If not specified, will only compare the objects in given inventory file by default.')
     def do_diff(self, args):
         """Diff files or file vs xCAT DB"""
         from inventorydiff import InventoryDiff
-        InventoryDiff(args, True).inventory_diff()
+        InventoryDiff(args).inventory_diff()
 
     def do_envlist(self,args):
         """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""

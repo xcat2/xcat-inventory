@@ -160,7 +160,7 @@ class StructureDiff(object):
     def _get_deepdiff(self, obj1, obj2):
         self.diff = deepdiff.DeepDiff(obj1,obj2,ignore_order=True,report_repetition=False,exclude_paths='',significant_digits=None,view='tree',verbose_level=1)
 
-    def repet(self, diff_dict, fmt):
+    def rept(self, diff_dict, fmt):
         diff_string = format_diff_output().get_diff_string(fmt, diff_dict)
 
         if diff_string and diff_string != '{}':

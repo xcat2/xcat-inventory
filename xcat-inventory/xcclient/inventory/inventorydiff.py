@@ -19,9 +19,8 @@ def line_diff(file1, file2):
 
 
 class InventoryDiff(object):
-    def __init__(self, args, check=False):
-        if check:
-            self._validate_args(args)
+    def __init__(self, args):
+        self._validate_args(args)
 
     def _validate_args(self, args):
         if args.files and args.source:
@@ -30,13 +29,13 @@ class InventoryDiff(object):
             raise CommandException("Error: No valid source type!")
         if not args.source and args.all:
             raise CommandException("Error: '--all' must be used with '--source'!")
-        if not args.files and args.fn:
-            raise CommandException("Error: '--fn' must be used with '--files'!")
+        if not args.files and args.filename:
+            raise CommandException("Error: '--filename' must be used with '--files'!")
 
         if args.files:
             self.objs = args.files
             self.objtype = 'f'
-            self.filename = args.fn
+            self.filename = args.filename
         elif args.source:
             self.objs = args.source
             self.objtype = 'fvso'
@@ -93,7 +92,7 @@ class InventoryDiff(object):
 
         if not rc:
             diff_dict = StructureDiff().diff(d1, d2, self.isall)
-            self.show_diff(StructureDiff().repet(diff_dict, self.fmt), "\n--- %s\n+++ %s" % (file1, file2))
+            self.show_diff(StructureDiff().rept(diff_dict, self.fmt), "\n--- %s\n+++ %s" % (file1, file2))
         elif out:
             self.show_diff(out)
 
