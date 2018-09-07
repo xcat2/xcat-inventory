@@ -350,6 +350,9 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
         else: 
             if not fmt or fmt.lower() == 'yaml':
                 dump2yaml(wholedict)
+            elif fmt == 'dict':
+                dbsession.close()
+                return wholedict
             else:
                 dump2json(wholedict)
 

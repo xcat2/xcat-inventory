@@ -33,6 +33,8 @@ class ObjNonExistException(BaseException):
     pass
 class CommandException(BaseException):
     pass
+class FileNotExistException(BaseException):
+    pass
 class InvalidFileException(BaseException):
     pass
 class InternalException(BaseException):

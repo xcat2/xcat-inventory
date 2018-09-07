@@ -146,6 +146,7 @@ Show usage info:
 # xcat-inventory help
 # xcat-inventory export -h
 # xcat-inventory import -h
+# xcat-inventory diff -h
 ```
 
 ### Export
@@ -228,6 +229,20 @@ xcat-inventory exposes several builtin variables, the values of the variables ar
 # xcat-inventory envlist
 ```
 
+ ### diff
+
+* Diff the given 2 inventory files, if with `--filename` option, will show this filename 
+```
+# xcat-inventory diff --files /tmp/cluster.json /root/cluster.json [--filename cluster.json]
+```
+* Diff the given inventory file with xCAT DB, only compare the objects in given inventory file
+```
+# xcat-inventory diff --source /tmp/cluster.json
+```
+* Diff the given inventory file with whole xCAT DB
+```
+# xcat-inventory diff --source /tmp/cluster.json --all
+```
 
 ## Usecase
 
