@@ -13,9 +13,13 @@ from exceptions import *
 from utils import *
 import globalvars
 import os
-import yaml
 import shutil
 from jinja2 import Template,Environment,meta,FileSystemLoader
+import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 """
 Command-line interface to xCAT inventory import/export
@@ -444,7 +448,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
         obj_attr_dict = json.loads(contents)
     except ValueError:
         try: 
-            obj_attr_dict = yaml.load(contents)
+            obj_attr_dict = yaml.load(contents,Loader=Loader)
         except Exception,e:
             raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(location,location,location))
   
