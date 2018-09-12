@@ -158,8 +158,8 @@ class InventoryFactory(object):
         
         
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
-        print("importing \"%s\" type:"%(self.objtype),file=sys.stderr)
-        print(" preprocessing \"%s\" type:"%(self.objtype),file=sys.stderr)
+        print("start to import \"%s\" type objects"%(self.objtype),file=sys.stderr)
+        print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stderr)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'import')
@@ -167,7 +167,7 @@ class InventoryFactory(object):
         objfiles={}
         exptmsglist=[]
         for key, attrs in obj_attr_dict.items():
-            print("  converting object \"%s\" to table entries"%(key),file=sys.stderr)
+            verbose("  converting object \"%s\" to table entries"%(key),file=sys.stderr)
             if not objlist or key in objlist:
                 if 'OBJNAME' in envar.keys():
                     envar['OBJNAME']=key
@@ -189,7 +189,7 @@ class InventoryFactory(object):
         if not update:
             self.getDBInst().cleartab(tabs)
         if dbdict:
-            print(" writting \"%s\" type:"%(self.objtype),file=sys.stderr)
+            print(" writting \"%s\" type objects"%(self.objtype),file=sys.stderr)
             self.getDBInst().settab(dbdict)
         return objfiles
 
