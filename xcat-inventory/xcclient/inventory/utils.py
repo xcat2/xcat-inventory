@@ -5,6 +5,7 @@
 # -*- coding: utf-8 -*-
 # common helper subroutines
 #
+from __future__ import print_function
 import os
 import re
 import subprocess
@@ -132,3 +133,8 @@ def filter_dict_keys(d1, d2):
             if subkey not in d2[key]:
                 del tmp_d1[key][subkey]
     return tmp_d1
+
+#print if -v|--verbose specified
+def verbose(message,file=sys.stdout):
+    if globalvars.verbose:
+        print("%s"%(message),file=file)

@@ -1,10 +1,12 @@
 #!/usr/bin/python
+from __future__ import print_function
 import dbobject
 from dbobject import *
 from dbsession import DBsession
 from sqlalchemy import or_
 #from xcclient.shell import CommandException
 from exceptions import *
+import utils
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkey=tabcls.getkey()
@@ -106,7 +108,7 @@ class matrixdbfactory():
         if tabdict is None:
             return None
         for key in tabdict.keys():
-            print("Importing object: "+str(key))
+            utils.verbose("  writting object: "+str(key),file=sys.stderr)
             for tab in tabdict[key].keys():
                 dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):

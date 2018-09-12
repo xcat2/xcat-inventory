@@ -11,13 +11,13 @@ Command-line interface skeleton to xCAT
 """
 
 from __future__ import print_function
-
 import argparse
 import logging
 import os
 import sys
 import six
 import inventory.exceptions 
+import inventory.globalvars
 
 # Decorator to define CLI args
 def arg(*args, **kwargs):
@@ -57,7 +57,7 @@ class ClusterShell(object):
         parser.add_argument('-v', '--verbose',
                             default=False,
                             action='store_true',
-                            help="Prints verbose output (not implemented yet).")
+                            help="Prints verbose output.")
 
         parser.add_argument('-V', '--version',
                             action='version',
@@ -80,6 +80,7 @@ class ClusterShell(object):
 
     def add_subcommands(self, parser):
         # Add the subparsers for each CLI
+        
 
         #self._find_actions(subparsers, actions_module)
         raise NotImplementedError()
@@ -158,6 +159,7 @@ class ClusterShell(object):
         # Parse args once to find version
         parser = self.get_common_parser(description)
         (options, args) = parser.parse_known_args(argv)
+        inventory.globalvars.verbose=options.verbose     
         self.setup_debugging(options.debug)
 
         # build available subcommands based on version
@@ -169,7 +171,7 @@ class ClusterShell(object):
         if not argv:
             self.do_help(options)
             return 0
-
+        
         if not args:
             self.do_help(options)
             return 0
@@ -179,7 +181,7 @@ class ClusterShell(object):
             raise inventory.exceptions.CommandException("Error: not a valid subcommand to run")
 
         # Parse args again and call whatever callback was selected
-        args = subcommand_parser.parse_args(argv)
+        args = subcommand_parser.parse_args(args)
 
         # Short-circuit and deal with help command right away.
         if args.func == self.do_help:

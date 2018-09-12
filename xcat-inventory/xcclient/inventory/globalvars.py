@@ -13,3 +13,6 @@ implicitEnvVars={'OBJNAME':{'description':"the object name to import"},
                  'GITBRANCH':{'description':"the current git branch name of the inventory file to import"},
                  'GITTAG':{'description':"the current git tag of the inventory file to import"},
                  'GITCOMMIT':{'description':"the current git commit number of the inventory file to import"}}
+
+#verbose?
+verbose=False
