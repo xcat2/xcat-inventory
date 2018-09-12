@@ -393,7 +393,7 @@ def getgitinfo(location):
         matched=re.search(r'\(detached from (.*)',out)
         vardict['GITTAG']=out.strip()
     
-    (retcode,out,err)=runCommand("git rev-parse --short=4 HEAD")
+    (retcode,out,err)=runCommand("git rev-parse --short=7 HEAD")
     if retcode==0:
         out=out.strip()
         vardict['GITCOMMIT']=out.strip()
