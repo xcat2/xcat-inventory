@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 import dbobject
 from dbobject import *
 from dbsession import DBsession
@@ -106,7 +107,7 @@ class matrixdbfactory():
         if tabdict is None:
             return None
         for key in tabdict.keys():
-            print("Importing object: "+str(key))
+            print("  writing object: "+str(key),file=sys.stderr)
             for tab in tabdict[key].keys():
                 dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):
