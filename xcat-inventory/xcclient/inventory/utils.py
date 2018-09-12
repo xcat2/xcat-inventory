@@ -5,6 +5,7 @@
 # -*- coding: utf-8 -*-
 # common helper subroutines
 #
+from __future__ import print_function
 import os
 import re
 import subprocess

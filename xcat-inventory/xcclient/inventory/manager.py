@@ -439,6 +439,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     envar=vardict
     if dbsession is None: 
         dbsession=DBsession()
+    print("loading inventory date in \"%s\""%(location),file=sys.stderr)
     try:
         obj_attr_dict = json.loads(contents)
     except ValueError:
