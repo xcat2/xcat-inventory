@@ -76,10 +76,31 @@ class Invbackend:
         #os.chdir(self.bkendcfg['localpath'])
          
 
+    def __getstash(self):
+        brstash={}
+        out=sh.git.stash('list').strip()
+        lines=out.split("\n")
+        for line in lines:
+            ment=re.findall(r'(\S+):[^:]+\s+(\S+):.+',line)
+            if ment:
+                if ment[0][1] not in brstash.keys():
+                    brstash[ment[0][1]]=[ment[0][0]] 
+                else:
+                    brstash[ment[0][1]].append(ment[0][0])
+        return brstash
+                    
+    def __getbranch(self):
+        line=sh.git('symbolic-ref','-q','--short', 'HEAD')
+        curworkspace=line.strip()
+        return curworkspace
+
+    def __isuncached(self):
+        pass
+
     def workspace_list(self):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
-        lines=sh.git.branch()
+        lines=sh.git.branch().strip()
         branches=lines.split('\n')        
         print(branches)
 
@@ -98,14 +119,20 @@ class Invbackend:
     def workspace_checkout(self,newbranch):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
+        curworkspace=self.__getbranch()
+        if curworkspace!=newbranch:
+            sh.git.stash('save')
         sh.git.checkout(newbranch)
+        stashdict=self.__getstash()
+        if curworkspace!=newbranch and newbranch in stashdict.keys() :
+            sh.git.stash('pop',stashdict[newbranch])
         print("switched to workspace %s"%(newbranch))
 
     def rev_list(self,revision):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
         if revision is None:
-            revisions=sh.git.tag('-l')
+            revisions=sh.git.tag('-l').strip()
             revlist=revisions.split('\n')
             print(revlist)
         else:
@@ -117,12 +144,12 @@ class Invbackend:
         os.chdir(self.bkendcfg['localpath'])
         print(sh.git.checkout(revision))
         print("checked out to revision %s"%(revision)) 
+        self.__getstash()
 
     def sync(self):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
-        line=sh.git('symbolic-ref','-q','--short', 'HEAD') 
-        curworkspace=line.strip()
+        curworkspace=self.__getbranch()
         print("syncing %s from remote repo"%(curworkspace))
         sh.git.pull('origin',curworkspace,'--tags')
 
@@ -134,8 +161,7 @@ class Invbackend:
     def push(self,revision,description):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
-        line=sh.git('symbolic-ref','-q','--short', 'HEAD')
-        curworkspace=line.strip()
+        curworkspace=self.__getbranch()
         print("creating revision %s in workspace %s ..."%(revision,curworkspace))
         sh.git.add('./*')
         sh.git.commit('-a','-m',description)
@@ -146,9 +172,13 @@ class Invbackend:
     def drop(self):
         self.loadcfg()
         os.chdir(self.bkendcfg['localpath'])
-        line=sh.git('symbolic-ref','-q','--short', 'HEAD')
-        curworkspace=line.strip() 
+        curworkspace=self.__getbranch()
         sh.git.reset()
-        sh.git.checkout('-','.')
+        sh.git.checkout('.')
         sh.git.clean('-fdx')
         print("dropped the uncommited changes in workspace %s"%(curworkspace))
+        stashdict=self.__getstash()
+        while curworkspace in stashdict.keys() and stashdict[curworkspace]:
+            sh.git.stash('drop',stashdict[curworkspace][0])        
+            stashdict=self.__getstash()
+       
