@@ -62,33 +62,30 @@ class InventoryDiff(object):
                 d1 = self._get_file_data(file1)
                 d2 = self._get_file_data(file2)
             except FileNotExistException as e:
-                err = e.message
-                rc = 1
+                raise FileNotExistException(e.message)
             except InvalidFileException as e:
                 out, err = line_diff(file1, file2)
                 rc = 1
             if self.filename:
                 file1 = self.filename
                 file2 = self.filename
+            self.isall = True
         elif self.objtype == 'fvso':
             file1 = 'xCAT DB'
             file2 = self.objs.pop(0)
             try:
                 d2 = self._get_file_data(file2)
                 if type(d2) != dict:
-                    err = 'Error: Format of data from file \'%s\' is not correct, please check...' % file2
-                    rc = 1
+                    raise InvalidValueException('Error: Format of data from file \'%s\' is not correct, please check...' % file2)
             except FileNotExistException as e:
-                err = e.message
-                rc = 1
+                raise FileNotExistException(e.message)
             except InvalidFileException as e:
-                err = 'Error: Could not get json or yaml data from file \'%s\', please check or export object to diff files' % file2
-                rc = 1
+                raise InvalidFileException('Error: Could not get json or yaml data from file \'%s\', please check or export object to diff files' % file2)
             if not rc:
                 d1 = mgr.export_by_type(None, None, fmt='dict')
 
         if rc and err:
-            return print(err)
+            raise InternalException(err)
 
         if not rc:
             diff_dict = StructureDiff().diff(d1, d2, self.isall)
