@@ -12,6 +12,7 @@ Command-line interface to xCAT inventory import/export
 from __future__ import print_function
 from xcclient import shell
 from exceptions import *
+import backend
 import re
 import sys
 import traceback
@@ -71,6 +72,71 @@ class InventoryShell(shell.ClusterShell):
     def do_envlist(self,args):
         """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""
         mgr.envlist()
+
+    def do_init(self,args):
+        """Initialize the inventory backend"""
+        mybackend=backend.Invbackend()
+        mybackend.init()
+
+    def do_workspace_list(self,args):
+        """list all the workspaces"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_list()
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,nargs=1,help='the workspace name to create')
+    def do_workspace_new(self,args):
+        """create a new workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_new(args.workspacename)
+        print("\'%s\' workspace created!"%(args.workspacename))
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,nargs=1,help='the workspace name to delete')
+    def do_workspace_delete(self,args):
+        """remove a workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_delete(args.workspacename)
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,nargs=1,help='the workspace name to switch to')
+    def do_workspace_checkout(self,args):
+        """checkout a workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_checkout(args.workspacename)
+
+
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to show or list')
+    def do_rev_list(self,args):
+        """list the revisions of the current workspace if no revision is specified, otherwise, show the info of the specified revision"""
+        mybackend=backend.Invbackend()
+        mybackend.rev_list(args.revision)
+
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to checkout')
+    def do_checkout(self,args):
+        """checkout to a specified revision"""
+        mybackend=backend.Invbackend()
+        mybackend.checkout(args.revision)
+
+    def do_sync(self,args):
+        """sync the current workspace with remote workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.sync()
+
+
+    def do_refresh(self,args):
+        """export the inventory from xCAT DB to backend"""
+        mybackend=backend.Invbackend()
+        mybackend.refresh()
+
+    @shell.arg('revision',metavar='revision',type=str,nargs=1,default=None,help='the revision name to create')
+    @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs=1, help='the description of the revision to create')
+    def do_push(self,args):
+        """create a revision and push to remote backend"""
+        mybackend=backend.Invbackend()
+        mybackend.push(args.revision,args.message)
+
+    def do_drop(self,args):
+        """drop the uncommited modification in backend"""
+        mybackend=backend.Invbackend()
+        mybackend.drop()
 
 # main entry for CLI
 def main():
