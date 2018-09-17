@@ -67,8 +67,12 @@ class InventoryDiff(object):
                 out, err = line_diff(file1, file2)
                 rc = 1
             if self.filename:
-                file1 = self.filename
-                file2 = self.filename
+                if type(self.filename) == list:
+                    file1 = self.filename[0]
+                    file2 = self.filename[0]
+                else:
+                    file1 = self.filename
+                    file2 = self.filename
             self.isall = True
         elif self.objtype == 'fvso':
             file1 = 'xCAT DB'
@@ -89,7 +93,8 @@ class InventoryDiff(object):
 
         if not rc:
             diff_dict = StructureDiff().diff(d1, d2, self.isall)
-            self.show_diff(StructureDiff().rept(diff_dict, self.fmt), "\n--- %s\n+++ %s" % (file1, file2))
+            if diff_dict:
+                self.show_diff(StructureDiff().rept(diff_dict, self.fmt), "\n--- %s\n+++ %s" % (file1, file2))
         elif out:
             self.show_diff(out)
 

@@ -166,7 +166,7 @@ class StructureDiff(object):
         if diff_string and diff_string != '{}':
             return diff_string
         else:
-            return 'No difference'
+            return
 
     def diff(self, obj1, obj2, isall=False):
         if not isall:
