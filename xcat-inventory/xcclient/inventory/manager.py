@@ -162,8 +162,8 @@ class InventoryFactory(object):
         
         
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
-        print("start to import \"%s\" type objects"%(self.objtype),file=sys.stderr)
-        print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stderr)
+        print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
+        print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'import')
@@ -171,7 +171,7 @@ class InventoryFactory(object):
         objfiles={}
         exptmsglist=[]
         for key, attrs in obj_attr_dict.items():
-            verbose("  converting object \"%s\" to table entries"%(key),file=sys.stderr)
+            verbose("  converting object \"%s\" to table entries"%(key),file=sys.stdout)
             if not objlist or key in objlist:
                 if 'OBJNAME' in envar.keys():
                     envar['OBJNAME']=key
@@ -193,7 +193,7 @@ class InventoryFactory(object):
         if not update:
             self.getDBInst().cleartab(tabs)
         if dbdict:
-            print(" writting \"%s\" type objects"%(self.objtype),file=sys.stderr)
+            print(" writting \"%s\" type objects"%(self.objtype),file=sys.stdout)
             self.getDBInst().settab(dbdict)
         return objfiles
 
@@ -327,7 +327,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
         if nonexistobjlist:
             raise ObjNonExistException("Error: cannot find "+myobjtype+" objects: %(f)s!", f=','.join(nonexistobjlist))
         if destdir and myobjtype in InventoryFactory.getObjTypesWithFiles():
-            print("The %s objects has been exported to directory %s"%(myobjtype,destdir),file=sys.stderr)
+            print("The %s objects has been exported to directory %s"%(myobjtype,destdir),file=sys.stdout)
 
         #do not add osimage objects to %wholedict when export inventory data to a directory
         if not destdir or myobjtype not in InventoryFactory.getObjTypesWithFiles():
@@ -349,12 +349,12 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
             dumpobj(wholedict, fmt,mylocation)
             with open(mylocation, "a") as myfile:
                 myfile.write("#%s"%(xcatversion))
-            print("The cluster inventory data has been dumped to %s"%(mylocation),file=sys.stderr)
+            print("The cluster inventory data has been dumped to %s"%(mylocation),file=sys.stdout)
         elif destfile:
             dumpobj(wholedict, fmt,destfile)
             with open(destfile, "a") as myfile:
                 myfile.write("#%s"%(xcatversion))
-            print("The inventory data has been dumped to %s"%(destfile),file=sys.stderr)
+            print("The inventory data has been dumped to %s"%(destfile),file=sys.stdout)
         else: 
             if not fmt or fmt.lower() == 'yaml':
                 dump2yaml(wholedict)
@@ -443,8 +443,9 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     envar=vardict
     if dbsession is None: 
         dbsession=DBsession()
-    print("loading inventory date in \"%s\""%(location),file=sys.stderr)
+    print("loading inventory date in \"%s\""%(location),file=sys.stdout)
     try:
+
         obj_attr_dict = json.loads(contents)
     except ValueError:
         try: 
@@ -503,9 +504,9 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
         except Exception, e: 
             raise DBException("Error on commit DB transactions: "+str(e))
         else:
-            print('Inventory import successfully!',file=sys.stderr)
+            print('Inventory import successfully!',file=sys.stdout)
     else:
-        print("Dry run mode, nothing will be written to database!",file=sys.stderr)
+        print("Dry run mode, nothing will be written to database!",file=sys.stdout)
     dbsession.close()
     return objfiledict
 
@@ -534,7 +535,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
         srcfile=location+myfile
         if os.path.exists(srcfile):
             if dryrun:
-                print("creating directory: %s. Dryrun mode, do nothing..."%(os.path.dirname(myfile)),file=sys.stderr)
+                print("creating directory: %s. Dryrun mode, do nothing..."%(os.path.dirname(myfile)),file=sys.stdout)
             else:
                 try:
                     os.makedirs(os.path.dirname(myfile))
@@ -548,12 +549,12 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
                 print("Warning: \"%s\" and \"%s\" are the same file, skip copy"%(srcfile,myfile),file=sys.stderr)
             else:
                 if dryrun:
-                    print("copying file: %s ----> %s. Dryrun mode, do nothing..."%(srcfile,myfile),file=sys.stderr)
+                    print("copying file: %s ----> %s. Dryrun mode, do nothing..."%(srcfile,myfile),file=sys.stdout)
                 else:
                     shutil.copyfile(srcfile,myfile)
         else:
             print("Warning: the file \""+srcfile+"\" of "+objtype+" \""+objname+"\" does not exist!",file=sys.stderr)
-    print("The object "+objname+" has been imported",file=sys.stderr)
+    print("The object "+objname+" has been imported",file=sys.stdout)
 
 def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     importall=0
