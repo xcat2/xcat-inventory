@@ -108,7 +108,7 @@ class matrixdbfactory():
         if tabdict is None:
             return None
         for key in tabdict.keys():
-            utils.verbose("  writting object: "+str(key),file=sys.stderr)
+            utils.verbose("  writting object: "+str(key),file=sys.stdout)
             for tab in tabdict[key].keys():
                 dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):
