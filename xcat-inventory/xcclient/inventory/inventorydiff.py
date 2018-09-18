@@ -7,14 +7,22 @@ from exceptions import *
 from utils import *
 import re
 
-def line_diff(file1, file2):
+def line_diff(file1, file2, filename=None):
     (retcode,out,err)=runCommand("diff -u %s %s"%(file1, file2))
     if out:
-        out=re.sub(r"%s.*"%(file1),file2,out)
-        out=re.sub(r"%s.*"%(file2),file2,out)
+        if filename:
+            out=re.sub(r"%s.*"%(file1),filename,out)
+            out=re.sub(r"%s.*"%(file2),filename,out)
+        else:
+            out=re.sub(r"%s.*"%(file1),file1,out)
+            out=re.sub(r"%s.*"%(file2),file2,out)
     if err:
-        err=re.sub(r"%s.*"%(file1),file2,err)
-        err=re.sub(r"%s.*"%(file2),file2,err)
+        if filename:
+            err=re.sub(r"%s.*"%(file1),filename,err)
+            err=re.sub(r"%s.*"%(file2),filename,err)
+        else:
+            err=re.sub(r"%s.*"%(file1),file1,err)
+            err=re.sub(r"%s.*"%(file2),file2,err)
     return out, err
 
 
@@ -58,21 +66,25 @@ class InventoryDiff(object):
         if self.objtype == 'f':
             file1 = self.objs.pop(0)
             file2 = self.objs.pop(0)
+            filename = None
+            if self.filename:
+                filename = self.filename[0]
             try:
                 d1 = self._get_file_data(file1)
                 d2 = self._get_file_data(file2)
             except FileNotExistException as e:
                 raise FileNotExistException(e.message)
             except InvalidFileException as e:
-                out, err = line_diff(file1, file2)
+                out, err = line_diff(file1, file2, filename)
                 rc = 1
+
+            if not d1 or not d2:
+                out, err = line_diff(file1, file2, filename)
+                rc = 1
+
             if self.filename:
-                if type(self.filename) == list:
-                    file1 = self.filename[0]
-                    file2 = self.filename[0]
-                else:
-                    file1 = self.filename
-                    file2 = self.filename
+                file1 = filename
+                file2 = filename
             self.isall = True
         elif self.objtype == 'fvso':
             file1 = 'xCAT DB'
