@@ -377,7 +377,7 @@ def getgitinfo(location):
     #vardict['GITROOT']=''
     vardict={}
     oldcwd=os.getcwd()
-    os.chdir(os.path.dirname(location))
+    os.chdir(os.path.dirname(os.path.realpath(location)))
     (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
     if retcode==0:
         out=out.strip()
