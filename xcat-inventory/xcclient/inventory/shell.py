@@ -109,44 +109,46 @@ class InventoryShell(shell.ClusterShell):
         mybackend=backend.Invbackend()
         mybackend.rev_list(args.revision)
 
+    @shell.arg('--no-import', dest='doimport', action="store_false", default=True, help='whether import inventory data into DB after checkout. If not specified, import inventory data to DB')
     @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to checkout')
     def do_checkout(self,args):
         """checkout to a specified revision"""
         mybackend=backend.Invbackend()
-        mybackend.checkout(args.revision)
+        mybackend.checkout(args.revision,args.doimport)
 
-    def do_sync(self,args):
+    def do_pull(self,args):
         """sync the current workspace with remote workspace"""
         mybackend=backend.Invbackend()
-        mybackend.sync()
+        mybackend.pull()
 
 
-    def do_refresh(self,args):
-        """export the inventory from xCAT DB to backend"""
+
+    def do_push(self,args):
+        """push the current workspace to remoteworkspace"""
         mybackend=backend.Invbackend()
-        mybackend.refresh()
+        mybackend.push(args.revision)
+
+    #def do_drop(self,args):
+    #    """drop the uncommited modification in backend"""
+    #    mybackend=backend.Invbackend()
+    #    mybackend.drop()
 
     @shell.arg('revision',metavar='revision',type=str,nargs=1,default=None,help='the revision name to create')
     @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs=1, help='the description of the revision to create')
-    def do_push(self,args):
+    def do_commit(self,args):
         """create a revision and push to remote backend"""
         mybackend=backend.Invbackend()
-        mybackend.push(args.revision,args.message)
-
-    def do_drop(self,args):
-        """drop the uncommited modification in backend"""
-        mybackend=backend.Invbackend()
-        mybackend.drop()
+        mybackend.commit(args.revision,args.message)
 
 # main entry for CLI
 def main():
     utils.initglobal()
     try:
-        InventoryShell('xcat-inventory','#VERSION_SUBSTITUTE#').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
+        InventoryShell('xcat-inventory','0.1.5 (git commit 5d47123272c02b90f270b1dcf62e9a72965f264e)').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
-    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException), e:
+    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException,BackendNotInitException), e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     #except (ParserError), e:

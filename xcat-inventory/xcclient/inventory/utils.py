@@ -11,6 +11,7 @@ import re
 import subprocess
 import json
 import yaml
+import sys
 import globalvars
 from exceptions import *
 
@@ -152,3 +153,11 @@ def filter_dict_keys(d1, d2):
 def verbose(message,file=sys.stdout):
     if globalvars.verbose:
         print("%s"%(message),file=file)
+
+#get home directory of the current user
+def gethome():
+    home = os.path.expanduser("~")
+    return home
+
+
+
