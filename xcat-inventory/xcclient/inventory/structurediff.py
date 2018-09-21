@@ -134,6 +134,14 @@ class format_diff_output(object):
                     path = self._get_path_as_list(change.path())
                     extra = path.pop()
                     mychange = {'-diff': {extra: change.t1}, '+diff': {extra: change.t2}}
+                elif 'type_changes' in key:
+                    path = self._get_path_as_list(change.path())
+                    extra = path.pop()
+                    if change.t1 == None:
+                        change.t1 = ''
+                    if change.t2 == None:
+                        change.t2 = ''
+                    mychange = {'-diff': {extra: change.t1}, '+diff': {extra: change.t2}}
 
                 while len(path) > 0:
                     key_str = path.pop()
