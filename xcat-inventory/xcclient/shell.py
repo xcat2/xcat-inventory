@@ -171,7 +171,7 @@ class ClusterShell(object):
         if not argv:
             self.do_help(options)
             return 0
-        
+
         if not args:
             self.do_help(options)
             return 0
@@ -179,6 +179,9 @@ class ClusterShell(object):
         if args[0] not in self.subcommands.keys():
             self.do_help(options)
             raise inventory.exceptions.CommandException("Error: not a valid subcommand to run")
+
+        if '-h' in argv or '--help' in argv:
+            args.append('-h')
 
         # Parse args again and call whatever callback was selected
         args = subcommand_parser.parse_args(args)
