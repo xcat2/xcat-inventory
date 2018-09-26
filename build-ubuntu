@@ -68,17 +68,20 @@ then
         commit_id=`git rev-parse --short HEAD`
         commit_id_long=`git rev-parse HEAD`
 
-        echo "###############################"
+        echo "###################################"
         echo "# Building xcat-inventory package #"
-        echo "###############################"
+        echo "###################################"
 
         #the package type:  local | snap | alpha
         #the build introduce string
         build_string="Snap_Build"
         xcat_release="snap$(date '+%Y%m%d%H%M')"
         pkg_version="${ver}-${xcat_release}"
-
+        VERINFO="${ver} (${xcat_release})"
+        echo "VERINFO $VERINFO"
         packages="xcat-inventory"
+        cp -f $curdir/xcat-inventory/xcclient/inventory/shell.py /tmp/
+        sed -i s/\#VERSION_SUBSTITUTE\#/"$VERINFO"/g $curdir/xcat-inventory/xcclient/inventory/shell.py
         target_archs=(all)
         for file in $packages
         do
@@ -113,7 +116,10 @@ then
                 rm -f ${file_low}_*.dsc
             done
         done
-
+        if [ -f /tmp/shell.py ]; then
+            cp -f /tmp/shell.py $curdir/xcat-inventory/xcclient/inventory/shell.py
+            rm -f /tmp/shell.py
+        fi
     fi
 
 fi
