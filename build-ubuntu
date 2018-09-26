@@ -50,6 +50,13 @@ if [ ! -z ${LOG} ]; then
     WGET_CMD="wget -o ${LOG}"
 fi
 
+VERSION=$(git describe --long --tags|cut -d- -f 1 | tail -c +2)
+NUMCOMMITS=$(git describe --long --tags|cut -d- -f 2)
+if [ "$NUMCOMMITS" != "$VERSION"  ]; then
+    VERSION=$VERSION
+fi
+echo $VERSION > Version
+
 if [ "$c_flag" ]
 then
     if [ -z "$REL" ]; then
@@ -59,26 +66,21 @@ then
 
     if [ "$PROMOTE" != 1 ]; then
 
-        code_change=1
-        ver=`cat Version`
-        short_ver=`cat Version|cut -d. -f 1,2`
-        short_short_ver=`cat Version|cut -d. -f 1`
-        build_time=`date`
         build_machine=`hostname`
-        commit_id=`git rev-parse --short HEAD`
         commit_id_long=`git rev-parse HEAD`
 
-        echo "###############################"
+        echo "###################################"
         echo "# Building xcat-inventory package #"
-        echo "###############################"
+        echo "###################################"
 
-        #the package type:  local | snap | alpha
         #the build introduce string
-        build_string="Snap_Build"
-        xcat_release="snap$(date '+%Y%m%d%H%M')"
-        pkg_version="${ver}-${xcat_release}"
-
+        build_string="xcat-inventory Build"
+        pkg_version="${VERSION}-c${NUMCOMMITS}"
+        VERINFO="${VERSION} (git commit $commit_id_long)"
+        echo "VERINFO $VERINFO"
         packages="xcat-inventory"
+        cp -f $curdir/xcat-inventory/xcclient/inventory/shell.py /tmp/
+        sed -i s/\#VERSION_SUBSTITUTE\#/"$VERINFO"/g $curdir/xcat-inventory/xcclient/inventory/shell.py
         target_archs=(all)
         for file in $packages
         do
@@ -91,11 +93,7 @@ then
                 dch -v $pkg_version -b -c debian/changelog $build_string
                 if [ "$target_arch" = "all" ]; then
                     CURDIR=$(pwd)
-                    cp ${CURDIR}/debian/control ${CURDIR}/debian/control.save.998
-                    # Magic string used here
-                    sed -i -e "s#>= 2.13-snap000000000000#= ${pkg_version}#g" ${CURDIR}/debian/control
                     dpkg-buildpackage -rfakeroot -uc -us
-                    mv ${CURDIR}/debian/control.save.998 ${CURDIR}/debian/control
                     dh_testdir
                     dh_testroot
                     dh_clean -d
@@ -106,14 +104,17 @@ then
                     exit $rc
                 fi
                 rm -f debian/files
-                sed -i -e "s/* Snap_Build//g" debian/changelog
+                sed -i -e "s/* Build//g" debian/changelog
                 cd -
                 rm -f ${file_low}_*.tar.gz
                 rm -f ${file_low}_*.changes
                 rm -f ${file_low}_*.dsc
             done
         done
-
+        if [ -f /tmp/shell.py ]; then
+            cp -f /tmp/shell.py $curdir/xcat-inventory/xcclient/inventory/shell.py
+            rm -f /tmp/shell.py
+        fi
     fi
 
 fi
