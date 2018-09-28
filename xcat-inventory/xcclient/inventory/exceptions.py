@@ -35,6 +35,8 @@ class CommandException(BaseException):
     pass
 class FileNotExistException(BaseException):
     pass
+class DirNotExistException(BaseException):
+    pass
 class InvalidFileException(BaseException):
     pass
 class InternalException(BaseException):
@@ -48,4 +50,8 @@ class BadSchemaException(BaseException):
 class DBException(BaseException):
     pass
 class ParseException(BaseException):
+    pass
+class BackendNotInitException(BaseException):
+    pass
+class ShErrorReturnException(BaseException):
     pass
