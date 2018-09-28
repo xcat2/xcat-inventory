@@ -95,7 +95,11 @@ class matrixdbfactory():
                continue
            for myobj in tabobj:
                mydict=myobj.getdict()
-               mykey=mydict[tab.__tablename__+'.'+tabkey]
+               mysecondkey=myobj.getsecondkey()
+               if tab.__tablename__+'.'+tabkey in mydict.keys():
+                  mykey=mydict[tab.__tablename__+'.'+tabkey]
+               elif mysecondkey is not None:
+                  mykey=myobj.__dict__[tabkey]
                if mykey not in ret.keys():
                   ret[mykey]={}
                ret[mykey].update(mydict)

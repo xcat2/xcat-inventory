@@ -317,7 +317,7 @@ class XcatBase(object):
         if schema is None:
             schema=cls._schema_loc__
         #cls._schema=yaml.load(file(schema,'r'))['node']
-        try: 
+        try:
             schemacontent=yaml.load(file(schema,'r'))
         except Exception, e:
             raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
@@ -338,7 +338,7 @@ class XcatBase(object):
 
     def getobjdict(self):
         ret={}
-        ret[self.name]=deepcopy(self._mydict)
+        ret[self.name.encode()]=deepcopy(self._mydict)
         Util_rmnullindict(ret[self.name])
         del ret[self.name]['obj_name']
         return ret
@@ -561,6 +561,48 @@ class Policy(XcatBase):
 class Passwd(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/passwd.yaml')
 
+    def setdbdata(self,dbhash):
+        self._dbhash=deepcopy(dbhash)
+        self._mydict.clear()
+        self._mydict['obj_name']=self.name
+        self.__db2dict()
+
+    def __db2dict(self):
+        for attr in self._dbhash.keys():
+            _dbhashvalue={}
+            for key in self._depdict_val.keys():
+                _dbhashvalue[key]=self.__evalschema_val(key,self._dbhash[attr])
+            Util_setdictval(self._mydict,attr,_dbhashvalue)
+
+    def __evalschema_val(self,valpath,dbhashvalue):
+        mydeptablist=self._depdict_val[valpath]['deptablist']
+        mydepvallist=self._depdict_val[valpath]['depvallist']
+        myexpression=self._depdict_val[valpath]['expression']
+        for item in mydeptablist:
+            tabval=''
+            if item in dbhashvalue.keys():
+                tabval=dbhashvalue[item]
+            if tabval is None:
+                tabval=''
+            myexpression=myexpression.replace('T{'+item+'}',"'"+str(tabval).replace("'","\\'")+"'")
+        ctxdict={}
+        for item in mydepvallist:
+            myval=Util_getdictval(self._mydict,item)
+            if myval is None:
+                myval=self.__evalschema_val(item)
+                if myval is None:
+                    myval=''
+            newitem=item.replace('.','_').replace('{','_').replace('}','_')
+            newitem="V_%s"%(newitem)
+            ctxdict[newitem]=myval
+            myexpression=myexpression.replace('V{'+item+'}',newitem)
+        try:
+            evalexp=eval("lambda "+myexpression,None,ctxdict)
+            value=evalexp()
+        except Exception,e:
+            raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\": "+str(e))
+        return value
+  
 class Site(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/site.yaml')
 

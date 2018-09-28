@@ -40,6 +40,11 @@ class mixin(object):
     @classmethod
     def getReservedKeys(self):
         return []
+    
+    @classmethod
+    def getsecondkey(self):
+        return ''
+
 ########################################################################
 class passwd(Base,mixin):
     """"""
@@ -47,6 +52,21 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
+    def getsecondkey(self):
+        return 'username'
+
+    def getdict(self):
+        mydict={}
+        mydictvalue={}
+        for mykey in self.__dict__.keys():
+           if mykey in self.__table__.columns:
+              mydictvalue[self.__tablename__+'.'+mykey.encode()]= self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+              mydict[self.__dict__['username'].encode()]= mydictvalue
+        try:
+            self.__class__.outprocess(mydict)
+        except:
+            pass
+        return mydict
 ########################################################################
 class networks(Base,mixin):
     """"""
