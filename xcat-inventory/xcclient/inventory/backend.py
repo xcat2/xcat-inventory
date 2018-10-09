@@ -20,7 +20,7 @@ class Invbackend:
         if cfgpath is None:
             myhome=utils.gethome()
             cfgpath=myhome+'/.xcat/inventory.cfg' 
-        if os.path.isfile(cfgpath):
+        if not os.path.isfile(cfgpath):
             cfgpath=self.defaultcfgpath 
 
         if not os.path.exists(cfgpath):
@@ -30,7 +30,7 @@ class Invbackend:
         config.read(cfgpath)
         if not config:
             raise ParseException("Unable to parse configuration file %s"%(cfgpath))
-        print(config)
+        #print(config)
         self.bkendcfg['type']=config['backend']['type'].strip('"').strip("'")
         self.bkendcfg['workspace']=config['backend']['workspace'].strip('"').strip("'")
         self.bkendcfg['user']=config['backend']['user'].strip('"').strip("'")
@@ -44,13 +44,15 @@ class Invbackend:
         myhome=utils.gethome()
         cfgpath=myhome+'/.xcat/inventory.cfg'
         if not os.path.exists(cfgpath):
+            if not os.path.exists(self.defaultcfgpath):
+                raise FileNotExistException('File "%s" does not exist, please check ...' % self.defaultcfgpath) 
             shutil.copyfile(self.defaultcfgpath, cfgpath)   
 
     def init(self,cfgpath=None): 
         self.__initcfgfile()        
         self.loadcfg(cfgpath)
         if os.path.isdir(self.bkendcfg['InfraRepo']['local_repo']):
-            os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+            self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
             try:
                 sh.git('rev-parse','--git-dir')    
             except  sh.ErrorReturnCode as e:
@@ -59,8 +61,12 @@ class Invbackend:
 
         if not os.path.isdir(self.bkendcfg['InfraRepo']['local_repo']):
             os.mkdir(self.bkendcfg['InfraRepo']['local_repo'])
-            os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-            sh.git.clone(self.bkendcfg['InfraRepo']['remote_repo'],self.bkendcfg['InfraRepo']['local_repo'])
+            self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+
+            try:
+                sh.git.clone(self.bkendcfg['InfraRepo']['remote_repo'],self.bkendcfg['InfraRepo']['local_repo'])
+            except sh.ErrorReturnCode as e:
+                raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
         print("%s is a git repo dir,checking...."%(self.bkendcfg['InfraRepo']['local_repo']))
         sh.git.config('--global','diff.tool','invdiff')
@@ -80,12 +86,16 @@ class Invbackend:
         if 'origin' not in gitremotes.keys():
             sh.git.remote('add','origin',self.bkendcfg['InfraRepo']['remote_repo'])
 
-        sh.git.pull('origin','master','--tags')
+        try:
+            sh.git.pull('origin','master','--tags')
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+
         if self.bkendcfg['workspace'] != "master":
             sh.git.checkout('-b',self.bkendcfg['workspace'])
             sh.git.pull('origin',self.bkendcfg['workspace'],'--tags')
             
-        os.chdir(self.bkendcfg['InfraRepo']['working_dir'])
+        self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
         print("xcat-inventory backend initialized",file=sys.stderr)
 
     def __init__(self): 
@@ -112,7 +122,11 @@ class Invbackend:
         return brstash
                     
     def __getbranch(self):
-        line=sh.git('symbolic-ref','-q','--short', 'HEAD')
+        try:
+            line=sh.git('symbolic-ref','-q','--short', 'HEAD')
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+        
         curworkspace=line.strip()
         return curworkspace
 
@@ -137,18 +151,37 @@ class Invbackend:
             branch=ment[0][1]
         return (branch,commit)
 
+    def _deal_with_shErr(self, err):
+        if 'fatal' in err:
+            return 'Error: %s' % re.findall(r"fatal: (.+?)\n", err)[0] 
+        if 'error' in err:
+            errors = re.findall(r"error: (.+?)\n", err)
+            err_string = ['Error: ' + error for error in errors]
+            return '\n' . join(err_string)
+
+    def _change_dir(self, target_dir):
+        if not os.path.isdir(target_dir):
+            raise DirNotExistException('Directory "%s" does not exist, please check...' % target_dir)
+        os.chdir(target_dir)
+
     def workspace_list(self):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-        lines=sh.git.branch().strip()
-        rawbranches=lines.split('\n')        
-        branches=[ branch.strip() for branch in rawbranches if not self.__istempbranch(branch.strip())]
-        print(branches)
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        try:
+            lines=sh.git.branch().strip()
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+        if lines:
+            rawbranches=lines.split('\n')        
+            branches=[ branch.strip() for branch in rawbranches if not self.__istempbranch(branch.strip())]
+            print('\n' . join(branches))
+        else:
+            print('No workspaces')
 
     def workspace_new(self,newbranch):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-        if self.__iswkspacenamevalid(newbranch):
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        if not self.__iswkspacenamevalid(newbranch):
             print("invalid workspace name: invalid character \"@\"",file=sys.stderr)
             return 1
         curbranch=self.__getbranch()
@@ -156,21 +189,30 @@ class Invbackend:
             (branch,commit)=self.__parsetempbranch(curbranch)           
             sh.git.checkout(branch)
             sh.git.branch("-D",curbranch)
-        if newbranch != branch:
-            sh.git.checkout('-b',newbranch)
+        if newbranch != curbranch:
+            try:
+                sh.git.checkout('-b',newbranch)
+            except sh.ErrorReturnCode as e:
+                raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
         print("new workspace %s created!"%(newbranch))
 
-
-
-    def workspace_delete(self,newbranch):
+    def workspace_delete(self,branch):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-        sh.git.checkout('master')
-        sh.git.branch('-D',newbranch)
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        try:
+            revlist=self.__getrev(branch)
+            if revlist:
+                revlist=["%s#%s"%(rev,branch) for rev in revlist]
+                sh.git.tag('-d',' '.join(revlist))
+            sh.git.checkout('master')
+            sh.git.branch('-D',branch)
+            print("deleted workspace %s"%(branch))
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
     def workspace_checkout(self,newbranch):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
         if curworkspace!=newbranch:
             sh.git.stash('save')
@@ -179,48 +221,87 @@ class Invbackend:
             sh.git.checkout(branch)
             sh.git.branch("-D",curworkspace)
              
-        sh.git.checkout(newbranch)
+        try:
+            sh.git.checkout(newbranch)
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+
         stashdict=self.__getstash()
         if curworkspace!=newbranch and newbranch in stashdict.keys() :
-            sh.git.stash('pop',stashdict[newbranch])
+            stashlist=stashdict[newbranch]
+            while stashlist:
+                sh.git.stash('pop',stashlist[0])
+                stashdict=self.__getstash()
+                stashlist=stashdict[newbranch]
+
+        self.checkout(revision=None,doimport=True)
         print("switched to workspace %s"%(newbranch))
 
-    #def 
+
+    def __tag2rev(self,branch,tagname):
+        itemmatched=re.findall(r'^([^#]+)#%s$'%(branch),tagname)
+        if itemmatched:
+            return itemmatched[0]       
+        else:
+            None  
+
+    def __getrev(self,branch):
+        tags=sh.git.tag('-l').strip()
+        if tags:
+            rawtaglist=tags.split('\n') 
+            revlist=[]
+            for rev in rawtaglist:
+                myrev=self.__tag2rev(branch,rev)
+                if myrev is not None:
+                    revlist.append(myrev)
+            return revlist
+        return None
 
     def rev_list(self,revision):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-        if revision is None:
-            revisions=sh.git.tag('-l').strip()
-            revlist=revisions.split('\n')
-    #        revlist=[rev.strip() for rev in rwrevlist if re.match(r'[^#]+#[^#]+',rev.strip()] 
-            print(revlist)
-        else:
-            revision=sh.git.show(revision)
-            print(revision)
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        curworkspace=self.__getbranch()
+        try:
+            if revision is None:
+                    revlist=self.__getrev(curworkspace)
+                    if revlist:
+                        print('\n' . join(revlist))
+                    else:
+                        print('No revision found in current workspace')
+            else:
+                revision=sh.git.show("%s#%s"%(revision,curworkspace))
+                print(revision)
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
             
 
     def pull(self):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
         print("syncing %s from remote repo"%(curworkspace))
-        sh.git.pull('origin',curworkspace,'--tags')
+        try:
+            sh.git.pull('origin',curworkspace,'--tags')
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
     def refresh(self):
         pass
     
-    def push(self):
+    def push(self, revision):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
         print("push revision %s to remote repo ..."%(revision))
-        sh.git.push('origin',curworkspace,'--tags')        
+        try:
+            sh.git.push('origin',curworkspace,'--tags')        
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
     def drop(self):
         pass
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
         sh.git.reset()
         sh.git.checkout('.')
@@ -234,7 +315,7 @@ class Invbackend:
 
     def commit(self,revision,description):
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'] + '/' + self.bkendcfg['InfraRepo']['working_dir'])
         curworkspace=self.__getbranch()
         if self.__istempbranch(curworkspace):
             (branch,commit)=self.__parsetempbranch(curworkspace)
@@ -243,16 +324,29 @@ class Invbackend:
         manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
         print("creating revision %s in workspace %s ..."%(revision,curworkspace))
         sh.git.add('./*')
-        sh.git.commit('-a','-m',description)
+        try:
+            sh.git.commit('-a','-m',description)
+        except sh.ErrorReturnCode as e:
+            if e.stderr:
+                raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+            if e.stdout:
+                raise ShErrorReturnException(' ' . join(e.stdout.split('\n')))
+
         if revision:
             revname="%s#%s"%(revision,curworkspace)
             sh.git.tag('-a',revname,'-m',description)
         
     def checkout(self,revision=None,doimport=True):  
         self.loadcfg()
-        os.chdir(self.bkendcfg['InfraRepo']['local_repo'])
-        os.chdir(self.bkendcfg['InfraRepo']['working_dir'])
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
         curbranch=self.__getbranch()
+        
+        revlist=self.__getrev(curbranch)
+        if revision:
+            if not revlist or revision not in revlist:
+                print("revision %s not found in workspace %s"%(revision,curbranch))
+                return 1
         if self.__istempbranch(curbranch) :
             (branch,commit)=self.__parsetempbranch(curbranch)
             if commit == revision:
@@ -263,22 +357,17 @@ class Invbackend:
                 sh.git.branch('-D',curbranch)
                 curbranch=branch
  
-        revinbranch=0
         if revision is None:
             pass
-        elif curbranch == revision:
-            print("\"%s\" is the name of current workspace \"%s\""%(revision,curbranch))
-            return 1
         else:
-            lines=sh.git.branch("--contains",revision).strip()
-            if '* '+curbranch in lines:
-                revinbranch=1
-            if revinbranch: 
-                brname=revision+'@'+curbranch 
-                sh.git.checkout('-b',brname,revision)
-            else:
-                print("the specified \"%s\" revision cannot be found in workspace \"%s\""%(revision,curbranch))
-                return 1
+            brname=revision+'@'+curbranch 
+            try:
+                sh.git.checkout('-b',brname,"%s#%s"%(revision,curbranch))
+            except sh.ErrorReturnCode as e:
+                raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+            #else:
+            #    print("the specified \"%s\" revision cannot be found in workspace \"%s\""%(revision,curbranch))
+            #    return 1
             
         print("checked out to revision %s"%(revision)) 
         if doimport:
