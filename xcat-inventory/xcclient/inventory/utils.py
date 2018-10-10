@@ -14,6 +14,7 @@ import yaml
 import sys
 import globalvars
 from exceptions import *
+from contextlib import contextmanager
 
 def runCommand(cmd, env=None):
     """
@@ -160,4 +161,22 @@ def gethome():
     return home
 
 
+#redirect stdout to stream
+@contextmanager
+def stdout_redirector(stream):
+    old_stdout = sys.stdout
+    sys.stdout = stream
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
 
+#redirect stderr to stream
+@contextmanager
+def stderr_redirector(stream):
+    old_stderr = sys.stderr
+    sys.stderr = stream
+    try:
+        yield
+    finally:
+        sys.stderr = old_stderr

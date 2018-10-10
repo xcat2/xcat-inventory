@@ -62,13 +62,13 @@ class Invbackend:
         if not os.path.isdir(self.bkendcfg['InfraRepo']['local_repo']):
             os.mkdir(self.bkendcfg['InfraRepo']['local_repo'])
             self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
-
+            print("cloning remote repo %s to %s ..."%(self.bkendcfg['InfraRepo']['remote_repo'],self.bkendcfg['InfraRepo']['local_repo']))
             try:
                 sh.git.clone(self.bkendcfg['InfraRepo']['remote_repo'],self.bkendcfg['InfraRepo']['local_repo'])
             except sh.ErrorReturnCode as e:
                 raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
-        print("%s is a git repo dir,checking...."%(self.bkendcfg['InfraRepo']['local_repo']))
+        print("%s is a git repo dir,configuring...."%(self.bkendcfg['InfraRepo']['local_repo']))
         sh.git.config('--global','diff.tool','invdiff')
         sh.git.config('--global','difftool.invdiff.cmd','xcat-inventory diff --filename $MERGED --files $LOCAL $REMOTE')
         output=sh.git.remote('-v')
@@ -86,17 +86,24 @@ class Invbackend:
         if 'origin' not in gitremotes.keys():
             sh.git.remote('add','origin',self.bkendcfg['InfraRepo']['remote_repo'])
 
-        try:
-            sh.git.pull('origin','master','--tags')
-        except sh.ErrorReturnCode as e:
-            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+        #try:
+        #    sh.git.pull('origin','master','--tags')
+        #except sh.ErrorReturnCode as e:
+        #    raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
-        if self.bkendcfg['workspace'] != "master":
-            sh.git.checkout('-b',self.bkendcfg['workspace'])
-            sh.git.pull('origin',self.bkendcfg['workspace'],'--tags')
-            
-        self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
-        print("xcat-inventory backend initialized",file=sys.stderr)
+
+        if self.bkendcfg['workspace']:
+            print("creating workspace %s ..."%(self.bkendcfg['workspace']))
+            try:
+                sh.git.checkout('-b',self.bkendcfg['workspace'])
+                if self.bkendcfg['InfraRepo']['working_dir']:            
+                    self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
+                sh.git.pull('origin',self.bkendcfg['workspace'],'--tags')
+            except sh.ErrorReturnCode as e:
+                raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+
+
+        print("xcat-inventory backend initialized")
 
     def __init__(self): 
         pass
@@ -137,9 +144,7 @@ class Invbackend:
         return re.match(r'\S+@\S+',branch)
 
     def __iswkspacenamevalid(self,branch):
-        if self.__istempbranch(branch):
-            return False
-        return True
+        return self._validatebrname(branch)
 
     #return a list of (branch,commit) from branch name "commit@branch"
     def __parsetempbranch(self,rawbranch):
@@ -160,9 +165,18 @@ class Invbackend:
             return '\n' . join(err_string)
 
     def _change_dir(self, target_dir):
+        if not target_dir:
+            return
         if not os.path.isdir(target_dir):
             raise DirNotExistException('Directory "%s" does not exist, please check...' % target_dir)
         os.chdir(target_dir)
+
+    def _validatebrname(self,brname):
+        if brname and re.match(r'[^@^#]*(@|#)[^@^#]*',brname):
+            return False
+        else:
+           return True
+    
 
     def workspace_list(self):
         self.loadcfg()
@@ -182,7 +196,7 @@ class Invbackend:
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         if not self.__iswkspacenamevalid(newbranch):
-            print("invalid workspace name: invalid character \"@\"",file=sys.stderr)
+            raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(newbranch))
             return 1
         curbranch=self.__getbranch()
         if self.__istempbranch(curbranch):
@@ -194,11 +208,14 @@ class Invbackend:
                 sh.git.checkout('-b',newbranch)
             except sh.ErrorReturnCode as e:
                 raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
-        print("new workspace %s created!"%(newbranch))
+        print("workspace %s created!"%(newbranch))
 
     def workspace_delete(self,branch):
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        if not self.__iswkspacenamevalid(branch):
+            raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(branch))
+            return 1
         try:
             revlist=self.__getrev(branch)
             if revlist:
@@ -213,6 +230,9 @@ class Invbackend:
     def workspace_checkout(self,newbranch):
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        if not self.__iswkspacenamevalid(newbranch):
+            raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(newbranch))
+            return 1
         curworkspace=self.__getbranch()
         if curworkspace!=newbranch:
             sh.git.stash('save')
@@ -226,13 +246,13 @@ class Invbackend:
         except sh.ErrorReturnCode as e:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
-        stashdict=self.__getstash()
-        if curworkspace!=newbranch and newbranch in stashdict.keys() :
-            stashlist=stashdict[newbranch]
-            while stashlist:
-                sh.git.stash('pop',stashlist[0])
-                stashdict=self.__getstash()
+        while True:
+            stashdict=self.__getstash()
+            if curworkspace!=newbranch and newbranch in stashdict.keys() :
                 stashlist=stashdict[newbranch]
+                sh.git.stash('pop',stashlist[0])
+            else:
+                break
 
         self.checkout(revision=None,doimport=True)
         print("switched to workspace %s"%(newbranch))
@@ -269,6 +289,9 @@ class Invbackend:
                     else:
                         print('No revision found in current workspace')
             else:
+                if not self.__validatebrname(revision):
+                    raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
+                    return 1
                 revision=sh.git.show("%s#%s"%(revision,curworkspace))
                 print(revision)
         except sh.ErrorReturnCode as e:
@@ -279,6 +302,10 @@ class Invbackend:
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
+        if self.__istempbranch(curworkspace):
+            (branch,commit)=self.__parsetempbranch(curworkspace)
+            raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
+            return 1
         print("syncing %s from remote repo"%(curworkspace))
         try:
             sh.git.pull('origin',curworkspace,'--tags')
@@ -292,7 +319,11 @@ class Invbackend:
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
-        print("push revision %s to remote repo ..."%(revision))
+        if self.__istempbranch(curworkspace):
+            (branch,commit)=self.__parsetempbranch(curworkspace)
+            raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
+            return 1
+        print("pushing revision %s to remote repo ..."%(revision))
         try:
             sh.git.push('origin',curworkspace,'--tags')        
         except sh.ErrorReturnCode as e:
@@ -319,9 +350,17 @@ class Invbackend:
         curworkspace=self.__getbranch()
         if self.__istempbranch(curworkspace):
             (branch,commit)=self.__parsetempbranch(curworkspace)
-            print("you are on the %s revision of %s workspace, please run \"xcat-inventory checkout --no-import\" to switch to the head of workspace"%(commit,branch))
+            raise InvalidValueException("you are on the %s revision of %s workspace, please run \"xcat-inventory checkout --no-import\" to switch to the head of workspace"%(commit,branch))
             return 1
-        manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
+
+        if not self._validatebrname(revision):
+            raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
+            return 1
+        print("exporting inventory data from xCAT DB....")
+        devNull = open(os.devnull, 'w')
+        with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
+            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
+        
         print("creating revision %s in workspace %s ..."%(revision,curworkspace))
         sh.git.add('./*')
         try:
@@ -342,10 +381,13 @@ class Invbackend:
         self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
         curbranch=self.__getbranch()
         
+        if not self._validatebrname(revision):
+            raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
+            return 1
         revlist=self.__getrev(curbranch)
         if revision:
             if not revlist or revision not in revlist:
-                print("revision %s not found in workspace %s"%(revision,curbranch))
+                raise InvalidValueException("revision %s not found in workspace %s"%(revision,curbranch))
                 return 1
         if self.__istempbranch(curbranch) :
             (branch,commit)=self.__parsetempbranch(curbranch)
@@ -369,8 +411,11 @@ class Invbackend:
             #    print("the specified \"%s\" revision cannot be found in workspace \"%s\""%(revision,curbranch))
             #    return 1
             
-        print("checked out to revision %s"%(revision)) 
+        print("importing inventory data to xCAT DB...")
         if doimport:
-            manager.importobj(None,".",None,None,None,None,False,None)
+            devNull = open(os.devnull, 'w')
+            with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
+                manager.importobj(None,".",None,None,None,None,False,None)
 
+        print("checked out to revision %s"%(revision)) 
       
