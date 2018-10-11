@@ -12,7 +12,7 @@ import utils
 
 class Invbackend:
 
-    defaultcfgpath="/etc/xcat/inventory.cfg"
+    globalcfgpath="/etc/xcat/inventory.cfg"
     bkendcfg={}
 
 
@@ -21,7 +21,7 @@ class Invbackend:
             myhome=utils.gethome()
             cfgpath=myhome+'/.xcat/inventory.cfg' 
         if not os.path.isfile(cfgpath):
-            cfgpath=self.defaultcfgpath 
+            cfgpath=self.globalcfgpath 
 
         if not os.path.exists(cfgpath):
             raise InvalidFileException("The configuration file %s does not exist!\n"%(cfgpath))    
@@ -31,13 +31,30 @@ class Invbackend:
         if not config:
             raise ParseException("Unable to parse configuration file %s"%(cfgpath))
         #print(config)
-        self.bkendcfg['type']=config['backend']['type'].strip('"').strip("'")
-        self.bkendcfg['workspace']=config['backend']['workspace'].strip('"').strip("'")
-        self.bkendcfg['user']=config['backend']['user'].strip('"').strip("'")
+        if 'type' in config['backend'].keys():
+            self.bkendcfg['type']=config['backend']['type'].strip('"').strip("'")
+
+        if 'workspace' in config['backend'].keys():
+            self.bkendcfg['workspace']=config['backend']['workspace'].strip('"').strip("'")
+
+        if 'user' in config['backend'].keys():
+            self.bkendcfg['user']=config['backend']['user'].strip('"').strip("'")
+
+        if 'email' in config['backend'].keys():
+            self.bkendcfg['email']=config['backend']['email'].strip('"').strip("'")
+
         self.bkendcfg['InfraRepo']={}
-        self.bkendcfg['InfraRepo']['remote_repo']=config['InfraRepo']['remote_repo'].strip('"').strip("'")
-        self.bkendcfg['InfraRepo']['local_repo']=config['InfraRepo']['local_repo'].strip('"').strip("'")
-        self.bkendcfg['InfraRepo']['working_dir']=config['InfraRepo']['working_dir'].strip('"').strip("'")
+        if 'remote_repo' in config['InfraRepo'].keys(): 
+            self.bkendcfg['InfraRepo']['remote_repo']=config['InfraRepo']['remote_repo'].strip('"').strip("'")
+
+        if 'local_repo' in config['InfraRepo'].keys(): 
+            self.bkendcfg['InfraRepo']['local_repo']=config['InfraRepo']['local_repo'].strip('"').strip("'")
+
+        if 'working_dir' in config['InfraRepo'].keys(): 
+            self.bkendcfg['InfraRepo']['working_dir']=config['InfraRepo']['working_dir'].strip('"').strip("'")
+        else:
+            self.bkendcfg['InfraRepo']['working_dir']='.'
+         
 
 
     def __initcfgfile(self):
@@ -60,7 +77,7 @@ class Invbackend:
                 shutil.rmtree(self.bkendcfg['InfraRepo']['local_repo'])
 
         if not os.path.isdir(self.bkendcfg['InfraRepo']['local_repo']):
-            os.mkdir(self.bkendcfg['InfraRepo']['local_repo'])
+            os.makedirs(self.bkendcfg['InfraRepo']['local_repo'])
             self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
             print("cloning remote repo %s to %s ..."%(self.bkendcfg['InfraRepo']['remote_repo'],self.bkendcfg['InfraRepo']['local_repo']))
             try:
@@ -69,9 +86,11 @@ class Invbackend:
                 raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
         print("%s is a git repo dir,configuring...."%(self.bkendcfg['InfraRepo']['local_repo']))
-        sh.git.config('--global','diff.tool','invdiff')
-        sh.git.config('--global','difftool.invdiff.cmd','xcat-inventory diff --filename $MERGED --files $LOCAL $REMOTE')
-        output=sh.git.remote('-v')
+        sh.git.config('--local','user.name',self.bkendcfg['user'])
+        sh.git.config('--local','user.email',self.bkendcfg['email'])
+        sh.git.config('--local','diff.tool','invdiff')
+        sh.git.config('--local','difftool.invdiff.cmd','xcat-inventory diff --filename $MERGED --files $LOCAL $REMOTE')
+        output=sh.git.remote('-v',_tty_out=False)
         gitremotes={}
         for line in output.split("\n"):
             matches=re.findall(r'^(\S+)\s+(\S+)\s+\((\S+)\)$',line)
@@ -86,6 +105,8 @@ class Invbackend:
         if 'origin' not in gitremotes.keys():
             sh.git.remote('add','origin',self.bkendcfg['InfraRepo']['remote_repo'])
 
+        if self.bkendcfg['InfraRepo']['working_dir'] and self.bkendcfg['InfraRepo']['working_dir']!='.':
+            os.makedirs(self.bkendcfg['InfraRepo']['working_dir'])
         #try:
         #    sh.git.pull('origin','master','--tags')
         #except sh.ErrorReturnCode as e:
@@ -117,7 +138,7 @@ class Invbackend:
 
     def __getstash(self):
         brstash={}
-        out=sh.git.stash('list').strip()
+        out=sh.git.stash('list',_tty_out=False).strip()
         lines=out.split("\n")
         for line in lines:
             ment=re.findall(r'(\S+):[^:]+\s+(\S+):.+',line)
@@ -182,7 +203,7 @@ class Invbackend:
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         try:
-            lines=sh.git.branch().strip()
+            lines=sh.git.branch(_tty_out=False).strip()
         except sh.ErrorReturnCode as e:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
         if lines:
@@ -217,7 +238,7 @@ class Invbackend:
             raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(branch))
             return 1
         try:
-            revlist=self.__getrev(branch)
+            revlist=self.__getallrev(branch)
             if revlist:
                 revlist=["%s#%s"%(rev,branch) for rev in revlist]
                 sh.git.tag('-d',' '.join(revlist))
@@ -265,8 +286,8 @@ class Invbackend:
         else:
             None  
 
-    def __getrev(self,branch):
-        tags=sh.git.tag('-l').strip()
+    def __getallrev(self,branch):
+        tags=sh.git.tag('-l',_tty_out=False).strip()
         if tags:
             rawtaglist=tags.split('\n') 
             revlist=[]
@@ -277,26 +298,67 @@ class Invbackend:
             return revlist
         return None
 
+    def __getcurrev(self,branch):
+         try:
+             rawtag=sh.git.describe('--candidates','0').strip()
+         except:
+             return None
+         rev=self.__tag2rev(branch,rawtag)
+         return rev
+
+         
+      
+
     def rev_list(self,revision):
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
+        if self.__istempbranch(curworkspace):
+            (branch,commit)=self.__parsetempbranch(curworkspace)
+            curworkspace=branch
         try:
             if revision is None:
-                    revlist=self.__getrev(curworkspace)
+                    revlist=self.__getallrev(curworkspace)
                     if revlist:
                         print('\n' . join(revlist))
                     else:
                         print('No revision found in current workspace')
             else:
-                if not self.__validatebrname(revision):
+                if not self._validatebrname(revision):
                     raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
                     return 1
-                revision=sh.git.show("%s#%s"%(revision,curworkspace))
+                revision=sh.git.show("%s#%s"%(revision,curworkspace),_tty_out=False)
                 print(revision)
         except sh.ErrorReturnCode as e:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
-            
+       
+    def diff(self):
+        self.loadcfg()
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'] + '/' + self.bkendcfg['InfraRepo']['working_dir'])
+        curworkspace=self.__getbranch()
+        try:
+            sh.git.stash('save','--all')
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
+        
+        print("exporting inventory data from xCAT DB...")
+        devNull = open(os.devnull, 'w')
+        with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
+            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
+        print("generating diff report...") 
+        sh.git.add("./*")
+        diffout=sh.git.difftool('--cached','-y',_tty_out=False,_tty_in=True) 
+        print(diffout)
+        sh.git.reset("--hard")
+
+        while True:
+            stashdict=self.__getstash()
+            if curworkspace in stashdict.keys() :
+                stashlist=stashdict[curworkspace]
+                sh.git.stash('pop',stashlist[0])
+            else:
+                break
+        
 
     def pull(self):
         self.loadcfg()
@@ -306,16 +368,26 @@ class Invbackend:
             (branch,commit)=self.__parsetempbranch(curworkspace)
             raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
             return 1
-        print("syncing %s from remote repo"%(curworkspace))
+        print("syncing workspace %s from remote repo"%(curworkspace))
         try:
             sh.git.pull('origin',curworkspace,'--tags')
         except sh.ErrorReturnCode as e:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
     def refresh(self):
-        pass
+        self.loadcfg()
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+        curworkspace=self.__getbranch()
+        try:
+            sh.git.stash('save','--include-untracked')
+            stashdict=self.__getstash()
+            while curworkspace in stashdict.keys() and stashdict[curworkspace]:
+                sh.git.stash('drop',stashdict[curworkspace][0])        
+                stashdict=self.__getstash()
+        except sh.ErrorReturnCode as e:
+            raise ShErrorReturnException(self._deal_with_shErr(e.stderr))                
     
-    def push(self, revision):
+    def push(self):
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         curworkspace=self.__getbranch()
@@ -323,7 +395,7 @@ class Invbackend:
             (branch,commit)=self.__parsetempbranch(curworkspace)
             raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
             return 1
-        print("pushing revision %s to remote repo ..."%(revision))
+        print("pushing workspace %s to remote repo ..."%(curworkspace))
         try:
             sh.git.push('origin',curworkspace,'--tags')        
         except sh.ErrorReturnCode as e:
@@ -374,7 +446,21 @@ class Invbackend:
         if revision:
             revname="%s#%s"%(revision,curworkspace)
             sh.git.tag('-a',revname,'-m',description)
-        
+    
+    def whereami(self):
+        self.loadcfg()
+        self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])    
+        curbranch=self.__getbranch()
+        if self.__istempbranch(curbranch) :
+            (branch,commit)=self.__parsetempbranch(curbranch)
+        else:
+            branch=curbranch
+            commit=self.__getcurrev(branch)
+        if commit:
+            print("you are in revision \"%s\" of workspace \"%s\""%(commit,branch)) 
+        else:
+            print("you are in workspace \"%s\""%(branch))
+
     def checkout(self,revision=None,doimport=True):  
         self.loadcfg()
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
@@ -384,11 +470,7 @@ class Invbackend:
         if not self._validatebrname(revision):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
             return 1
-        revlist=self.__getrev(curbranch)
-        if revision:
-            if not revlist or revision not in revlist:
-                raise InvalidValueException("revision %s not found in workspace %s"%(revision,curbranch))
-                return 1
+
         if self.__istempbranch(curbranch) :
             (branch,commit)=self.__parsetempbranch(curbranch)
             if commit == revision:
@@ -398,6 +480,13 @@ class Invbackend:
                 sh.git.checkout(branch)
                 sh.git.branch('-D',curbranch)
                 curbranch=branch
+
+
+        revlist=self.__getallrev(curbranch)
+        if revision:
+            if not revlist or revision not in revlist:
+                raise InvalidValueException("revision %s not found in workspace %s"%(revision,curbranch))
+                return 1
  
         if revision is None:
             pass

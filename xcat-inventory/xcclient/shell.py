@@ -16,6 +16,7 @@ import logging
 import os
 import sys
 import six
+import re
 import inventory.exceptions 
 import inventory.globalvars
 
@@ -85,16 +86,26 @@ class ClusterShell(object):
         #self._find_actions(subparsers, actions_module)
         raise NotImplementedError()
 
+    def __subcmdshortcut(self,string):
+        sc=None
+        matched=re.findall(r'shortcut:(\S+)\s*$',string) 
+        if matched:
+            sc=matched[0].strip('"').strip("'")
+            return sc.split(',')
+        return None
+
     def _find_actions(self, subparsers, actions_module):
         for attr in (a for a in dir(actions_module) if a.startswith('do_')):
             command = attr[3:].replace('_', '-')
             callback = getattr(actions_module, attr)
             desc = callback.__doc__ or ''
             help = desc.strip().split('\n')[0]
+            sc=self.__subcmdshortcut(help)
             arguments = getattr(callback, 'arguments', [])
 
             subparser = subparsers.add_parser(
                 command,
+                #aliases=sc,
                 help=help,
                 description=desc,
                 add_help=False,
