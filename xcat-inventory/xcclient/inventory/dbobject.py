@@ -7,9 +7,18 @@ import pdb
 class mixin(object):
     def getdict(self):
         mydict={}
+        mykeyvalue=''
         for mykey in self.__dict__.keys():
-           if mykey in self.__table__.columns:
-              mydict[self.__tablename__+'.'+mykey.encode()]= self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+           if mykey in self.__table__.columns and mykey not in self.getkeys():
+               mydict[self.__tablename__+'.'+mykey.encode()]= self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+        for mykey in self.getkeys():
+            if mykeyvalue is '':
+                mykeyvalue=self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+            else:
+                mykeyvalue+='.'
+                mykeyvalue+=self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+        mykeyvalue=mykeyvalue.rstrip('.')
+        mydict[self.__tablename__+'.'+self.getdictkey()]=mykeyvalue      
         try:
             self.__class__.outprocess(mydict)
         except:
@@ -17,7 +26,15 @@ class mixin(object):
         return mydict
 
     @classmethod
-    def getkey(cls):
+    def getkeys(cls):
+        ins = inspect(cls)
+        keys=[]
+        for item in ins.primary_key:
+            keys.append(item.key)
+        return keys            
+
+    @classmethod
+    def getdictkey(cls):
         ins = inspect(cls)
         return ins.primary_key[0].key
 
@@ -40,11 +57,6 @@ class mixin(object):
     @classmethod
     def getReservedKeys(self):
         return []
-    
-    @classmethod
-    def getsecondkey(self):
-        return ''
-
 ########################################################################
 class passwd(Base,mixin):
     """"""
@@ -52,21 +64,14 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
-    def getsecondkey(self):
-        return 'username'
+    @classmethod
+    def getdictkey(cls):
+        return 'key.username'
 
-    def getdict(self):
-        mydict={}
-        mydictvalue={}
-        for mykey in self.__dict__.keys():
-           if mykey in self.__table__.columns:
-              mydictvalue[self.__tablename__+'.'+mykey.encode()]= self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
-              mydict[self.__dict__['username'].encode()]= mydictvalue
-        try:
-            self.__class__.outprocess(mydict)
-        except:
-            pass
-        return mydict
+    @classmethod
+    def getkeys(cls):
+        return ['key','username']
+
 ########################################################################
 class networks(Base,mixin):
     """"""

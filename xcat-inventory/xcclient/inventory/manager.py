@@ -301,9 +301,8 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
     else:
         objtypelist.extend(InventoryFactory.getvalidobjtypes())
         exportall=1
-
     if names:
-        objlist.extend([n.strip() for n in names.split(',')])
+        objlist.extend([n.strip() and n.rstrip('.') for n in names.split(',')])
 
     wholedict={} 
     for myobjtype in objtypelist:

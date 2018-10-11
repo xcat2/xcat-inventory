@@ -8,13 +8,31 @@ from sqlalchemy import or_
 from exceptions import *
 import utils
 
+def generate_key_dict(tabkeys,inputkeylist):
+    keydict={}
+    if inputkeylist is None:
+        return
+    if len(inputkeylist) < len(tabkeys):
+        appendtimes=len(tabkeys)-len(inputkeylist)
+        while appendtimes > 0:
+            inputkeylist.append('')
+            appendtimes-=1
+    elif len(inputkeylist) > len(tabkeys):
+        deducetimes=len(inputkeylist)-len(tabkeys)
+        while deducetimes >0:
+            inputkeylist[-2]=inputkeylist[-2]+'.'+inputkeylist[-1]
+            deducetimes-=1
+    keydict=dict(zip(tabkeys,inputkeylist))
+    return keydict
+
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
-    tabkey=tabcls.getkey()
+    tabkeys=tabcls.getkeys()
     #for matrix table, remove the record if all the non-key values are None or blank 
     delrow=1 
     #for flat table, keep the record untouch if the non-key values are None
     skiprow=1
     tabcols=tabcls.getcolumns()
+    ret_list = list((set(tabkeys).union(set(newdict.keys())))^(set(tabkeys)^set(newdict.keys())))
 
     for item in newdict.keys():
         if item not in tabcols:
@@ -24,19 +42,20 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             else:
                 raise BadSchemaException("Error: no column '"+item+"' in table "+tabcls.__tablename__+", might caused by mismatch between schema version and xCAT version!")
             
-        if  tabkey != item and newdict[item] is not None:
+        if  item not in tabkeys and newdict[item] is not None:
             skiprow=0        
 
-        if  tabkey != item and newdict[item] is None:
+        if  item not in tabkeys and newdict[item] is None:
             newdict[item]=''
         
         #delete table rows when (1)the key is None or blank (2)the key is not specified in newdict and all non-key values are blank 
-        if tabkey not in newdict.keys(): 
-            if tabkey != item and newdict[item]!='': 
+        if len(ret_list) is 0:
+            if newdict[item]!='': 
                 delrow=0
-        elif newdict[tabkey] is not None and str(newdict[tabkey]) !="":
-            delrow=0
-
+        else:
+            for tkey in ret_list:
+                if str(newdict[tkey]) !="":
+                    delrow=0
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
    
@@ -45,9 +64,14 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             return
         #do not remove for flat table
         delrow=0
-
+    if key is not None:
+        keylist=key.split('.')
+    keydict=generate_key_dict(tabkeys,keylist)
     try:
-        record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
+        query=session.query(tabcls)
+        for tk in tabkeys:
+            query=query.filter(getattr(tabcls,tk).in_(keylist))
+        record=query.all()
     except Exception, e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
@@ -60,15 +84,21 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
         else:
            try:
-               session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
+               query=session.query(tabcls)
+               index=0
+               for kk in tabkeys:
+                   if keylist[index] is not '':
+                       query=query.filter(getattr(tabcls,kk) == keylist[index])
+                   index+=1
+               query.update(newdict)
            except Exception, e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
            #else:
            #    print("Import "+key+": update xCAT table "+tabcls.__tablename__+".")
     elif delrow == 0:
-        newdict[tabkey]=key
+        finaldict=dict(newdict, **keydict)
         try:
-            session.execute(tabcls.__table__.insert(), newdict)
+            session.execute(tabcls.__table__.insert(), finaldict)
         except Exception, e:
             raise DBException("Error: import object "+key+" is failed: "+str(e)) 
         #else:
@@ -78,6 +108,27 @@ class matrixdbfactory():
     def __init__(self,dbsession):
         self._dbsession=dbsession
 
+    def sortdictkeys(self,dbkeys=None,inputkeys=None):
+        sortdict={}
+        dictvalue=[]
+        if inputkeys is None or dbkeys is None:
+            return 
+        dbkeyslen=len(dbkeys)
+        for item in inputkeys:
+            each=[]
+            each=item.split('.')
+            while len(each) < dbkeyslen:
+                each.append('')
+            dictvalue.append(each)
+        index=0
+        for key in dbkeys:
+            eachvalue=[]
+            for item in dictvalue:
+                eachvalue.append(item[index])
+            index+=1
+            sortdict[key]=eachvalue
+        return sortdict 
+
     def gettab(self,tabs,keys=None):    
         ret={}
         for tabname in tabs:
@@ -86,20 +137,23 @@ class matrixdbfactory():
                tab=getattr(dbobject,tabname)
            else:
                continue
-           tabkey=tab.getkey()
+           tabkeys=tab.getkeys()
+           tabdictkey=tab.getdictkey()
            if keys is not None and len(keys)!=0:
-               tabobj=dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+               sortdict=self.sortdictkeys(tabkeys,keys)
+               if sortdict is not None:
+                   query=dbsession.query(tab)
+                   for key,value in sortdict.items():
+                       query=query.filter(getattr(tab,key).in_(value))
+                   query=query.filter(or_(tab.disable == None, tab.disable.notin_(['1','yes'])))        
+                   tabobj=query.all()
            else:
                tabobj=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            if not tabobj:
                continue
            for myobj in tabobj:
                mydict=myobj.getdict()
-               mysecondkey=myobj.getsecondkey()
-               if tab.__tablename__+'.'+tabkey in mydict.keys():
-                  mykey=mydict[tab.__tablename__+'.'+tabkey]
-               elif mysecondkey is not None:
-                  mykey=myobj.__dict__[tabkey]
+               mykey=mydict[tab.__tablename__+'.'+tabdictkey]
                if mykey not in ret.keys():
                   ret[mykey]={}
                ret[mykey].update(mydict)
@@ -158,7 +212,7 @@ class flatdbfactory() :
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                tabkey=tabcls.getkey()
+                tabkey=tabcls.getdictkey()
                 rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
                 dbsession=self._dbsession.loadSession(tab)
                 for rowent in rowentlist:
@@ -253,12 +307,16 @@ class dbfactory():
                 tabcls=getattr(dbobject,tab)
             else:
                 continue
-            tabkey=tabcls.getkey()
+            tabkeys=tabcls.getkeys()
             ReservedKeys=tabcls.getReservedKeys()
             dbsession=self._dbsession.loadSession(tab)
             try:
+                query=dbsession.query(tabcls)        
                 if ReservedKeys:
-                    dbsession.query(tabcls).filter(getattr(tabcls,tabkey).notin_(ReservedKeys),or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
+                    for tk in tabkeys:
+                        query=query.filter(getattr(tabcls,tk).notin_(ReservedKeys))
+                    query=query.filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes'])))
+                    query.delete(synchronize_session='fetch')
                 else:
                     dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
             except Exception, e:
