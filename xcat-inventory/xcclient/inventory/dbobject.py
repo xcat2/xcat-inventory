@@ -35,6 +35,7 @@ class mixin(object):
 
     @classmethod
     def getdictkey(cls):
+        """after DB table convert to dict, generate dictkey prepare for object dict"""
         ins = inspect(cls)
         return ins.primary_key[0].key
 
@@ -80,7 +81,7 @@ class networks(Base,mixin):
     __table_args__ = {'autoload':True}
 
     @classmethod
-    def getkey(cls):
+    def getdictkey(cls):
         return 'netname'
 
     @classmethod    
@@ -96,6 +97,10 @@ class networks(Base,mixin):
             return False
         else:
             return True
+
+    @classmethod
+    def getkeys(cls):
+        return ['netname']
 
 ########################################################################
 class routes(Base,mixin):
@@ -132,6 +137,15 @@ class switch(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('switch')
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getdictkey(cls):
+        return 'node'
+
+    @classmethod
+    def getkeys(cls):
+        return ['node']
+
 ########################################################################
 class switches(Base,mixin):
     """"""
