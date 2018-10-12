@@ -79,7 +79,7 @@ class InventoryShell(shell.ClusterShell):
 
     def do_init(self,args):
         """Initialize the inventory backend"""
-        mybackend=backend.Invbackend()
+        mybackend=backend.Invbackend(skip=1)
         mybackend.init()
 
     def do_workspace_list(self,args):
@@ -92,7 +92,6 @@ class InventoryShell(shell.ClusterShell):
         """create a new workspace"""
         mybackend=backend.Invbackend()
         mybackend.workspace_new(args.workspacename)
-        print("\'%s\' workspace created!"%(args.workspacename))
 
     @shell.arg('workspacename',metavar='workspacename',type=str,help='the workspace name to delete')
     def do_workspace_delete(self,args):
