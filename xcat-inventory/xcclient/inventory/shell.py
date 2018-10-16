@@ -124,6 +124,11 @@ class InventoryShell(shell.ClusterShell):
         mybackend=backend.Invbackend()
         mybackend.refresh()
 
+    def do_radar(self,args):
+        """detect the workspace and revision in remote repo"""
+        mybackend=backend.Invbackend()
+        mybackend.radar()
+
     def do_pull(self,args):
         """sync the current workspace with remote workspace"""
         mybackend=backend.Invbackend()
@@ -140,8 +145,8 @@ class InventoryShell(shell.ClusterShell):
     #    mybackend=backend.Invbackend()
     #    mybackend.drop()
 
-    @shell.arg('revision',metavar='revision',type=str,default=None,help='the revision name to create')
-    @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs=1, help='the description of the revision to create')
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision name to create')
+    @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs='?', help='the description of the revision to create')
     def do_commit(self,args):
         """create a revision and push to remote backend"""
         mybackend=backend.Invbackend()
@@ -156,7 +161,7 @@ class InventoryShell(shell.ClusterShell):
 def main():
     utils.initglobal()
     try:
-        InventoryShell('xcat-inventory','0.1.5 (git commit e9a60969af2eed15162d0c40f9cd0cdbdaacca5c)').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
+        InventoryShell('xcat-inventory','#VERSION_SUBSTITUTE#').run(sys.argv[1:], '1.0', "xCAT inventory management tool")
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
