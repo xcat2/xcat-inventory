@@ -260,7 +260,8 @@ class Invbackend:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
         if lines:
             rawbranches=lines.split('\n')        
-            branches=[branch.lstrip('*').strip() for branch in rawbranches if not self.__istempbranch(branch.strip())]
+            branches=[branch.lstrip('*').strip() for branch in rawbranches if not self.__istempbranch(branch.lstrip('*').strip())]
+
         return branches
             
 
