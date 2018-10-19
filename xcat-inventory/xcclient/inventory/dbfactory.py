@@ -15,7 +15,6 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     #for flat table, keep the record untouch if the non-key values are None
     skiprow=1
     tabcols=tabcls.getcolumns()
-
     for item in newdict.keys():
         if item not in tabcols:
             if newdict[item] is None:
@@ -24,18 +23,20 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             else:
                 raise BadSchemaException("Error: no column '"+item+"' in table "+tabcls.__tablename__+", might caused by mismatch between schema version and xCAT version!")
             
-        if  tabkey != item and newdict[item] is not None:
+        if  tabkey != item and newdict[item]:
             skiprow=0        
+            delrow=0
 
         if  tabkey != item and newdict[item] is None:
             newdict[item]=''
         
         #delete table rows when (1)the key is None or blank (2)the key is not specified in newdict and all non-key values are blank 
-        if tabkey not in newdict.keys(): 
-            if tabkey != item and newdict[item]!='': 
-                delrow=0
-        elif newdict[tabkey] is not None and str(newdict[tabkey]) !="":
+
+    #    if tabkey not in newdict.keys(): 
+        if tabkey != item and newdict[item]!='': 
             delrow=0
+        #elif newdict[tabkey] is not None and str(newdict[tabkey]) !="":
+        #    delrow=0
 
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
@@ -45,6 +46,8 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             return
         #do not remove for flat table
         delrow=0
+   
+
 
     try:
         record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
@@ -78,7 +81,7 @@ class matrixdbfactory():
     def __init__(self,dbsession):
         self._dbsession=dbsession
 
-    def gettab(self,tabs,keys=None):    
+    def gettab(self,tabs,keys=[]):    
         ret={}
         for tabname in tabs:
            dbsession=self._dbsession.loadSession(tabname); 
@@ -86,24 +89,42 @@ class matrixdbfactory():
                tab=getattr(dbobject,tabname)
            else:
                continue
-           tabkey=tab.getkey()
-           if keys is not None and len(keys)!=0:
-               tabobj=dbsession.query(tab).filter(getattr(tab,tabkey).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
-           else:
-               tabobj=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
-           if not tabobj:
+           tabobjs=[]
+           tabkeys=tab.primkeys()
+           if len(keys)==0:
+               tabobjs=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+           elif len(tabkeys)==1:
+               tabobjs=dbsession.query(tab).filter(getattr(tab,tabkeys[0]).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+           elif len(tabkeys)>1:
+               for key in keys:
+                   kvdict=dict(zip(tabkeys,key))
+                   if kvdict:
+                       query=dbsession.query(tab)
+                       for key,value in kvdict.items():
+                           query=query.filter(getattr(tab,key).in_(value))
+                       query=query.filter(or_(tab.disable == None, tab.disable.notin_(['1','yes'])))  
+                   tabobj=query.all()
+                   tabobjs.extend(tabobj)
+           if not tabobjs:
                continue
-           for myobj in tabobj:
+           for myobj in tabobjs:
                mydict=myobj.getdict()
-               mykey=mydict[tab.__tablename__+'.'+tabkey]
+               if len(tabkeys)==1:
+                   mykey=mydict[tab.__tablename__+'.'+tabkeys[0]]
+               elif len(tabkeys)>1:
+                   print(tab.__tablename__)
+                   mykeylist=[]
+                   for key in tabkeys:
+                       mykeylist.append(mydict[tab.__tablename__+'.'+key])  
+                   mykey=tuple(mykeylist)
                if mykey not in ret.keys():
-                  ret[mykey]={}
+                   ret[mykey]={}
                ret[mykey].update(mydict)
-        return  ret 
+        return ret 
 
     def settab(self,tabdict=None):
         #print "=========matrixdbfactory:settab========"
-        #print(tabdict)
+        print(tabdict)
         #print("\n")
         if tabdict is None:
             return None
@@ -244,7 +265,8 @@ class dbfactory():
                 flattabs.append(tab)
             else:
                 matrixtabs.append(tab)
-        for tab in matrixtabs:
+        #for tab in matrixtabs:
+        for tab in tabs:
             if hasattr(dbobject,tab):
                 tabcls=getattr(dbobject,tab)
             else:
@@ -259,8 +281,8 @@ class dbfactory():
                     dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
             except Exception, e:
                 raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
-            #else:
-            #    print("table "+tab+ "cleared!")
+        #else:
+        #    print("table "+tab+ "cleared!")
 
 if __name__ == "__main__":
      pass

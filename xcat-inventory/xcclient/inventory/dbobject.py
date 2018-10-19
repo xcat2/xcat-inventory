@@ -17,6 +17,13 @@ class mixin(object):
         return mydict
 
     @classmethod
+    def primkeys(cls):
+        ins = inspect(cls)
+        prikeys=[ item.key for item in ins.primary_key ]
+        prikeys.sort(None,None,reverse=False)
+        return tuple(prikeys)
+
+    @classmethod
     def getkey(cls):
         ins = inspect(cls)
         return ins.primary_key[0].key
@@ -47,6 +54,10 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
+    @classmethod
+    def primkeys(cls):
+        return ('key','username')
+
 ########################################################################
 class networks(Base,mixin):
     """"""
@@ -55,6 +66,9 @@ class networks(Base,mixin):
     __table_args__ = {'autoload':True}
 
     @classmethod
+    def primkeys(cls):
+        return ('netname')
+
     def getkey(cls):
         return 'netname'
 
