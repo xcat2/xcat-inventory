@@ -46,8 +46,6 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             return
         #do not remove for flat table
         delrow=0
-   
-
 
     try:
         record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
@@ -97,34 +95,59 @@ class matrixdbfactory():
                tabobjs=dbsession.query(tab).filter(getattr(tab,tabkeys[0]).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            elif len(tabkeys)>1:
                for key in keys:
+                   if type(key)!=tuple:
+                       key=[key]
                    kvdict=dict(zip(tabkeys,key))
-                   if kvdict:
-                       query=dbsession.query(tab)
-                       for key,value in kvdict.items():
-                           query=query.filter(getattr(tab,key).in_(value))
-                       query=query.filter(or_(tab.disable == None, tab.disable.notin_(['1','yes'])))  
+                   query=dbsession.query(tab)
+                   for key,value in kvdict.items():
+                       query=query.filter(getattr(tab,key).in_([value]))
+                   query=query.filter(or_(tab.disable == None, tab.disable.notin_(['1','yes'])))  
                    tabobj=query.all()
                    tabobjs.extend(tabobj)
            if not tabobjs:
                continue
+
+           objkeyname=tab.getobjkey()
+           dictoftab={}
            for myobj in tabobjs:
                mydict=myobj.getdict()
-               if len(tabkeys)==1:
-                   mykey=mydict[tab.__tablename__+'.'+tabkeys[0]]
-               elif len(tabkeys)>1:
-                   print(tab.__tablename__)
+
+               if len(objkeyname)==1:
+                   mykey=mydict[tab.__tablename__+'.'+objkeyname[0]]
+               elif len(objkeyname)>1:
                    mykeylist=[]
-                   for key in tabkeys:
+                   for key in objkeyname:
                        mykeylist.append(mydict[tab.__tablename__+'.'+key])  
                    mykey=tuple(mykeylist)
+
+               if mykey not in dictoftab.keys():
+                   dictoftab[mykey]=mydict
+               else:
+                   if type(dictoftab[mykey])!=list:
+                       dictoftab[mykey]=[dictoftab[mykey]]
+                   dictoftab[mykey].append(mydict)
+
+
+           for mykey in dictoftab.keys():
                if mykey not in ret.keys():
                    ret[mykey]={}
-               ret[mykey].update(mydict)
+               if type(dictoftab[mykey])==list:
+                   if tabname not in ret[mykey].keys():
+                       ret[mykey][tabname]=[]
+                   ret[mykey][tabname].extend(dictoftab[mykey])
+               else:
+                   ret[mykey].update(dictoftab[mykey])
+
+        for mykey in ret.keys():
+            if len(ret[mykey].keys())==1 and ret[mykey].keys()[0] in tabs :
+                ret[mykey]=ret[mykey][ret[mykey].keys()[0]]          
+        print(ret)
+
         return ret 
 
     def settab(self,tabdict=None):
         #print "=========matrixdbfactory:settab========"
-        print(tabdict)
+        #print(tabdict)
         #print("\n")
         if tabdict is None:
             return None

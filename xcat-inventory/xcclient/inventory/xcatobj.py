@@ -358,7 +358,7 @@ class XcatBase(object):
                pass
 
         if not isinstance(objdict,dict):
-            raise InvalidFileException("Error: invalid object definition of "+slef.name)
+            raise InvalidFileException("Error: invalid object definition of "+self.name)
         
         invalidkeylist=[]
         _dictcmp(self.__class__._schema,objdict,invalidkeylist)
@@ -560,6 +560,13 @@ class Policy(XcatBase):
 
 class Passwd(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/passwd.yaml')
+    def validatelayout(self,objdict):
+        if type(objdict)==list:
+            for item in objdict:
+                print(item)
+                super(Passwd,self).validatelayout(item)
+        else:
+            super(Passwd,self).validatelayout(objdict)
 
 class Site(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/site.yaml')

@@ -16,6 +16,7 @@ class mixin(object):
             pass 
         return mydict
 
+    #return a tuple of table primary keys
     @classmethod
     def primkeys(cls):
         ins = inspect(cls)
@@ -23,10 +24,10 @@ class mixin(object):
         prikeys.sort(None,None,reverse=False)
         return tuple(prikeys)
 
+    #return the key of object in table row
     @classmethod
-    def getkey(cls):
-        ins = inspect(cls)
-        return ins.primary_key[0].key
+    def getobjkey(cls):
+        return cls.primkeys()
 
     @classmethod
     def isValid(cls, netname, tabdict):
@@ -58,6 +59,10 @@ class passwd(Base,mixin):
     def primkeys(cls):
         return ('key','username')
 
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['key'])
+    
 ########################################################################
 class networks(Base,mixin):
     """"""
@@ -67,10 +72,10 @@ class networks(Base,mixin):
 
     @classmethod
     def primkeys(cls):
-        return ('netname')
+        return tuple(['netname'])
 
-    def getkey(cls):
-        return 'netname'
+    def getobjkey(cls):
+        return tuple(['netname'])
 
     @classmethod    
     def isValid(cls, netname, tabdict):
@@ -121,12 +126,18 @@ class switch(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('switch')
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['node'])
 ########################################################################
 class switches(Base,mixin):
     """"""
     Base.metadata.bind = DBsession.getEngine('switches')
     __tablename__ = 'switches'
     __table_args__ = {'autoload':True}
+
+
 ########################################################################
 class mac(Base,mixin):
     """"""

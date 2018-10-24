@@ -119,12 +119,25 @@ class InventoryFactory(object):
         for key, attrs in obj_attr_dict.items():
             if not key:
                continue
-            newobj = myclass.createfromdb(key, attrs)
-            myobjdict=newobj.getobjdict()
+            filestobak=[]
+            if type(attrs)==list:
+                myobjdict={}
+                for attr in attrs:
+                    newsubobj=myclass.createfromdb(key, attr)
+                    subobjdict=newsubobj.getobjdict()
+                    objdictkey=subobjdict.keys()[0]
+                    if objdictkey not in myobjdict.keys():
+                        myobjdict[objdictkey]=[]
+                    myobjdict[objdictkey].append(subobjdict[objdictkey])
+                    filestobak.append(newsubobj.getfilestosave())
+            else:
+                newobj = myclass.createfromdb(key, attrs)
+                myobjdict=newobj.getobjdict()
+                filestobak=newobj.getfilestosave()
             myobjdict2dump[self.objtype]=myobjdict
             myobjdict2dump['schema_version']=self.getcurschemaversion()
             objdict[self.objtype].update(myobjdict)
-            filestobak=newobj.getfilestosave()
+
             if location: 
                 mydir=os.path.join(location,key)
                 if os.path.exists(mydir):
@@ -162,6 +175,7 @@ class InventoryFactory(object):
         
         
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
+        print(obj_attr_dict)
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
