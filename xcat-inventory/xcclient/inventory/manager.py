@@ -29,21 +29,26 @@ VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn}
     __InventoryClass_WithFiles__=['osimage','credential']
+    __InventoryClass_partial__=['networkconn']
     __db__ = None
     
-    def __init__(self, objtype,dbsession,schemapath):
+    def __init__(self, objtype,dbsession,schemapath,schemaversion):
         self.objtype = objtype
         self.dbsession=dbsession
         self.schemapath=schemapath
+        self.schemaversion=schemaversion
+
 
     @classmethod
     def getObjTypesWithFiles(cls):
         return cls.__InventoryClass_WithFiles__
 
     @classmethod
-    def getvalidobjtypes(cls):
+    def getvalidobjtypes(cls,ignorepartial=0):
+        if ignorepartial:
+            return list(set(cls.__InventoryClass__.keys())-set(cls.__InventoryClass_partial__))
         return cls.__InventoryClass__.keys()
 
     @staticmethod
@@ -61,7 +66,8 @@ class InventoryFactory(object):
             raise BadSchemaException("Error: schema file \""+schemapath+"\" does not exist, please confirm the schema version!")
         # non-thread-safe now
         if objtype not in InventoryFactory.__InventoryHandlers__:
-            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath)
+            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath,schemaversion)
+
         return InventoryFactory.__InventoryHandlers__[objtype]
 
     @staticmethod
@@ -104,6 +110,7 @@ class InventoryFactory(object):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'export')
+               
         obj_attr_dict={}
         tabs=myclass.gettablist()
         if not tabs:
@@ -162,6 +169,17 @@ class InventoryFactory(object):
                         shutil.copyfile(filetobak,dstfile)
                     else:
                         print("Warning: The file \"%s\" of \"%s\" object \"%s\" does not exist"%(filetobak,self.objtype,key),file=sys.stderr) 
+
+        refobjdict=myclass.getoutref()
+        if refobjdict:
+           for key in refobjdict.keys():
+               for subtype in refobjdict[key]:
+                    subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
+                    subdict=subhdl.exportObjs(objlist,None,fmt)
+                    if subdict:
+                        for node,attr in subdict[subtype].items():
+                            utils.Util_setdictval(objdict,"%s.%s.%s"%(self.objtype,node,key),attr)
+            
         return objdict
         
     @classmethod
@@ -313,7 +331,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
     if objtype:
         objtypelist.extend([n.strip() for n in objtype.split(',')])
     else:
-        objtypelist.extend(InventoryFactory.getvalidobjtypes())
+        objtypelist.extend(InventoryFactory.getvalidobjtypes(ignorepartial=1))
         exportall=1
 
     if names:
