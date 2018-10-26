@@ -12,7 +12,9 @@ import re
 import os
 import sqlalchemy.exc
 from exceptions import *
+import codecs
 
+codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
 
 Base = declarative_base()
 Base.metadata.bind = None;
