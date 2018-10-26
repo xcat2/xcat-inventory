@@ -193,32 +193,57 @@ class InventoryFactory(object):
         
         
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
-        print(obj_attr_dict)
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'import')
+
         dbdict = {}
         objfiles={}
         exptmsglist=[]
+
+        outrefs=myclass.getoutref()
+        partialobjdict={}
+
         for key, attrs in obj_attr_dict.items():
+                 
             verbose("  converting object \"%s\" to table entries"%(key),file=sys.stdout)
             if not objlist or key in objlist:
-                if 'OBJNAME' in envar.keys():
+                if 'OBJNAME' in envar.keys() and type(attrs)==dict:
                     envar['OBJNAME']=key
                     Util_subvarsindict(attrs,envar)    
                 else:
                     envar['OBJNAME']=key
                 if self.objtype == 'osimage' and envar is not None:
                     Util_setdictval(attrs,'environvars',','.join([item+'='+envar[item] for item in envar.keys()]))   
-                try:
-                    newobj = myclass.createfromfile(key, attrs)
-                except InvalidValueException,e:
-                    exptmsglist.append(str(e)) 
-                    continue
-                objfiles[key]=newobj.getfilestosave()
-                dbdict.update(newobj.getdbdata())
+
+                objfiles[key]=[]
+                attrlist=[]
+                if type(attrs)!=list:
+                    attrlist.append(attrs)
+                else:
+                    attrlist.extend(attrs)
+
+                for attr in attrlist:
+                    for (attrpath,reftype) in outrefs.items():
+                        partialobj=utils.Util_getdictval(attr,attrpath)
+                        if partialobj:
+                            Util_setdictval(partialobjdict,"%s.%s"%(reftype[0],key),partialobj)
+                    try:
+                        newobj = myclass.createfromfile(key, attr)
+                    except InvalidValueException,e:
+                        exptmsglist.append(str(e)) 
+                        continue
+                    objfiles[key].extend(newobj.getfilestosave())
+                    partialdbdict=newobj.getdbdata()
+                    if key not in dbdict.keys():
+                        dbdict.update(partialdbdict)
+                    elif type(dbdict[key])==dict:
+                        dbdict[key]=[dbdict[key]]
+                        dbdict[key].append(partialdbdict[key])
+                    elif type(dbdict[key])==list:
+                        dbdict[key].append(partialdbdict[key])
         if(exptmsglist):
             raise InvalidValueException('\n'.join(exptmsglist))
         tabs=myclass.gettablist()
@@ -227,6 +252,11 @@ class InventoryFactory(object):
         if dbdict:
             print(" writting \"%s\" type objects"%(self.objtype),file=sys.stdout)
             self.getDBInst().settab(dbdict)
+        if partialobjdict:
+            for subtype in partialobjdict.keys():
+                subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
+                subdict=subhdl.importObjs(None,partialobjdict[subtype],update,envar)
+
         return objfiles
 
     

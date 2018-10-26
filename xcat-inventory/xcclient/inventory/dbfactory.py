@@ -9,11 +9,20 @@ from exceptions import *
 import utils
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
-    tabkey=tabcls.getkey()
+    tabkeys=tabcls.primkeys()
     #for matrix table, remove the record if all the non-key values are None or blank 
     delrow=1 
     #for flat table, keep the record untouch if the non-key values are None
     skiprow=1
+    
+    objkeys=tabcls.getobjkey()
+  
+    if type(key) not in (list,tuple):
+        key=[key] 
+    keyvals=zip(objkeys,key)
+    for (keyname,keyval)  in keyvals:
+        newdict[keyname]=keyval
+
     tabcols=tabcls.getcolumns()
     for item in newdict.keys():
         if item not in tabcols:
@@ -23,17 +32,17 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             else:
                 raise BadSchemaException("Error: no column '"+item+"' in table "+tabcls.__tablename__+", might caused by mismatch between schema version and xCAT version!")
             
-        if  tabkey != item and newdict[item]:
+        if item not in objkeys and newdict[item]:
             skiprow=0        
             delrow=0
 
-        if  tabkey != item and newdict[item] is None:
+        if  item not in objkeys and newdict[item] is None:
             newdict[item]=''
         
         #delete table rows when (1)the key is None or blank (2)the key is not specified in newdict and all non-key values are blank 
 
-    #    if tabkey not in newdict.keys(): 
-        if tabkey != item and newdict[item]!='': 
+        #if tabkey not in newdict.keys(): 
+        if item not in objkeys and newdict[item]!='': 
             delrow=0
         #elif newdict[tabkey] is not None and str(newdict[tabkey]) !="":
         #    delrow=0
@@ -47,33 +56,38 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         #do not remove for flat table
         delrow=0
 
+    #if tabcls.__tablename__=='switch':
+    #    import pdb
+    #    pdb.set_trace()
     try:
-        record=session.query(tabcls).filter(getattr(tabcls,tabkey).in_([key])).all()
+        query=session.query(tabcls)
+        for tabkey in tabkeys:
+            query=query.filter(getattr(tabcls,tabkey).in_([newdict[tabkey]]))
+        record=query.all()
     except Exception, e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
         if delrow:
             try:
-                session.delete(record[0])
+                for item in record:
+                    session.delete(item)
             except Exception, e:
                 raise DBException("Error: delete "+key+" is failed: "+str(e))
             #else:
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
         else:
            try:
-               session.query(tabcls).filter(getattr(tabcls,tabkey) == key).update(newdict)
+               query=session.query(tabcls)
+               for tabkey in tabkeys:
+                   query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
+               query.update(newdict)
            except Exception, e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
-           #else:
-           #    print("Import "+key+": update xCAT table "+tabcls.__tablename__+".")
     elif delrow == 0:
-        newdict[tabkey]=key
         try:
             session.execute(tabcls.__table__.insert(), newdict)
         except Exception, e:
             raise DBException("Error: import object "+key+" is failed: "+str(e)) 
-        #else:
-        #    print("Import "+key+": insert xCAT table "+tabcls.__tablename__+".")
 
 class matrixdbfactory():
     def __init__(self,dbsession):
@@ -145,7 +159,7 @@ class matrixdbfactory():
         return ret 
 
     def settab(self,tabdict=None):
-        #print "=========matrixdbfactory:settab========"
+        #print("=========matrixdbfactory:settab========")
         #print(tabdict)
         #print("\n")
         if tabdict is None:
@@ -158,8 +172,9 @@ class matrixdbfactory():
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                if tabcls.isValid(key,tabdict[key][tab]):
-                    create_or_update(dbsession,tabcls,key,tabdict[key][tab])
+                for record in tabdict[key][tab]:
+                    if tabcls.isValid(key,record):
+                        create_or_update(dbsession,tabcls,key,record)
 
 class flatdbfactory() :
     def __init__(self,dbsession):
@@ -187,8 +202,8 @@ class flatdbfactory() :
         return  ret
    
     def settab(self,tabdict=None):
-        #print "======flatdbfactory:settab======"
-        #print tabdict
+        #print("======flatdbfactory:settab======")
+        #print(tabdict)
         if tabdict is None:
             return None
         for key in tabdict.keys():
@@ -197,8 +212,8 @@ class flatdbfactory() :
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
-                tabkey=tabcls.getkey()
-                rowentlist=tabcls.dict2tabentry(tabdict[key][tab])
+                tabkey=tabcls.getobjkey()[0]
+                rowentlist=tabcls.dict2tabentry(tabdict[key][tab][0])
                 dbsession=self._dbsession.loadSession(tab)
                 for rowent in rowentlist:
                     if tabcls.isValid(key, rowent):
@@ -232,38 +247,63 @@ class dbfactory():
             df_matrix=matrixdbfactory(self._dbsession)
             mydict.update(df_matrix.gettab(matrixtabs,keys))
         return mydict
-        
+    
+    #convert db dict from format {key:{tab.col=value}} to {key:{tab:{col}}}
+    def __tabtransform(self,dbdict):
+        #print("__tabtransform")
+        #print(dbdict)
+        flattabdict={}
+        matrixtabdict={}
+
+        #try:
+        for key in dbdict.keys():
+            dbentlist=[]
+            rawdbents=dbdict[key]
+            if type(rawdbents)==dict:
+                dbentlist.append(rawdbents)
+            else:
+                dbentlist.extend(rawdbents)  
+   
+
+            for dbent in dbentlist:
+                #print("@@@@@@@@@@@@")
+                #print(dbent)
+                #print("@@@@@@@@@@@@")
+                rowdict={}
+                for tabcol in dbent.keys():
+                    (tab,col)=tabcol.split('.')
+
+                    if tab not in rowdict.keys():
+                        rowdict[tab]={}
+                    if col not in rowdict[tab].keys():
+                        rowdict[tab][col]={}
+                    rowdict[tab][col]=dbent[tabcol] 
+
+
+                for tab in rowdict.keys():
+                    if hasattr(dbobject,tab):
+                        tabcls=getattr(dbobject,tab)
+                    else:
+                        continue       
+                    if tabcls.getTabtype() == 'flat':
+                        if key not in flattabdict.keys():
+                            flattabdict[key]={}
+                        if tab not in flattabdict[key].keys():
+                            flattabdict[key][tab]=[]
+                        flattabdict[key][tab].append(rowdict[tab])
+                    else:
+                        if key not in matrixtabdict.keys():
+                            matrixtabdict[key]={}
+                        if tab not in matrixtabdict[key].keys():
+                            matrixtabdict[key][tab]=[]
+                        matrixtabdict[key][tab].append(rowdict[tab])
+        return(matrixtabdict,flattabdict)
+     
                 
     def settab(self,dbdict=None):                 
         if dbdict is None:
             return None
-        flattabdict={}
-        matrixtabdict={}
-        #try:
-        for key in dbdict.keys():
-            curdict=dbdict[key]
-            for tabcol in curdict.keys():
-                (tab,col)=tabcol.split('.')
-                if hasattr(dbobject,tab):
-                    tabcls=getattr(dbobject,tab)
-                else:
-                    continue       
-                if tabcls.getTabtype() == 'flat':
-                    if key not in flattabdict.keys():
-                        flattabdict[key]={}
-                    if tab not in flattabdict[key].keys():
-                        flattabdict[key][tab]={}
-                    if col not in flattabdict[key][tab].keys():
-                        flattabdict[key][tab][col]={}
-                    flattabdict[key][tab][col]=curdict[tabcol]
-                else:
-                    if key not in matrixtabdict.keys():
-                        matrixtabdict[key]={}
-                    if tab not in matrixtabdict[key].keys():
-                        matrixtabdict[key][tab]={}
-                    if col not in matrixtabdict[key][tab].keys():
-                        matrixtabdict[key][tab][col]={}
-                    matrixtabdict[key][tab][col]=curdict[tabcol]
+        (matrixtabdict,flattabdict)=self.__tabtransform(dbdict)
         if flattabdict:
             df_flat=flatdbfactory(self._dbsession)
             mydict=df_flat.settab(flattabdict)
@@ -293,7 +333,7 @@ class dbfactory():
                 tabcls=getattr(dbobject,tab)
             else:
                 continue
-            tabkey=tabcls.getkey()
+            tabkey=tabcls.getobjkey()[0]
             ReservedKeys=tabcls.getReservedKeys()
             dbsession=self._dbsession.loadSession(tab)
             try:

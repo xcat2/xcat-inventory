@@ -159,7 +159,7 @@ class postscripts(Base,mixin):
 
     @classmethod
     def getReservedKeys(self):
-        return ['xcatdefaults','service']
+        return ('xcatdefaults','service')
     
 ########################################################################
 class bootparams(Base,mixin):
@@ -332,6 +332,10 @@ class ppcdirect(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('ppcdirect')
     __tablename__ = 'ppcdirect'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def primkeys(cls):
+        return tuple(['hcp'])
 ########################################################################
 class storage(Base,mixin):
     """"""
