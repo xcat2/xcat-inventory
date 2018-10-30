@@ -190,8 +190,13 @@ class InventoryFactory(object):
         invalidkeys=list(filekeys-schemakeys)
         if invalidkeys:
             raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
-        
-        
+    
+    def getclass(self):
+        myclass = InventoryFactory.__InventoryClass__[self.objtype]
+        myclass.loadschema(self.schemapath)        
+        return myclass
+       
+          
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
@@ -255,7 +260,7 @@ class InventoryFactory(object):
         if partialobjdict:
             for subtype in partialobjdict.keys():
                 subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
-                subdict=subhdl.importObjs(None,partialobjdict[subtype],update,envar)
+                subdict=subhdl.importObjs(None,partialobjdict[subtype],update=True,envar=envar)
 
         return objfiles
 

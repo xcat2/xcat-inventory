@@ -62,7 +62,7 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     try:
         query=session.query(tabcls)
         for tabkey in tabkeys:
-            query=query.filter(getattr(tabcls,tabkey).in_([newdict[tabkey]]))
+            query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
         record=query.all()
     except Exception, e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
@@ -77,9 +77,9 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
         else:
            try:
-               query=session.query(tabcls)
-               for tabkey in tabkeys:
-                   query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
+               #query=session.query(tabcls)
+               #for tabkey in tabkeys:
+               #    query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
                query.update(newdict)
            except Exception, e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
