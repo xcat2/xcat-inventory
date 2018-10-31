@@ -166,12 +166,16 @@ class matrixdbfactory():
             return None
         for key in tabdict.keys():
             utils.verbose("  writting object: "+str(key),file=sys.stdout)
+            #clear any existing table entries before adding new entries
+            df=dbfactory(self._dbsession) 
+            df.cleartab(tabdict[key].keys(),[key])
             for tab in tabdict[key].keys():
                 dbsession=self._dbsession.loadSession(tab);
                 if hasattr(dbobject,tab):
                     tabcls=getattr(dbobject,tab)
                 else:
                     continue
+
                 for record in tabdict[key][tab]:
                     if tabcls.isValid(key,record):
                         create_or_update(dbsession,tabcls,key,record)
@@ -315,7 +319,7 @@ class dbfactory():
         #else:
         #    print("import object successfully.")          
 
-    def cleartab(self,tabs):
+    def cleartab(self,tabs,objkey=[]):
         flattabs=[]
         matrixtabs=[]
         for tab in tabs:
@@ -327,7 +331,6 @@ class dbfactory():
                 flattabs.append(tab)
             else:
                 matrixtabs.append(tab)
-        #for tab in matrixtabs:
         for tab in tabs:
             if hasattr(dbobject,tab):
                 tabcls=getattr(dbobject,tab)
@@ -337,10 +340,14 @@ class dbfactory():
             ReservedKeys=tabcls.getReservedKeys()
             dbsession=self._dbsession.loadSession(tab)
             try:
+                query=dbsession.query(tabcls)
+                query=query.filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes'])))
                 if ReservedKeys:
-                    dbsession.query(tabcls).filter(getattr(tabcls,tabkey).notin_(ReservedKeys),or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
-                else:
-                    dbsession.query(tabcls).filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).delete(synchronize_session='fetch')
+                    query=query.filter(getattr(tabcls,tabkey).notin_(ReservedKeys))        
+                    
+                if objkey:
+                    query=query.filter(getattr(tabcls,tabkey).in_(objkey)) 
+                query.delete(synchronize_session='fetch')
             except Exception, e:
                 raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
         #else:

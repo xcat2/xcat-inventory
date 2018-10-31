@@ -73,7 +73,7 @@ class networks(Base,mixin):
     @classmethod
     def primkeys(cls):
         return tuple(['netname'])
-
+    @classmethod
     def getobjkey(cls):
         return tuple(['netname'])
 
