@@ -47,6 +47,7 @@ class XcatBase(object):
         tabentregex=re.compile("T\{(.*?)\}")
         dictvalregex=re.compile("V\{(.*?)\}")
         filevalregex=re.compile("^F:(.+)$")
+        refregex=re.compile("^REF\{(.+)\}$")
  
         def __parselambda(expression):
             mtchdval=re.findall(valregex,expression)
@@ -92,8 +93,10 @@ class XcatBase(object):
         revrules=[]
         validaterules=[]
         filerules=[]
+        refrules=[]
+        #print(rawvaluelist)
         for item in rawvaluelist:
-            if not re.match(valregex,item) and not re.match(revregex,item) and not re.match(validateregex,item) and not re.match(filevalregex,item):
+            if not re.match(valregex,item) and not re.match(revregex,item) and not re.match(validateregex,item) and not re.match(filevalregex,item) and not re.match(refregex,item):
                 item='${{:'+item+'}}'
                 fwdrules.append(item)
             elif re.match(valregex,item): 
@@ -104,6 +107,8 @@ class XcatBase(object):
                 validaterules.append(item)
             elif re.match(filevalregex,item):
                 filerules.append(item)
+            elif re.match(refregex,item):
+                refrules.append(item)
   
         if filerules:
             if schmpath not in cls._files.keys(): 
@@ -161,6 +166,17 @@ class XcatBase(object):
              cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinparam'])
              cls._depdict_tab[tabcol]['depvallist'].extend(ret['valsinbody'])
              cls._depdict_tab[tabcol]['schmpath']=''
+     
+        refdict={}
+        for item in refrules:
+             refentry=re.findall(refregex,item)[0]
+             refdict[refentry]=1
+        if refdict:
+            if schmpath not in cls._depdict_ref.keys():
+                cls._depdict_ref[schmpath]=[]
+            cls._depdict_ref[schmpath].extend(refdict.keys())     
+            if schmpath in cls._depdict_val.keys():
+                del cls._depdict_val[schmpath]
                 
         return True
 
@@ -179,7 +195,12 @@ class XcatBase(object):
     def scanschema(cls):
         cls._depdict_tab={}
         cls._depdict_val={}
+        cls._depdict_ref={}
         cls.__scanschema(cls._schema)
+
+    @classmethod
+    def getoutref(cls):
+        return cls._depdict_ref
 
     def __evalschema_tab(self,tabcol):
         mydeptablist=self._depdict_tab[tabcol]['deptablist']
@@ -331,9 +352,10 @@ class XcatBase(object):
     def gettablist(cls):
         tabdict={}
         for mykey in cls._depdict_val.keys():
-            for tabcol in cls._depdict_val[mykey]['deptablist']:
-                (mytab,mycol)=tabcol.split('.')
-                tabdict[mytab]=1
+            if 'deptablist' in cls._depdict_val[mykey].keys():
+                for tabcol in cls._depdict_val[mykey]['deptablist']:
+                    (mytab,mycol)=tabcol.split('.')
+                    tabdict[mytab]=1
         return tabdict.keys() 
 
     def getobjdict(self):
@@ -358,7 +380,7 @@ class XcatBase(object):
                pass
 
         if not isinstance(objdict,dict):
-            raise InvalidFileException("Error: invalid object definition of "+slef.name)
+            raise InvalidFileException("Error: invalid object definition of "+self.name)
         
         invalidkeylist=[]
         _dictcmp(self.__class__._schema,objdict,invalidkeylist)
@@ -560,6 +582,12 @@ class Policy(XcatBase):
 
 class Passwd(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/passwd.yaml')
+    def validatelayout(self,objdict):
+        if type(objdict)==list:
+            for item in objdict:
+                super(Passwd,self).validatelayout(item)
+        else:
+            super(Passwd,self).validatelayout(objdict)
 
 class Site(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/site.yaml')
@@ -569,5 +597,8 @@ class Zone(XcatBase):
 
 class Credential(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/credential.yaml')
+
+class NetworkConn(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/networkconn.yaml')
 if __name__ == "__main__":
     pass

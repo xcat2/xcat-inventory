@@ -16,10 +16,18 @@ class mixin(object):
             pass 
         return mydict
 
+    #return a tuple of table primary keys
     @classmethod
-    def getkey(cls):
+    def primkeys(cls):
         ins = inspect(cls)
-        return ins.primary_key[0].key
+        prikeys=[ item.key for item in ins.primary_key ]
+        prikeys.sort(None,None,reverse=False)
+        return tuple(prikeys)
+
+    #return the key of object in table row
+    @classmethod
+    def getobjkey(cls):
+        return cls.primkeys()
 
     @classmethod
     def isValid(cls, netname, tabdict):
@@ -47,6 +55,14 @@ class passwd(Base,mixin):
     __tablename__ = 'passwd'
     __table_args__ = {'autoload':True}
 
+    @classmethod
+    def primkeys(cls):
+        return ('key','username')
+
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['key'])
+    
 ########################################################################
 class networks(Base,mixin):
     """"""
@@ -55,8 +71,11 @@ class networks(Base,mixin):
     __table_args__ = {'autoload':True}
 
     @classmethod
-    def getkey(cls):
-        return 'netname'
+    def primkeys(cls):
+        return tuple(['netname'])
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['netname'])
 
     @classmethod    
     def isValid(cls, netname, tabdict):
@@ -107,12 +126,18 @@ class switch(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('switch')
     __tablename__ = 'switch'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['node'])
 ########################################################################
 class switches(Base,mixin):
     """"""
     Base.metadata.bind = DBsession.getEngine('switches')
     __tablename__ = 'switches'
     __table_args__ = {'autoload':True}
+
+
 ########################################################################
 class mac(Base,mixin):
     """"""
@@ -134,7 +159,7 @@ class postscripts(Base,mixin):
 
     @classmethod
     def getReservedKeys(self):
-        return ['xcatdefaults','service']
+        return ('xcatdefaults','service')
     
 ########################################################################
 class bootparams(Base,mixin):
@@ -307,6 +332,10 @@ class ppcdirect(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('ppcdirect')
     __tablename__ = 'ppcdirect'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def primkeys(cls):
+        return tuple(['hcp'])
 ########################################################################
 class storage(Base,mixin):
     """"""

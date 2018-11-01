@@ -29,21 +29,26 @@ VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn}
     __InventoryClass_WithFiles__=['osimage','credential']
+    __InventoryClass_partial__=['networkconn']
     __db__ = None
     
-    def __init__(self, objtype,dbsession,schemapath):
+    def __init__(self, objtype,dbsession,schemapath,schemaversion):
         self.objtype = objtype
         self.dbsession=dbsession
         self.schemapath=schemapath
+        self.schemaversion=schemaversion
+
 
     @classmethod
     def getObjTypesWithFiles(cls):
         return cls.__InventoryClass_WithFiles__
 
     @classmethod
-    def getvalidobjtypes(cls):
+    def getvalidobjtypes(cls,ignorepartial=0):
+        if ignorepartial:
+            return list(set(cls.__InventoryClass__.keys())-set(cls.__InventoryClass_partial__))
         return cls.__InventoryClass__.keys()
 
     @staticmethod
@@ -61,7 +66,8 @@ class InventoryFactory(object):
             raise BadSchemaException("Error: schema file \""+schemapath+"\" does not exist, please confirm the schema version!")
         # non-thread-safe now
         if objtype not in InventoryFactory.__InventoryHandlers__:
-            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath)
+            InventoryFactory.__InventoryHandlers__[objtype] = InventoryFactory(objtype,dbsession,schemapath,schemaversion)
+
         return InventoryFactory.__InventoryHandlers__[objtype]
 
     @staticmethod
@@ -104,6 +110,7 @@ class InventoryFactory(object):
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'export')
+               
         obj_attr_dict={}
         tabs=myclass.gettablist()
         if not tabs:
@@ -119,12 +126,25 @@ class InventoryFactory(object):
         for key, attrs in obj_attr_dict.items():
             if not key:
                continue
-            newobj = myclass.createfromdb(key, attrs)
-            myobjdict=newobj.getobjdict()
+            filestobak=[]
+            if type(attrs)==list:
+                myobjdict={}
+                for attr in attrs:
+                    newsubobj=myclass.createfromdb(key, attr)
+                    subobjdict=newsubobj.getobjdict()
+                    objdictkey=subobjdict.keys()[0]
+                    if objdictkey not in myobjdict.keys():
+                        myobjdict[objdictkey]=[]
+                    myobjdict[objdictkey].append(subobjdict[objdictkey])
+                    filestobak.append(newsubobj.getfilestosave())
+            else:
+                newobj = myclass.createfromdb(key, attrs)
+                myobjdict=newobj.getobjdict()
+                filestobak=newobj.getfilestosave()
             myobjdict2dump[self.objtype]=myobjdict
             myobjdict2dump['schema_version']=self.getcurschemaversion()
             objdict[self.objtype].update(myobjdict)
-            filestobak=newobj.getfilestosave()
+
             if location: 
                 mydir=os.path.join(location,key)
                 if os.path.exists(mydir):
@@ -149,6 +169,17 @@ class InventoryFactory(object):
                         shutil.copyfile(filetobak,dstfile)
                     else:
                         print("Warning: The file \"%s\" of \"%s\" object \"%s\" does not exist"%(filetobak,self.objtype,key),file=sys.stderr) 
+
+        refobjdict=myclass.getoutref()
+        if refobjdict:
+           for key in refobjdict.keys():
+               for subtype in refobjdict[key]:
+                    subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
+                    subdict=subhdl.exportObjs(objlist,None,fmt)
+                    if subdict:
+                        for node,attr in subdict[subtype].items():
+                            utils.Util_setdictval(objdict,"%s.%s.%s"%(self.objtype,node,key),attr)
+            
         return objdict
         
     @classmethod
@@ -159,34 +190,66 @@ class InventoryFactory(object):
         invalidkeys=list(filekeys-schemakeys)
         if invalidkeys:
             raise InvalidFileException("Error: invalid keys found \""+' '.join(invalidkeys)+"\"!")
-        
-        
+    
+    def getclass(self):
+        myclass = InventoryFactory.__InventoryClass__[self.objtype]
+        myclass.loadschema(self.schemapath)        
+        return myclass
+       
+          
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
         myclass.validate_schema_version(None,'import')
+
         dbdict = {}
         objfiles={}
         exptmsglist=[]
+
+        outrefs=myclass.getoutref()
+        partialobjdict={}
+
         for key, attrs in obj_attr_dict.items():
+                 
             verbose("  converting object \"%s\" to table entries"%(key),file=sys.stdout)
             if not objlist or key in objlist:
-                if 'OBJNAME' in envar.keys():
+                if 'OBJNAME' in envar.keys() and type(attrs)==dict:
                     envar['OBJNAME']=key
                     Util_subvarsindict(attrs,envar)    
                 else:
                     envar['OBJNAME']=key
                 if self.objtype == 'osimage' and envar is not None:
                     Util_setdictval(attrs,'environvars',','.join([item+'='+envar[item] for item in envar.keys()]))   
-                try:
-                    newobj = myclass.createfromfile(key, attrs)
-                except InvalidValueException,e:
-                    exptmsglist.append(str(e)) 
-                    continue
-                objfiles[key]=newobj.getfilestosave()
-                dbdict.update(newobj.getdbdata())
+
+                objfiles[key]=[]
+                attrlist=[]
+                if type(attrs)!=list:
+                    attrlist.append(attrs)
+                else:
+                    attrlist.extend(attrs)
+
+                for attr in attrlist:
+                    for (attrpath,reftype) in outrefs.items():
+                        partialobj=utils.Util_getdictval(attr,attrpath)
+                        if partialobj:
+                            Util_setdictval(partialobjdict,"%s.%s"%(reftype[0],key),partialobj)
+                            Util_deldictkey(attr,attrpath)
+                    try:
+                        newobj = myclass.createfromfile(key, attr)
+                    except InvalidValueException,e:
+                        exptmsglist.append(str(e)) 
+                        continue
+                    objfiles[key].extend(newobj.getfilestosave())
+                    partialdbdict=newobj.getdbdata()
+                    if key not in dbdict.keys():
+                        dbdict.update(partialdbdict)
+                    elif type(dbdict[key])==dict:
+                        dbdict[key]=[dbdict[key]]
+                        dbdict[key].append(partialdbdict[key])
+                    elif type(dbdict[key])==list:
+                        dbdict[key].append(partialdbdict[key])
         if(exptmsglist):
             raise InvalidValueException('\n'.join(exptmsglist))
         tabs=myclass.gettablist()
@@ -195,6 +258,11 @@ class InventoryFactory(object):
         if dbdict:
             print(" writting \"%s\" type objects"%(self.objtype),file=sys.stdout)
             self.getDBInst().settab(dbdict)
+        if partialobjdict:
+            for subtype in partialobjdict.keys():
+                subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
+                subdict=subhdl.importObjs(None,partialobjdict[subtype],update=True,envar=envar)
+
         return objfiles
 
     
@@ -299,7 +367,7 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
     if objtype:
         objtypelist.extend([n.strip() for n in objtype.split(',')])
     else:
-        objtypelist.extend(InventoryFactory.getvalidobjtypes())
+        objtypelist.extend(InventoryFactory.getvalidobjtypes(ignorepartial=1))
         exportall=1
 
     if names:
