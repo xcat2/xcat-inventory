@@ -95,11 +95,11 @@
         - "T{mac.mac}"   
         - "C:${{mac=V{network_info.primarynic.mac}: False if mac and not vutil.isMacHosts(mac) and not vutil.isRegex(mac) else True}}"
         hostnames: "T{hosts.hostnames}"
-      connections: "REF{networkconn}"
-        #- switch: "T{switch.switch}"
-        #  switchport: "T{switch.port}"
-        #  vlan: "T{switch.vlan}"
-        #  interface: "T{switch.interface}"
+        switch: "T{switch.switch}"
+        switchport: 
+        - "T{switch.port}"
+        switchvlan: "T{switch.vlan}"
+        switchinterface: "T{switch.interface}"
       nics:
         ips: 
         - "T{nics.nicips}"
