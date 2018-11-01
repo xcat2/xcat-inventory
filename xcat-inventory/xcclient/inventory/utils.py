@@ -85,6 +85,20 @@ def Util_setdictval(mydict,keystr,value):
         else:
             mydict[key]=value
 
+#remove dict key [a][b][c] with key path a.b.c
+def Util_deldictkey(mydict,keystr):
+    dictkeyregex=re.compile("([^\.]+)\.?(\S+)*")
+    result=re.findall(dictkeyregex,keystr)
+    if result:
+        (key,remdkey)=result[0]
+        if remdkey:
+            if key not in mydict.keys():
+                mydict[key]={}
+            Util_deldictkey(mydict[key],remdkey)
+        else:
+            del mydict[key]
+
+
 def loadfile(filename):
     if not os.path.exists(filename):
         raise FileNotExistException("Error: File '%s' does not exist, please check..." % filename)

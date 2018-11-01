@@ -235,6 +235,7 @@ class InventoryFactory(object):
                         partialobj=utils.Util_getdictval(attr,attrpath)
                         if partialobj:
                             Util_setdictval(partialobjdict,"%s.%s"%(reftype[0],key),partialobj)
+                            Util_deldictkey(attr,attrpath)
                     try:
                         newobj = myclass.createfromfile(key, attr)
                     except InvalidValueException,e:
