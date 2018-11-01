@@ -39,13 +39,9 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         if  item not in objkeys and newdict[item] is None:
             newdict[item]=''
         
-        #delete table rows when (1)the key is None or blank (2)the key is not specified in newdict and all non-key values are blank 
-
-        #if tabkey not in newdict.keys(): 
+        #delete table rows when (1)the object keys are None or blank (2)the key is not specified in newdict and all non-key values are blank 
         if item not in objkeys and newdict[item]!='': 
             delrow=0
-        #elif newdict[tabkey] is not None and str(newdict[tabkey]) !="":
-        #    delrow=0
 
         if item == 'disable' and newdict[item]=='':
             newdict[item]=None
