@@ -320,17 +320,6 @@ class dbfactory():
         #    print("import object successfully.")          
 
     def cleartab(self,tabs,objkey=[]):
-        flattabs=[]
-        matrixtabs=[]
-        for tab in tabs:
-            if hasattr(dbobject,tab):
-                tabcls=getattr(dbobject,tab)
-            else:
-                continue       
-            if tabcls.getTabtype() == 'flat':
-                flattabs.append(tab)
-            else:
-                matrixtabs.append(tab)
         for tab in tabs:
             if hasattr(dbobject,tab):
                 tabcls=getattr(dbobject,tab)
