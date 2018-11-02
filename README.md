@@ -114,6 +114,7 @@ Several python packages are required:
 * PyMySQL(0.7.x): a pure-Python MySQL client library
 * PyYAML: YAML parser and emitter for the Python
 * Six: a Python 2 and 3 compatibility library
+* deepdiff: Deep Difference of dictionaries, iterables, strings and other objects. It will recursively look for all the changes
 
 In most cases, these packages will be installed during `xcat-inventory` installation. 
 
