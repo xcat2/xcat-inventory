@@ -9,6 +9,7 @@ function makepythoncli {
     RPMNAME="$1"
     SPEC_FILE="xcat-inventory.spec"
     VERINFO=${VERSION}' (git commit '${GITCOMMIT}')'
+    mkdir -p $RPMROOT/SOURCES/
     tar --exclude .svn -czvf $RPMROOT/SOURCES/$RPMNAME-${VERSION}.tar.gz $RPMNAME
     rm -f $RPMROOT/SRPMS/$RPMNAME-$VER*rpm $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*rpm
     echo "Building $RPMROOT/RPMS/noarch/$RPMNAME-$VERSION*.noarch.rpm $EMBEDTXT..."
