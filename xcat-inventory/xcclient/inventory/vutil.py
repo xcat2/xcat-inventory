@@ -96,6 +96,11 @@ def getfileanddeplist(infilelist):
         return 
 
     filedict={}
+
+    #in case the input is some ancient inventory format, such as a list of files delimited with COMMA(,) 
+    if type(infilelist) is not list:
+        infilelist=infilelist.split(',')    
+
     for filename in infilelist:
         getincfiledict(filename,filedict)
     return filedict.keys()

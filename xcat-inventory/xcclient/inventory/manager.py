@@ -619,7 +619,10 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
                 if dryrun:
                     print("copying file: %s ----> %s. Dryrun mode, do nothing..."%(srcfile,myfile),file=sys.stdout)
                 else:
-                    shutil.copyfile(srcfile,myfile)
+                    try:
+                        shutil.copyfile(srcfile,myfile)
+                    except Exception,e:
+                        raise InvalidFileException("Error encountered while copying \"%s\" to \"%s\":\n%s"%(srcfile,myfile,str(e)))
         else:
             print("Warning: the file \""+srcfile+"\" of "+objtype+" \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported",file=sys.stdout)
