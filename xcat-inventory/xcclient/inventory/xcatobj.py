@@ -600,5 +600,9 @@ class Credential(XcatBase):
 
 class NetworkConn(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/networkconn.yaml')
+
+class ProductKey(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/prodkey.yaml')
+
 if __name__ == "__main__":
     pass
