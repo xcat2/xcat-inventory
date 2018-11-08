@@ -81,8 +81,7 @@
         - "T{switches.protocol}"
         - "C:${{protocol=V{security_info.remotecontrol.remoteprotocol}: True if str(protocol) in ('','ssh','telnet') else False}}"
       zonename: "T{nodelist.zonename}"
-      product: "T{prodkey.product}"
-      productkey: "T{prodkey.key}"
+      productkey: "REF{prodkey}" 
     network_info:
       linkports: "${{devtype=V{device_type}: T{switches.linkports} if devtype == 'switch' else None}}"
       otherinterfaces: "T{hosts.otherinterfaces}"

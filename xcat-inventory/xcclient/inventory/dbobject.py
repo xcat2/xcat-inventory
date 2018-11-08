@@ -236,6 +236,10 @@ class prodkey(Base,mixin):
     Base.metadata.bind = DBsession.getEngine('prodkey')
     __tablename__ = 'prodkey'
     __table_args__ = {'autoload':True}
+
+    @classmethod
+    def getobjkey(cls):
+        return tuple(['node'])
 ########################################################################
 class domain(Base,mixin):
     """"""
