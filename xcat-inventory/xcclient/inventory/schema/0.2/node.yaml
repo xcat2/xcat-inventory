@@ -14,7 +14,7 @@
       grouptype: "${{objtype=V{obj_type} :  T{nodegroup.grouptype} if objtype == 'group' else None}}"
       members: "${{objtype=V{obj_type} : T{nodegroup.members} if objtype == 'group' else None}}"
       filter: "${{ objtype=V{obj_type} : T{nodegroup.wherevals} if objtype == 'group' else None}}"
-      description: "T{nodelist.comments}"
+      description: "${{ objtype=V{obj_type}: T{nodelist.comments} if objtype=='node' else T{nodegroup.comments} if objtype=='group' else None}}"
     device_type: 
     - "${{ switchname=T{switches.switch}, pduname=T{pdu.node}, objname=V{obj_name}, rackname=T{rack.rackname},hcpname=T{ppchcp.hcp}: 'switch' if switchname == objname else 'pdu' if pduname == objname else 'rack' if rackname == objname else 'hmc' if hcpname == objname else 'server' }}"
     - "W:T{switches.switch}=${{devtype=V{device_type},value=V{obj_name}: value if devtype == 'switch' else None}}"
@@ -80,7 +80,7 @@
         remoteprotocol: 
         - "T{switches.protocol}"
         - "C:${{protocol=V{security_info.remotecontrol.remoteprotocol}: True if str(protocol) in ('','ssh','telnet') else False}}"
-      zonename: "T{nodelist.zonename}"
+      zonename: "${{ objtype=V{obj_type} : T{nodelist.zonename} if objtype == 'node' else None }}"
       product: "T{prodkey.product}"
       productkey: "T{prodkey.key}"
     network_info:
@@ -201,7 +201,7 @@
       nfsserver: "T{noderes.nfsserver}"
       monserver: "T{noderes.monserver}"
       nameservers: "T{noderes.nameservers}"
-      nodelistprimarysn: "T{nodelist.primarysn}"
+      nodelistprimarysn: "${{ objtype=V{obj_type} : T{nodelist.primarysn} if objtype == 'node' else None }}"
       enablesyslog: "T{noderes.syslog}"
       setupnameserver: 
       - "${{role=V{role}: T{servicenode.nameserver} if role == 'service' else None}}"
@@ -257,7 +257,7 @@
       mpaurlpath: "T{mpa.urlpath}"
       nodehmcmdmapping: "T{nodehm.cmdmapping}"
       nodehmgetmac: "T{nodehm.getmac}"
-      nodelisthidden: "T{nodelist.hidden}"
+      nodelisthidden: "${{ objtype=V{obj_type} : T{nodelist.hidden} if objtype == 'node' else None }}"
       noderesnfsdir: "T{noderes.nfsdir}"
       noderesnimserver: "T{noderes.nimserver}"
       noderesprimarynic: "T{noderes.primarynic}"
