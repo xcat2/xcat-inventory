@@ -161,7 +161,8 @@ class matrixdbfactory():
         if tabdict is None:
             return None
         for key in tabdict.keys():
-            utils.verbose("  writting object: "+str(key),file=sys.stdout)
+            #utils.verbose("  writting object: "+str(key),file=sys.stdout)
+            print("  importing object: %s"%(str(key)),file=sys.stdout)
             #clear any existing table entries before adding new entries
             df=dbfactory(self._dbsession) 
             df.cleartab(tabdict[key].keys(),[key])
