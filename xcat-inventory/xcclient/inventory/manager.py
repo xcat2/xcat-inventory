@@ -669,9 +669,9 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
             try:
                 f = open(env_file)
                 vardict.update( yaml.load(f) )
+                f.close()
             except Exception,e:
-                raise InvalidFileException("Error: Failed to load yaml file '%s', please check ..." % env_file)
-            f.close()
+                raise InvalidFileException("Error: Failed to load variable file '%s', please check ..." % env_file)
 
      if envs:
         for env in envs:

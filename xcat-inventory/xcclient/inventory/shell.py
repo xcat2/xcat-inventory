@@ -41,7 +41,7 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to xcat database')
     @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode. IF specified, all objects other than the ones to import will be removed')
     @shell.arg('-e','--env', dest='env', metavar='<env_var>', action='append', help='the values of variables in object definitions(only available for osimage object), syntax: "<variable name>=<variable value>" , this option can be used multiple times to specify multiple variables')
-    @shell.arg('--env-file', dest='env_file', metavar='<env_file>', action='append', help='the yaml file for variables in object definitions(only available for osimage object), this option can be used multiple times to specify multiple files. If the variable is defined by "-e" option at the same time, will set by "-e" option')
+    @shell.arg('--env-file', dest='env_file', metavar='<env_file>', action='append', help='the variable file to set values for variables in inventory file during import. When specified multiple times, the variables in the variable file will overwrite any existing variable. When used with -e option together, the variable value specified with -e will take precedence.')
     def do_import(self, args):
         """Import inventory file to xcat database"""
         mgr.validate_args(args, 'import')
