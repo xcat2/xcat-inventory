@@ -41,10 +41,11 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('--dry', dest='dryrun', action="store_true", default=False, help='Dry run mode, nothing will be commited to xcat database')
     @shell.arg('-c','--clean', dest='update', action="store_false", default=True, help='clean mode. IF specified, all objects other than the ones to import will be removed')
     @shell.arg('-e','--env', dest='env', metavar='<env_var>', action='append', help='the values of variables in object definitions(only available for osimage object), syntax: "<variable name>=<variable value>" , this option can be used multiple times to specify multiple variables')
+    @shell.arg('--env-file', dest='env_file', metavar='<env_file>', action='append', help='the yaml file for variables in object definitions(only available for osimage object), this option can be used multiple times to specify multiple files. If the variable is defined by "-e" option at the same time, will set by "-e" option')
     def do_import(self, args):
         """Import inventory file to xcat database"""
         mgr.validate_args(args, 'import')
-        mgr.importobj(args.path,args.directory,args.type,args.name,dryrun=args.dryrun,version=args.version,update=args.update,envs=args.env)
+        mgr.importobj(args.path,args.directory,args.type,args.name,dryrun=args.dryrun,version=args.version,update=args.update,envs=args.env, env_files=args.env_file)
 
     @shell.arg('-t','--type', metavar='<type>', help='comma "," delimited types of objects to export, valid values: '+','.join(mgr.InventoryFactory.getvalidobjtypes())+'. '+'If not specified, all objects in xcat databse will be exported')
     @shell.arg('-x', '--exclude', dest='exclude', default='', help='types to be excluded when exporting all, delimited with Comma(,).')
