@@ -487,13 +487,8 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     jinjatmpl=jinjaenv.get_template(filename)
     jinjast = jinjaenv.parse(jinjasrc)
     jinjavarlist=meta.find_undeclared_variables(jinjast)
-    vardict={}
+    vardict=envs
       
-    if envs:
-        for env in envs:
-            key, value = env.split('=')
-            vardict[key] = value
-
     # the value '{{OBJNAME}}' indicates that a variable substitute should be taken during import
     if 'OBJNAME' in list(jinjavarlist):
         vardict['OBJNAME']='{{OBJNAME}}'
@@ -655,7 +650,7 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
         dbsession.close()
 
      
-def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True,envs=None):
+def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True,envs=None,env_files=None):
      objtypelist=[]
      importallobjtypes=0
      if objtype:
@@ -666,6 +661,24 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
      objnamelist=[]
      if objnames:
          objnamelist=[n.strip() for n in objnames.split(',')]
+
+     vardict = {}
+
+     if env_files:
+        for env_file in env_files:
+            try:
+                f = open(env_file)
+                vardict.update( yaml.load(f) )
+                f.close()
+            except Exception,e:
+                raise InvalidFileException("Error: Failed to load variable file '%s', please check ..." % env_file)
+
+     if envs:
+        for env in envs:
+            key, value = env.split('=')
+            vardict[key] = value 
+
+     envs = vardict
 
      if srcfile and os.path.isfile(srcfile):
          importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,envs=envs)
