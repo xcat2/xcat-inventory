@@ -343,7 +343,7 @@ my @ipinfo = runcmd("ip addr");
 print "Networking information:\n";
 print Dumper \@ipinfo;
 
-`sudo bash -x -c 'id && umask 0077 && mkdir -p ~/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~/.ssh/config && echo UserKnownHostsFile /dev/null >> ~/.ssh/config && cat ~/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys'`;
+`sudo bash -x -c 'id && umask 0077 && mkdir -p ~/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~/.ssh/config && echo UserKnownHostsFile /dev/null >> ~/.ssh/config && cat ~/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
 ##`cd && mkdir -p ~/.ssh && cd ~/.ssh/ && ssh-keygen -f id_rsa -N ''`;
 #`echo StrictHostKeyChecking no >> ~/.ssh/config`;
 #`echo UserKnownHostsFile /dev/null >> ~/.ssh/config`;
