@@ -248,9 +248,8 @@ sub run_inventory_cases {
     @output = runcmd("cat $conf_file");
     print Dumper \@output;
 
-    #$cmd = "sudo bash -c '. /etc/profile.d/xcat.sh && xcattest -s \"xcat_inventory\" -l'";
-    #my  @caseslist = runcmd("$cmd");
-    my @caseslist = ('xcat_inventory_try_to_import_all_type_is_site_json_format');
+    $cmd = "sudo bash -c '. /etc/profile.d/xcat.sh && xcattest -s \"xcat_inventory\" -l'";
+    my  @caseslist = runcmd("$cmd");
     if($::RUNCMD_RC){
          print RED "[run_inventory_cases] $cmd ....[Failed]\n";
          print "[run_inventory_cases] error dumper:\n";
@@ -343,25 +342,13 @@ my @ipinfo = runcmd("ip addr");
 print "Networking information:\n";
 print Dumper \@ipinfo;
 
-`sudo bash -x -c 'id && umask 0077 && mkdir -p ~/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~/.ssh/config && echo UserKnownHostsFile /dev/null >> ~/.ssh/config && cat ~/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
-##`cd && mkdir -p ~/.ssh && cd ~/.ssh/ && ssh-keygen -f id_rsa -N ''`;
-#`echo StrictHostKeyChecking no >> ~/.ssh/config`;
-#`echo UserKnownHostsFile /dev/null >> ~/.ssh/config`;
-#my @ls = `ls -lad ~ ~/.ssh ~/.ssh/*`;
-#print Dumper \@ls;
-#my @foo = `head -n 9999 ~/.ssh/*`;
-#print Dumper \@foo;
-#my @pub = `cat  ~/.ssh/id_rsa.pub`;
-#print Dumper \@pub;
-#`cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`;
-#`sudo bash -c 'cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys'`;
-#my @keys = `cat ~/.ssh/authorized_keys`;
-#print Dumper \@keys;
-print "-----------------";
-my @ssh = runcmd("sudo ssh 127.0.0.1 date");
-print Dumper \@ssh;
-exit 0;
+print "------To authorize------\n";
+my @hostnamecmd = `hostname -i`;
+print Dumper \@hostnamecmd;
+`sudo bash -x -c 'umask 0077 && mkdir -p ~root/.ssh && cd ~root/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~root/.ssh/config && echo UserKnownHostsFile /dev/null >> ~root/.ssh/config && cat ~root/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
 
+`ssh 127.0.0.1 date`;
+exit 0;
 #Start to build xcat-inventory
 print  GREEN "\n------ Building xCAT inventory package ------\n";
 $rst = build_xcat_inventory();
@@ -397,6 +384,11 @@ if($rst){
     exit $rst;
 }
 mark_time("install_inventory");
+
+print "------To authorize------\n";
+`sudo bash -x -c 'umask 0077 && mkdir -p ~root/.ssh && cd ~root/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~root/.ssh/config && echo UserKnownHostsFile /dev/null >> ~root/.ssh/config && cat ~root/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
+
+`ssh 127.0.0.1 date`;
 
 # Start to run xcat-inventory cases
 print GREEN "\n------Running xcat-inventory CI cases------\n";
