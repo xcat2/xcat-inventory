@@ -160,6 +160,15 @@ sub install_xcat {
     }else{
         print "[install_xcat] $cmd ....[Pass]\n";
     }
+
+    my $sshcmd = "sudo bash -c 'echo StrictHostKeyChecking no >> ~root/.ssh/config && echo UserKnownHostsFile /dev/null >> ~root/.ssh/config && cat ~root/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'";
+    @output = runcmd("$sshcmd");
+    if ($::RUNCMD_RC){
+        print RED "[install_xcat] $sshcmd. ...[Failed]\n";
+        print Dumper \@output;
+        return 1;
+    }
+
     return 0;
 }
 
@@ -185,14 +194,13 @@ sub install_xcattest {
         print Dumper \@output;
     }else{
         print "[install_xcattest] $cmd .....:\n";
-        #print Dumper \@output;
         $cmd = "sudo cp -f $gitdir/xCAT-test/xcattest /opt/xcat/bin/xcattest";
         @output = runcmd("$cmd");
         if ($::RUNCMD_RC){
             print RED "[install_xcattest] $cmd ....[Warning]\n";
             print Dumper \@output;
         }
-        $cmd = "sudo cp -Rf $gitdir/xCAT-test/autotest/testcase/xcat_inventory /opt/xcat/share/xcat/tools/autotest/testcase/xcat_inventory";
+        $cmd = "sudo cp -Rrf $gitdir/xCAT-test/autotest/testcase/xcat_inventory/* /opt/xcat/share/xcat/tools/autotest/testcase/xcat_inventory";
         @output = runcmd("$cmd");
         if ($::RUNCMD_RC){
             print RED "[install_xcattest] $cmd ....[Warning]\n";
@@ -209,7 +217,6 @@ sub install_xcattest {
          return 1;
     }else{
          print "[install_xcattest] $cmd .....:\n";
-         #print Dumper \@output;
     }
     return 0;
 }
@@ -235,7 +242,9 @@ sub run_inventory_cases {
     chomp($hostname);
     print "hostname = $hostname\n";
     my $conf_file = "$ENV{'PWD'}/inventory.conf";
-    my $cmd = "echo '[System]' > $conf_file; echo 'MN=$hostname' >> $conf_file; echo 'DSTMN=127.0.0.1' >> $conf_file; echo '[Table_site]' >> $conf_file; echo 'key=domain' >>$conf_file; echo 'value=pok.stglabs.ibm.com' >> $conf_file";
+    my $dstip = `hostname -i`;
+    chomp($dstip);
+    my $cmd = "echo '[System]' > $conf_file; echo 'MN=$hostname' >> $conf_file; echo 'DSTMN'=$dstip >> $conf_file; echo '[Table_site]' >> $conf_file; echo 'key=domain' >>$conf_file; echo 'value=pok.stglabs.ibm.com' >> $conf_file";
     my @output = runcmd("$cmd");
     if($::RUNCMD_RC){
          print RED "[run_inventory_cases] $cmd ....[Failed]";
@@ -248,8 +257,8 @@ sub run_inventory_cases {
     @output = runcmd("cat $conf_file");
     print Dumper \@output;
 
-    $cmd = "sudo bash -c '. /etc/profile.d/xcat.sh && xcattest -s \"xcat_inventory\" -l'";
-    my  @caseslist = runcmd("$cmd");
+    $cmd = "sudo bash -c '. /etc/profile.d/xcat.sh && xcattest -s \"inventory_ci\" -l'";
+    my @caseslist = runcmd("$cmd");
     if($::RUNCMD_RC){
          print RED "[run_inventory_cases] $cmd ....[Failed]\n";
          print "[run_inventory_cases] error dumper:\n";
@@ -278,7 +287,7 @@ sub run_inventory_cases {
                 last;
              }elsif ($output[$i] =~ /------END::(.+)::Passed/){
                 ++$passnum;
-                print "[run_inventory_cases] $1 ------------------ Passed\n";
+                #print "[run_inventory_cases] $1 ------------------ Passed\n";
                 last;
              }
          }
@@ -342,13 +351,6 @@ my @ipinfo = runcmd("ip addr");
 print "Networking information:\n";
 print Dumper \@ipinfo;
 
-print "------To authorize------\n";
-my @hostnamecmd = `hostname -i`;
-print Dumper \@hostnamecmd;
-`sudo bash -x -c 'umask 0077 && mkdir -p ~root/.ssh && cd ~root/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~root/.ssh/config && echo UserKnownHostsFile /dev/null >> ~root/.ssh/config && cat ~root/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
-
-`ssh 127.0.0.1 date`;
-exit 0;
 #Start to build xcat-inventory
 print  GREEN "\n------ Building xCAT inventory package ------\n";
 $rst = build_xcat_inventory();
@@ -385,11 +387,6 @@ if($rst){
 }
 mark_time("install_inventory");
 
-print "------To authorize------\n";
-`sudo bash -x -c 'umask 0077 && mkdir -p ~root/.ssh && cd ~root/.ssh && ssh-keygen -f id_rsa -N "" && echo StrictHostKeyChecking no >> ~root/.ssh/config && echo UserKnownHostsFile /dev/null >> ~root/.ssh/config && cat ~root/.ssh/id_rsa.pub >> ~root/.ssh/authorized_keys'`;
-
-`ssh 127.0.0.1 date`;
-
 # Start to run xcat-inventory cases
 print GREEN "\n------Running xcat-inventory CI cases------\n";
 $rst = run_inventory_cases();
@@ -398,3 +395,5 @@ if($rst){
     exit $rst;
 }
 mark_time("run_inventory_cases");
+
+exit 0;
