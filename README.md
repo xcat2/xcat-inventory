@@ -1,4 +1,4 @@
-# xcat-inventory - A Infrastructure-as-Code(IaC) tool for  cluster based on xCAT
+# xcat-inventory - A Infrastructure-as-Code(IaC) cluster management system based on xCAT
 
 xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.org), the features include:
 
