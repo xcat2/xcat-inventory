@@ -119,6 +119,7 @@ Several python packages are required:
 * PyYAML: YAML parser and emitter for the Python
 * Six: a Python 2 and 3 compatibility library
 * deepdiff: Deep Difference of dictionaries, iterables, strings and other objects. It will recursively look for all the changes
+* configparser: a module working with configuration files
 
 In most cases, these packages will be installed during `xcat-inventory` installation. 
 
