@@ -120,6 +120,7 @@ Several python packages are required:
 * Six: a Python 2 and 3 compatibility library
 * deepdiff: Deep Difference of dictionaries, iterables, strings and other objects. It will recursively look for all the changes
 * configparser: a module working with configuration files
+* sh: a full-fledged subprocess replacement for Python 2.6 - 3.6, PyPy and PyPy3 that allows you to call any program as if it were a function
 
 In most cases, these packages will be installed during `xcat-inventory` installation. 
 
