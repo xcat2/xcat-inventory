@@ -265,4 +265,4 @@ This section presents some typical usecases [xcat-inventory usecase](http://xcat
 For any bugs or feature request, please open ticket in [issues](https://github.com/xcat2/xcat-inventory/issues)
 
 
-
+##for test ci
