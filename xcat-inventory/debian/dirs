@@ -3,3 +3,4 @@ opt/xcat/lib/python/xcclient
 opt/xcat/lib/python/xcclient/inventory
 opt/xcat/lib/python/xcclient/inventory/schema/1.0
 opt/xcat/share/xcat/inventory_templates
+etc/xcat

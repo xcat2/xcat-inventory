@@ -78,6 +78,7 @@ class Invbackend:
         if not os.path.exists(cfgpath):
             if not os.path.exists(self.globalcfgpath):
                 raise FileNotExistException('File "%s" does not exist, please check ...' % self.globalcfgpath) 
+            os.makedirs(myhome+'/.xcatinv')
             shutil.copyfile(self.globalcfgpath, cfgpath)   
             print("local configuration file \"%s\" created, you can customize it"%(cfgpath))
 
