@@ -14,6 +14,11 @@ xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.
 
 - ability to intergrate with Ansible(Comming soon)
 
+The typical workflow:
+
+![alt text](https://github.com/xcat2/xcat-inventory/blob/master/workflow.jpg)
+
+
 ## Table of Contents
 
 - [Installing](#installing)
