@@ -21,7 +21,7 @@ class Invbackend:
     def loadcfg(self,cfgpath=None):
         if cfgpath is None:
             myhome=utils.gethome()
-            cfgpath=myhome+'/.xcat/inventory.cfg' 
+            cfgpath=myhome+'/.xcatinv/inventory.cfg' 
         if not os.path.isfile(cfgpath):
             cfgpath=self.globalcfgpath 
 
@@ -74,7 +74,7 @@ class Invbackend:
 
     def __initcfgfile(self):
         myhome=utils.gethome()
-        cfgpath=myhome+'/.xcat/inventory.cfg'
+        cfgpath=myhome+'/.xcatinv/inventory.cfg'
         if not os.path.exists(cfgpath):
             if not os.path.exists(self.globalcfgpath):
                 raise FileNotExistException('File "%s" does not exist, please check ...' % self.globalcfgpath) 
@@ -511,7 +511,7 @@ class Invbackend:
 
         if not remote_repo_url:
             if not self.bkendcfg['InfraRepo']['remote_repo']:
-                print("remote_repo not configured in inventory configuration file \"~/.xcat/inventory.cfg\", please configure it and run \"xcat-inventory init\" to reinitialize xcat-inventory backend")
+                print("remote_repo not configured in inventory configuration file \"~/.xcatinv/inventory.cfg\", please configure it and run \"xcat-inventory init\" to reinitialize xcat-inventory backend")
                 return
             else:
                 print("please run \"xcat-inventory init\" to reinitialize xcat-inventory backend")
