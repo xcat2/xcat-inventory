@@ -17,7 +17,6 @@ class Invbackend:
     globalcfgpath="/etc/xcat/inventory.cfg"
     bkendcfg={}
 
-
     def loadcfg(self,cfgpath=None):
         if cfgpath is None:
             myhome=utils.gethome()

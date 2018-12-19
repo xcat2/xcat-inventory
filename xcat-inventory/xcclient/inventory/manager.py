@@ -695,7 +695,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
              if objtypelist:
                   myobjtypelist.extend(objtypelist)
              if importallobjtypes:
-                  myobjtypelist.extend(InventoryFactory.getvalidobjtypes()) 
+                  myobjtypelist.extend(InventoryFactory.getvalidobjtypes(ignorepartial=1)) 
              objdirs=[d for d in os.listdir(srcdir) if os.path.isdir(os.path.join(srcdir,d)) and (d in myobjtypelist or (importallobjtypes and d in InventoryFactory.getvalidobjtypes()))]
              for dirtoimport in objdirs:
                  myobjtypelist.remove(dirtoimport)
