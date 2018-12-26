@@ -682,8 +682,10 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
 
      envs = vardict
 
+     dbsession=None
+
      if srcfile and os.path.isfile(srcfile):
-         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,envs=envs)
+         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,dbsession,envs=envs)
      elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
          if os.path.isfile(os.path.join(srcdir,'cluster.yaml')):
@@ -703,7 +705,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                  myobjtypelist.remove(dirtoimport)
                  importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,envs=envs)
              if myobjtypelist or importallobjtypes:
-                 importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,envs=envs)
+                 importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,dbsession,envs=envs)
          else:
              objfile=None
              if os.path.isfile(os.path.join(srcdir,'definition.yaml')):
@@ -732,7 +734,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                          else:
                              #import current object
                              try:
-                                 importobjdir(srcdir,dryrun,version,update,envs,myobjtype)
+                                 importobjdir(srcdir,dryrun,version,update,dbsession,envs,myobjtype)
                              except ObjTypeNonExistException,e:
                                  if importallobjtypes:
                                      continue
