@@ -487,7 +487,9 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     jinjatmpl=jinjaenv.get_template(filename)
     jinjast = jinjaenv.parse(jinjasrc)
     jinjavarlist=meta.find_undeclared_variables(jinjast)
-    vardict=envs
+    vardict={}
+    if envs:
+        vardict=envs
       
     # the value '{{OBJNAME}}' indicates that a variable substitute should be taken during import
     if 'OBJNAME' in list(jinjavarlist):
