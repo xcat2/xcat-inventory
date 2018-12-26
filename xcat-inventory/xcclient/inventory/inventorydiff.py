@@ -69,6 +69,8 @@ class InventoryDiff(object):
             filename = None
             if self.filename:
                 filename = self.filename[0]
+            d1=None
+            d2=None
             try:
                 d1 = self._get_file_data(file1)
                 d2 = self._get_file_data(file2)
@@ -78,7 +80,7 @@ class InventoryDiff(object):
                 out, err = line_diff(file1, file2, filename)
                 rc = 1
 
-            if not d1 or not d2:
+            if not d1 or not d2 or type(d1)!=dict or type(d2)!=dict:
                 out, err = line_diff(file1, file2, filename)
                 rc = 1
 
