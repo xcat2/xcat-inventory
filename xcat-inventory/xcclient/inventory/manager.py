@@ -703,7 +703,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
              objdirs=[d for d in os.listdir(srcdir) if os.path.isdir(os.path.join(srcdir,d)) and (d in myobjtypelist or (importallobjtypes and d in InventoryFactory.getvalidobjtypes()))]
              for dirtoimport in objdirs:
                  myobjtypelist.remove(dirtoimport)
-                 importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,envs=envs)
+                 importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,dbsession,envs=envs)
              if myobjtypelist or importallobjtypes:
                  importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,dbsession,envs=envs)
          else:
@@ -727,7 +727,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                          #this is an osimage derectory
                          if objnames:
                              if curobjname in objnamelist: 
-                                 importfromdir(srcdir+'/../',myobjtype,[curobjname],dryrun,version,update,envs=envs)
+                                 importfromdir(srcdir+'/../',myobjtype,[curobjname],dryrun,version,update,dbsession,envs=envs)
                                  objnamelist.remove(curobjname)
                              if objnamelist:
                                  raise InvalidFileException("Error: non-exist objects: \""+','.join(objnamelist)+"\" in inventory directory "+srcdir+"!")        
@@ -744,7 +744,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                      else:
                          #this is an obj inventory directory for a objtye
                          try:
-                             importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,envs=envs)
+                             importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,dbsession,envs=envs)
                          except ObjTypeNonExistException,e:
                              if importallobjtypes:
                                  continue
