@@ -196,6 +196,7 @@ class XcatBase(object):
         cls._depdict_tab={}
         cls._depdict_val={}
         cls._depdict_ref={}
+        cls._files={}
         cls.__scanschema(cls._schema)
 
     @classmethod
