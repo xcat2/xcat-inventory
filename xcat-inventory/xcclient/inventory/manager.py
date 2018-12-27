@@ -197,7 +197,7 @@ class InventoryFactory(object):
         return myclass
        
           
-    def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
+    def importObjs(self, objlist, obj_attr_dict,update=True,envar=None,rootdir=None):
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
@@ -241,7 +241,7 @@ class InventoryFactory(object):
                     except InvalidValueException,e:
                         exptmsglist.append(str(e)) 
                         continue
-                    objfiles[key].extend(newobj.getfilestosave())
+                    objfiles[key].extend(newobj.getfilestosave(rootdir))
                     partialdbdict=newobj.getdbdata()
                     if key not in dbdict.keys():
                         dbdict.update(partialdbdict)
@@ -478,7 +478,8 @@ def getgitinfo(location):
 
 
 
-def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None,envs=None):
+def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None):
+    location=filepath
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
     
@@ -546,7 +547,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
             try: 
-                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar,rootdir))
             except InvalidValueException,e:
                 exptmsglist.append(str(e))
                 continue
@@ -556,7 +557,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
             try: 
-                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar,rootdir))
             except InvalidValueException,e:
                 exptmsglist.append(str(e))
                 continue
@@ -586,7 +587,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
     if objtype and type(objtype) != list:
        objtype=[objtype]
-    objfilesdict=importfromfile(objtype,None,objfile,dryrun,version,update,dbsession,envs)
+    objfilesdict=importfromfile(objtype,None,objfile,dryrun,version,update,dbsession,envs,location)
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:

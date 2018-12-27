@@ -24,14 +24,14 @@
       pkglist: 
       - "${{value=T{linuximage.pkglist},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.pkglist}=${{value=V{package_selection.pkglist}: ','.join(value) if type(value) == type([]) else value}}"
-      - "F:${{flist=V{package_selection.pkglist}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
+      - "F:${{flist=V{package_selection.pkglist},objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
       pkgdir: 
       - "${{value=T{linuximage.pkgdir},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.pkgdir}=${{value=V{package_selection.pkgdir}: ','.join(value) if type(value) == type([]) else value}}"
       otherpkglist: 
       - "${{value=T{linuximage.otherpkglist},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.otherpkglist}=${{value=V{package_selection.otherpkglist}: ','.join(value) if type(value) == type([]) else value}}"
-      - "F:${{flist=V{package_selection.otherpkglist}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
+      - "F:${{flist=V{package_selection.otherpkglist},objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
       otherpkgdir: 
       - "${{value=T{linuximage.otherpkgdir},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.otherpkgdir}=${{value=V{package_selection.otherpkgdir}: ','.join(value) if type(value) == type([]) else value}}"
@@ -56,28 +56,28 @@
       crashkernelsize: "T{linuximage.crashkernelsize}"
     template: 
     - "${{imagetype=V{imagetype} :T{winimage.template} if imagetype == 'windows' else T{linuximage.template} if imagetype == 'linux' else None }} "
-    - "F:${{flist=V{template}.split(','): [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
+    - "F:${{flist=V{template}.split(','),objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
       
     diskpartitionspec: 
     - "${{imagetype=V{imagetype}, envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {}: vutil.strsubst(T{linuximage.partitionfile},envars) if imagetype == 'linux' else vutil.strsubst(T{winimage.partitionfile},envars) if imagetype == 'windows' else None}}"
     - "W:T{linuximage.partitionfile}=${{imagetype=V{imagetype},value=V{diskpartitionspec}: value if imagetype == 'linux' else None }}"
     - "W:T{winimage.partitionfile}=${{imagetype=V{imagetype},value=V{diskpartitionspec}: value if imagetype == 'windows' else None }}"
-    - "F:${{flist=V{diskpartitionspec}.split(','): [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
+    - "F:${{flist=V{diskpartitionspec}.split(','),objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
     filestosync: 
     - "${{value=T{osimage.synclists},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None}} "
     - "W:T{osimage.synclists}=${{value=V{filestosync}: ','.join(value) if type(value) == type([]) else value}}"
-    - "F:${{flist=V{filestosync}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
+    - "F:${{flist=V{filestosync},objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/') ] }}"
     addkcmdline: "T{linuximage.addkcmdline}"
     boottarget: "T{linuximage.boottarget}"                                 
     genimgoptions:
       exlist: 
       - "${{value=T{linuximage.exlist},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.exlist}=${{value=V{genimgoptions.exlist}: ','.join(value) if type(value) == type([]) else value}}"
-      - "F:${{flist=V{genimgoptions.exlist}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
+      - "F:${{flist=V{genimgoptions.exlist},objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
       postinstall: 
       - "${{value=T{linuximage.postinstall},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : [x for x in vutil.strsubst(value,envars).split(',')] if value else None }} "
       - "W:T{linuximage.postinstall}=${{value=V{genimgoptions.postinstall}: ','.join(value) if type(value) == type([]) else value}}"
-      - "F:${{flist=V{genimgoptions.postinstall}: [x for x in vutil.getfileanddeplist(flist) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
+      - "F:${{flist=V{genimgoptions.postinstall},objdir=exvar_objdir: [x for x in vutil.getfileanddeplist(flist,objdir) if not vutil.underpath(x,'/opt/xcat/share/xcat/')] }}"
       rootimgdir: 
       - "${{value=T{linuximage.rootimgdir},envars=dict([y.split('=')[1],'{{'+y.split('=')[0]+'}}'] for y in T{osimage.environvar}.split(',')) if T{osimage.environvar} else {} : vutil.strsubst(value,envars) if value else None }} "
       - "W:T{linuximage.rootimgdir}=${{value=V{genimgoptions.rootimgdir}: value}}"

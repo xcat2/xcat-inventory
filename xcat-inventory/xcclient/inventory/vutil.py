@@ -72,18 +72,24 @@ def underpath(filename,path):
 
 
 # return a list of the files in list "infilelist" and the files included in them
-def getfileanddeplist(infilelist):
+def getfileanddeplist(infilelist,rootdir=None):
     #helper function to return a dict whose keys are file "filename" specified and files included by it 
-    def getincfiledict(filename,filedict={}):
+    def getincfiledict(filename,filedict={},rootdir=None):
         regex_include=r'^#INCLUDE:\s*([^#]+)#$'
         if filename in filedict.keys():
             return
-        filedict[filename]=1
-        if os.path.isfile(filename):
-            with open(filename) as fileobj:
+        if rootdir and underpath(filename,rootdir):
+            filedict[os.path.join(os.sep,os.path.relpath(filename,rootdir))]=1
+        else:
+            filedict[filename]=1
+        filepath=filename
+        if rootdir and os.path.isabs(filename) and not underpath(filename,rootdir):
+            filepath=os.path.join(rootdir,os.path.relpath(filename,os.sep))
+        if os.path.isfile(filepath):
+            with open(filepath) as fileobj:
                 filelines = fileobj.readlines()
             olddir=os.getcwd()
-            curdir=os.path.dirname(filename)
+            curdir=os.path.dirname(filepath)
             os.chdir(curdir)
             for line in filelines:
                 matchobj_include=re.search(regex_include,line.strip()) 
@@ -91,7 +97,7 @@ def getfileanddeplist(infilelist):
                     incfile=matchobj_include.group(1).strip()
                     incfile=os.path.realpath(incfile)
                     if incfile not in filedict.keys():
-                        getincfiledict(incfile,filedict)
+                        getincfiledict(incfile,filedict,rootdir)
             os.chdir(olddir)
         return 
 
@@ -102,7 +108,7 @@ def getfileanddeplist(infilelist):
         infilelist=infilelist.split(',')    
 
     for filename in infilelist:
-        getincfiledict(filename,filedict)
+        getincfiledict(filename,filedict,rootdir)
     return filedict.keys()
 
 def strsubst(string,subdict={}):
