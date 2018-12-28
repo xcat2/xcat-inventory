@@ -1,6 +1,6 @@
 # xcat-inventory - A Infrastructure-as-Code(IaC) cluster management system based on xCAT
 
-xcat-inventory is an inventory tool for the cluster managed by xCAT(http://xcat.org), the features include:
+[**xcat-inventory**](https://github.com/xcat2/xcat-inventory/wiki/xcat-inventory--Wiki) is an inventory tool for the cluster managed by [**xCAT**](http://xcat.org), the features include:
 
 - a object based view of the cluster inventory, which is flexible, extensible and well formatted
 
@@ -88,7 +88,7 @@ If you are prompted `No module named xxx` when you run `xcat-inventory`, you can
 * install the python package with `pip`
 * download the python package tarball from PyPi(https://pypi.python.org/pypi), uncompress it and install the package with `python setup.py install`
 
-## Platform
+## Platform Restrictions
 
 The `xcat-inventory` is arch independent, i.e, you can install it on xCAT management nodes with architecture `X86_64`,`ppc64`, or `ppc64le` 
 
@@ -99,18 +99,14 @@ The installation and function verification is finished on rhels7.x.
 For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
 
-## Command synopsis
+## Cookbooks
 
-### Help
+See https://github.com/xcat2/xcat-inventory/wiki
 
-Show usage info:
 
-```
-# xcat-inventory help
-# xcat-inventory export -h
-# xcat-inventory import -h
-# xcat-inventory diff -h
-```
+## Blueprints
+
+See https://github.com/xcat2/xcat-inventory/wiki
 
 ## Usecase
 
