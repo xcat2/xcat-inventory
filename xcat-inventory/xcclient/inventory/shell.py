@@ -148,7 +148,7 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision name to create')
     @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs='?', help='the description of the revision to create')
     def do_commit(self,args):
-        """create a revision and push to remote backend"""
+        """create a revision on current workspace"""
         mybackend=backend.Invbackend()
         mybackend.commit(args.revision,args.message)
 
