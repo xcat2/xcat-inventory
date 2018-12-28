@@ -8,7 +8,7 @@
 
 - inventory templates for typical clusters, which help user to define a cluster easily
 
-- native ability to manage cluster configuration under source control(see https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F)
+- native ability to manage cluster configuration under source control(see [Cookbook](https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F))
 
 - automatic cluster deployment according to the cluster definition(Comming soon)
 
