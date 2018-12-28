@@ -8,7 +8,7 @@
 
 - inventory templates for typical clusters, which help user to define a cluster easily
 
-- native ability to manage cluster configuration under source control(Comming soon)
+- native ability to manage cluster configuration under source control(see https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F)
 
 - automatic cluster deployment according to the cluster definition(Comming soon)
 
@@ -25,10 +25,7 @@ The typical workflow:
 - [Building](#building)
 - [Dependencies](#dependency)
 - [Platform Restrictions](#platform)
-- [Command Synopsis](#command-synopsis)
-  - [help](#help)
-  - [export](#export)
-  - [import](#import)
+- [Cookbooks](#Cookbooks)
 - [Typical use cases](#usecase)
   - [Version control of cluster inventory data](#versioncontrol)
   - [define and create a xCAT cluster inventory](#definecluster)
