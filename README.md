@@ -49,7 +49,6 @@ remote: Compressing objects: 100% (7/7), done.
 remote: Total 1844 (delta 0), reused 6 (delta 0), pack-reused 1837
 Receiving objects: 100% (1844/1844), 401.48 KiB | 0 bytes/s, done.
 Resolving deltas: 100% (1072/1072), done.
-[root@boston01 ~]#
 ```
 
 ```
@@ -61,17 +60,12 @@ From github.com:xcat2/xcat-inventory
  * branch            master     -> FETCH_HEAD
 Already up-to-date.
 [root@boston01 xcat-inventory]# ./makepythonrpm xcat-inventory
-xcat-inventory/
-xcat-inventory/cli/
-xcat-inventory/cli/xcat-inventory
-:
-:
-:
-xcat-inventory/requirements.txt
+...
 Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
-[root@boston01 xcat-inventory]#
 ```
+
+## Installation
 
 ```
 [root@boston01 xcat-inventory]# yum -y install /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
@@ -81,38 +75,11 @@ Examining /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm: 1:xcat
 Marking /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm as an update to 1:xcat-inventory-0.1.4-c4.noarch
 Resolving Dependencies
 --> Running transaction check
----> Package xcat-inventory.noarch 1:0.1.4-c4 will be updated
----> Package xcat-inventory.noarch 1:0.1.4-c10 will be an update
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-=============================================================================================================================
- Package                    Arch               Version                    Repository                                    Size
-=============================================================================================================================
-Updating:
- xcat-inventory             noarch             1:0.1.4-c10                /xcat-inventory-0.1.4-c10.noarch             258 k
-
-Transaction Summary
-=============================================================================================================================
-Upgrade  1 Package
-
-Total size: 258 k
-Downloading packages:
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Updating   : 1:xcat-inventory-0.1.4-c10.noarch                                                                         1/2
-  Cleanup    : 1:xcat-inventory-0.1.4-c4.noarch                                                                          2/2
-  Verifying  : 1:xcat-inventory-0.1.4-c10.noarch                                                                         1/2
-  Verifying  : 1:xcat-inventory-0.1.4-c4.noarch                                                                          2/2
-
+...
 Updated:
   xcat-inventory.noarch 1:0.1.4-c10
 
 Complete!
-[root@boston01 xcat-inventory]#
 ```
 ## Dependency
 
@@ -159,106 +126,6 @@ Show usage info:
 # xcat-inventory export -h
 # xcat-inventory import -h
 # xcat-inventory diff -h
-```
-
-### Export
-
-Export the inventory data from xcat database: 
-
-* dump cluster inventory data to screen
-```
-# xcat-inventory export
-```
-* dump cluster inventory data to screen in yaml format
-```
-# xcat-inventory export --format yaml
-```
-* dumo cluster inventory data to screen in json format
-```
-# xcat-inventory export --format json
-```
-* dump cluster inventory data to a file 
-```
-# xcat-inventory export -f /tmp/cluster
-```
-* dump osimage inventory data to a file
-```
-# xcat-inventory export -t osimage -f /tmp/osimage
-``` 
-* dump the inventory data of osimage "rhels6.5-x86_64-netboot-compute" to a file
-```
-# xcat-inventory export -t osimage -o rhels6.5-x86_64-netboot-compute  -f /tmp/osimage
-```
-* export cluster inventory data to a directory
-```
-# xcat-inventory export -d /tmp/mm/
-The osimage objects has been exported to directory /tmp/mm/osimage
-The cluster inventory data has been dumped to /tmp/mm/cluster.json
-```
-   all objects except "osimage" are dumped to a file "cluster.json" or "cluster.yaml", "osimage" objects are exported to osimage directories under a subdirectory "osimage". 
-
-   Each osimage direcotry contains a "definition.yaml" or "definition.json", and the customized osimage files(files which are not under directory `/opt/xcat/share/xcat/`), such as `pkglist`,`otherpkglist`,`synclists`,`partitionfile`,`template` and `exlists` 
-* export an osimage objec to a directory
-```
-# xcat-inventory export -t osimage -o rhels7.4-ppc64le-install-service  -d /tmp/mm/osimage/
-```
- 
- ### Import
-
-* Import cluster inventory file to xcat database
- 
-```                    
-# xcat-inventory import -f /tmp/cluster
-```
-* Import "node" and "network" objects from inventory file to xcat database
-```
-# xcat-inventory import -f /tmp/cluster  -t node,network
-```
-* Import a network object from cluster inventory file
-```
-# xcat-inventory import -f /tmp/cluster  -t network -o 192_168_122_0-255_255_255_0
-```
-* Import cluster inventory data from an inventory directory
-```
-# xcat-inventory import -d /tmp/mm/
-```
-* Import an osimage object from cluster inventory directory
-```
-# xcat-inventory import -d /tmp/mm/ -t osimage -o sles12.2-ppc64le-install-compute
-```
-* Import an osimage inventory directory
-```
-# xcat-inventory import -d /tmp/mm/osimage/rhels7.4-x86_64-netboot-compute/
-``` 
-* Import osimage inventory file with variables
-```
-# xcat-inventory import -e GITREPO=/tmp/ -e SWDIR=/tmp -f /tmp/osimage/osimage.withvar.yaml
-```
-* Import inventory file with variables, the variable values are specified in the specified variabe file. The content of variabe file is a dict in yaml format, the dict key is variable name, the dict value is the variable value.
-```
-# xcat-inventory import -f /tmp/osimage/osimage.withvar.yaml --env-file /tmp/env
-```
-
-The format of variables in osimage inventory file is `{{<variable name>}}`. 
-* Builtin variables in inventory file
-xcat-inventory exposes several builtin variables, the values of the variables are determined during `xcat-inventory import` implicitly, do not need to specify with `-e` explicitly. Please find the description and usage of the builtin variables with: 
-```
-# xcat-inventory envlist
-```
-
- ### diff
-
-* Diff the given 2 inventory files, if with `--filename` option, will show this filename 
-```
-# xcat-inventory diff --files /tmp/cluster.json /root/cluster.json [--filename cluster.json]
-```
-* Diff the given inventory file with xCAT DB, only compare the objects in given inventory file
-```
-# xcat-inventory diff --source /tmp/cluster.json
-```
-* Diff the given inventory file with whole xCAT DB
-```
-# xcat-inventory diff --source /tmp/cluster.json --all
 ```
 
 ## Usecase
