@@ -98,12 +98,12 @@ For other Linux distributions, you might need to handle the dependency issue by 
 
 ## Cookbooks
 
-See https://github.com/xcat2/xcat-inventory/wiki
+See [Cookbooks](https://github.com/xcat2/xcat-inventory/wiki)
 
 
 ## Blueprints
 
-See https://github.com/xcat2/xcat-inventory/wiki
+See [Designs](https://github.com/xcat2/xcat-inventory/wiki#mini-designs-of-xcat-inventory-major-features)
 
 ## Usecase
 
