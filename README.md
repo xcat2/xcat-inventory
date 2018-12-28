@@ -65,22 +65,6 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
 ```
 
-## Installation
-
-```
-[root@boston01 xcat-inventory]# yum -y install /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
-Loaded plugins: product-id, search-disabled-repos, subscription-manager
-This system is not registered with an entitlement server. You can use subscription-manager to register.
-Examining /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm: 1:xcat-inventory-0.1.4-c10.noarch
-Marking /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm as an update to 1:xcat-inventory-0.1.4-c4.noarch
-Resolving Dependencies
---> Running transaction check
-...
-Updated:
-  xcat-inventory.noarch 1:0.1.4-c10
-
-Complete!
-```
 ## Dependency
 
 Several python packages are required:
