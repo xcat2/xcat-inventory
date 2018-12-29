@@ -126,15 +126,17 @@ def initglobal():
     if os.path.exists("/var/run/xcatd.pid"):
         globalvars.isxcatrunning=1
     else:
-        globalvars.isxcatrunning=0 
+        globalvars.isxcatrunning=0
     if globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
-    else:
+    if retcode!=0 or not globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=1 lsxcatd -v")
     if retcode!=0:
-        xcat_version=""
-    globalvars.xcat_version=out.strip()
-    globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
+        globalvars.xcat_version=""
+        globalvars.xcat_verno=""
+    else:
+        globalvars.xcat_version=out.strip()
+        globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
 
 # if "key" of d1 or "key" of d1[key] not in d2, delete it
 def filter_dict_keys(d1, d2):
@@ -162,7 +164,7 @@ def gethome():
 
 #strip single and double quotes from string
 def stripquotes(instring):
-    return stripquotes.strip('"').strip("'")
+    return instring.strip('"').strip("'")
 
 #redirect stdout to stream
 @contextmanager
