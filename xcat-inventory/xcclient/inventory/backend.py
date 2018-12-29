@@ -152,6 +152,7 @@ class Invbackend:
             print("creating workspace %s ..."%(self.bkendcfg['workspace']))
             try:
                 sh.git.checkout('-b',self.bkendcfg['workspace'])
+                sh.git.commit('--allow-empty','-m "initial commit"')
                 if self.bkendcfg['InfraRepo']['working_dir']:            
                     self._change_dir(self.bkendcfg['InfraRepo']['working_dir'])
             #    sh.git.pull('origin',self.bkendcfg['workspace'],'--tags')
