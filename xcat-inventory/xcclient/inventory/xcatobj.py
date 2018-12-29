@@ -196,6 +196,7 @@ class XcatBase(object):
         cls._depdict_tab={}
         cls._depdict_val={}
         cls._depdict_ref={}
+        cls._files={}
         cls.__scanschema(cls._schema)
 
     @classmethod
@@ -415,13 +416,14 @@ class XcatBase(object):
     def getfilerules(cls):
         print yaml.dump(cls._files)
 
-    def getfilestosave(self):
+    def getfilestosave(self,rootdir=None):
         filelist=[]
         for key in self._files.keys():
             depvallist=self._files[key]['file2savefilter']['depvallist']
             expression=self._files[key]['file2savefilter']['expression'] 
             for myexpression in expression:
                 ctxdict={}
+                ctxdict['exvar_objdir']=rootdir
                 for val in depvallist:
                     myval=Util_getdictval(self._mydict,val)
                     if myval is None:

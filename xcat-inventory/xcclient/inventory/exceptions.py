@@ -49,3 +49,9 @@ class DBException(BaseException):
     pass
 class ParseException(BaseException):
     pass
+class BackendNotInitException(BaseException):
+    pass
+class ShErrorReturnException(BaseException):
+    pass
+class DirNotExistException(BaseException):
+    pass

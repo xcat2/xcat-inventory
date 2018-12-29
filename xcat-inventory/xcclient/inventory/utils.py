@@ -11,8 +11,10 @@ import re
 import subprocess
 import json
 import yaml
+import sys
 import globalvars
 from exceptions import *
+from contextlib import contextmanager
 
 def runCommand(cmd, env=None):
     """
@@ -124,15 +126,17 @@ def initglobal():
     if os.path.exists("/var/run/xcatd.pid"):
         globalvars.isxcatrunning=1
     else:
-        globalvars.isxcatrunning=0 
+        globalvars.isxcatrunning=0
     if globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
-    else:
+    if retcode!=0 or not globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=1 lsxcatd -v")
     if retcode!=0:
-        xcat_version=""
-    globalvars.xcat_version=out.strip()
-    globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
+        globalvars.xcat_version=""
+        globalvars.xcat_verno=""
+    else:
+        globalvars.xcat_version=out.strip()
+        globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
 
 # if "key" of d1 or "key" of d1[key] not in d2, delete it
 def filter_dict_keys(d1, d2):
@@ -152,3 +156,32 @@ def filter_dict_keys(d1, d2):
 def verbose(message,file=sys.stdout):
     if globalvars.verbose:
         print("%s"%(message),file=file)
+
+#get home directory of the current user
+def gethome():
+    home = os.path.expanduser("~")
+    return home
+
+#strip single and double quotes from string
+def stripquotes(instring):
+    return instring.strip('"').strip("'")
+
+#redirect stdout to stream
+@contextmanager
+def stdout_redirector(stream):
+    old_stdout = sys.stdout
+    sys.stdout = stream
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+
+#redirect stderr to stream
+@contextmanager
+def stderr_redirector(stream):
+    old_stderr = sys.stderr
+    sys.stderr = stream
+    try:
+        yield
+    finally:
+        sys.stderr = old_stderr

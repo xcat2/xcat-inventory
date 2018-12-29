@@ -12,6 +12,7 @@ Command-line interface to xCAT inventory import/export
 from __future__ import print_function
 from xcclient import shell
 from exceptions import *
+import backend
 import re
 import sys
 import traceback
@@ -65,13 +66,97 @@ class InventoryShell(shell.ClusterShell):
     @shell.arg('--all', dest='all', action="store_true", default=False, help='compare the given inventory file with the whole xCAT DB, be used with "--source". If not specified, will only compare the objects in given inventory file by default.')
     def do_diff(self, args):
         """show inventory diff between files or file vs xCAT DB"""
-        from inventorydiff import InventoryDiff
-        InventoryDiff(args).inventory_diff()
+        if not args.files and not args.source:
+            mybackend=backend.Invbackend()
+            mybackend.diff()
+        else:
+            from inventorydiff import InventoryDiff
+            InventoryDiff(args).inventory_diff()
 
     def do_envlist(self,args):
         """Show implicit environment variables during 'xcat-inventory import', which can be used in inventory files with format '{{<environment variable name>}}'"""
         mgr.envlist()
 
+    def do_init(self,args):
+        """Initialize the inventory backend"""
+        mybackend=backend.Invbackend(skip=1)
+        mybackend.init()
+
+    def do_workspace_list(self,args):
+        """list all the workspaces"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_list()
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,help='the workspace name to create')
+    def do_workspace_new(self,args):
+        """create a new workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_new(args.workspacename)
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,help='the workspace name to delete')
+    def do_workspace_delete(self,args):
+        """remove a workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_delete(args.workspacename)
+
+    @shell.arg('workspacename',metavar='workspacename',type=str,help='the workspace name to switch to')
+    def do_workspace_checkout(self,args):
+        """checkout a workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.workspace_checkout(args.workspacename)
+
+
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to show or list')
+    def do_revlist(self,args):
+        """list the revisions of the current workspace if no revision is specified, otherwise, show the info of the specified revision"""
+        mybackend=backend.Invbackend()
+        mybackend.rev_list(args.revision)
+
+    @shell.arg('--no-import', dest='doimport', action="store_false", default=True, help='whether import inventory data into DB after checkout. If not specified, import inventory data to DB')
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to checkout')
+    def do_checkout(self,args):
+        """checkout to a specified revision"""
+        mybackend=backend.Invbackend()
+        mybackend.checkout(args.revision,args.doimport)
+
+    def do_refresh(self,args):
+        """refresh the workspace, drop all the stashed and untracked changes"""
+        mybackend=backend.Invbackend()
+        mybackend.refresh()
+
+    def do_radar(self,args):
+        """detect the workspace and revision in remote repo"""
+        mybackend=backend.Invbackend()
+        mybackend.radar()
+
+    def do_pull(self,args):
+        """sync the current workspace with remote workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.pull()
+
+    #@shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision to push')
+    def do_push(self,args):
+        """push the current workspace to remoteworkspace"""
+        mybackend=backend.Invbackend()
+        mybackend.push()
+
+    #def do_drop(self,args):
+    #    """drop the uncommited modification in backend"""
+    #    mybackend=backend.Invbackend()
+    #    mybackend.drop()
+
+    @shell.arg('revision',metavar='revision',type=str,nargs='?',default=None,help='the revision name to create')
+    @shell.arg('-m','--message', dest='message',metavar='<message>',type=str,nargs='?', help='the description of the revision to create')
+    def do_commit(self,args):
+        """create a revision on current workspace"""
+        mybackend=backend.Invbackend()
+        mybackend.commit(args.revision,args.message)
+
+    def do_whereami(self,args):
+        """tell me where i am, which branch,which revision. shortcut:\"w\""""
+        mybackend=backend.Invbackend()
+        mybackend.whereami()
+    
 # main entry for CLI
 def main():
     utils.initglobal()
@@ -80,7 +165,7 @@ def main():
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
-    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException), e:
+    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException,BackendNotInitException,ShErrorReturnException,DirNotExistException), e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     #except (ParserError), e:

@@ -197,7 +197,7 @@ class InventoryFactory(object):
         return myclass
        
           
-    def importObjs(self, objlist, obj_attr_dict,update=True,envar=None):
+    def importObjs(self, objlist, obj_attr_dict,update=True,envar=None,rootdir=None):
         print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
@@ -241,7 +241,7 @@ class InventoryFactory(object):
                     except InvalidValueException,e:
                         exptmsglist.append(str(e)) 
                         continue
-                    objfiles[key].extend(newobj.getfilestosave())
+                    objfiles[key].extend(newobj.getfilestosave(rootdir))
                     partialdbdict=newobj.getdbdata()
                     if key not in dbdict.keys():
                         dbdict.update(partialdbdict)
@@ -478,7 +478,8 @@ def getgitinfo(location):
 
 
 
-def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,update=True,dbsession=None,envs=None):
+def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None):
+    location=filepath
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
     
@@ -487,7 +488,9 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
     jinjatmpl=jinjaenv.get_template(filename)
     jinjast = jinjaenv.parse(jinjasrc)
     jinjavarlist=meta.find_undeclared_variables(jinjast)
-    vardict=envs
+    vardict={}
+    if envs:
+        vardict=envs
       
     # the value '{{OBJNAME}}' indicates that a variable substitute should be taken during import
     if 'OBJNAME' in list(jinjavarlist):
@@ -544,7 +547,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             if myobjtype not in objfiledict.keys():
                 objfiledict[myobjtype]={}
             try: 
-                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar))
+                objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar,rootdir))
             except InvalidValueException,e:
                 exptmsglist.append(str(e))
                 continue
@@ -554,7 +557,7 @@ def importfromfile(objtypelist, objlist, location,dryrun=None,version=None,updat
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
             try: 
-                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar))
+                objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar,rootdir))
             except InvalidValueException,e:
                 exptmsglist.append(str(e))
                 continue
@@ -584,7 +587,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
         raise InvalidFileException("Error: no definition.json or definition.yaml found under \""+location+"\""+"!")
     if objtype and type(objtype) != list:
        objtype=[objtype]
-    objfilesdict=importfromfile(objtype,None,objfile,dryrun,version,update,dbsession,envs)
+    objfilesdict=importfromfile(objtype,None,objfile,dryrun,version,update,dbsession,envs,location)
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:
@@ -680,8 +683,10 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
 
      envs = vardict
 
+     dbsession=None
+
      if srcfile and os.path.isfile(srcfile):
-         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,envs=envs)
+         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,dbsession,envs=envs)
      elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
          if os.path.isfile(os.path.join(srcdir,'cluster.yaml')):
@@ -695,13 +700,13 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
              if objtypelist:
                   myobjtypelist.extend(objtypelist)
              if importallobjtypes:
-                  myobjtypelist.extend(InventoryFactory.getvalidobjtypes()) 
+                  myobjtypelist.extend(InventoryFactory.getvalidobjtypes(ignorepartial=1)) 
              objdirs=[d for d in os.listdir(srcdir) if os.path.isdir(os.path.join(srcdir,d)) and (d in myobjtypelist or (importallobjtypes and d in InventoryFactory.getvalidobjtypes()))]
              for dirtoimport in objdirs:
                  myobjtypelist.remove(dirtoimport)
-                 importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,envs=envs)
+                 importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,dbsession,envs=envs)
              if myobjtypelist or importallobjtypes:
-                 importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,envs=envs)
+                 importfromfile(myobjtypelist,objnamelist,clusterfile,dryrun,version,update,dbsession,envs=envs)
          else:
              objfile=None
              if os.path.isfile(os.path.join(srcdir,'definition.yaml')):
@@ -723,14 +728,14 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                          #this is an osimage derectory
                          if objnames:
                              if curobjname in objnamelist: 
-                                 importfromdir(srcdir+'/../',myobjtype,[curobjname],dryrun,version,update,envs=envs)
+                                 importfromdir(srcdir+'/../',myobjtype,[curobjname],dryrun,version,update,dbsession,envs=envs)
                                  objnamelist.remove(curobjname)
                              if objnamelist:
                                  raise InvalidFileException("Error: non-exist objects: \""+','.join(objnamelist)+"\" in inventory directory "+srcdir+"!")        
                          else:
                              #import current object
                              try:
-                                 importobjdir(srcdir,dryrun,version,update,envs,myobjtype)
+                                 importobjdir(srcdir,dryrun,version,update,dbsession,envs,myobjtype)
                              except ObjTypeNonExistException,e:
                                  if importallobjtypes:
                                      continue
@@ -740,7 +745,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                      else:
                          #this is an obj inventory directory for a objtye
                          try:
-                             importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,envs=envs)
+                             importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,dbsession,envs=envs)
                          except ObjTypeNonExistException,e:
                              if importallobjtypes:
                                  continue
