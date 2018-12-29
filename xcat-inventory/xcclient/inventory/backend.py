@@ -345,6 +345,7 @@ class Invbackend(object):
         except sh.ErrorReturnCode as e:
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
 
+        #restore the uncommited and unstashed stuff in workspace on switching
         while True:
             stashdict=self.__getstash()
             if curworkspace!=newbranch and newbranch in stashdict.keys() :
@@ -461,6 +462,7 @@ class Invbackend(object):
             raise ShErrorReturnException(self._deal_with_shErr(e.stderr))
         print(diffout)
 
+        #restore the uncommited and unstashed stuff in workspace on switching
         while True:
             stashdict=self.__getstash()
             if curworkspace in stashdict.keys() :
