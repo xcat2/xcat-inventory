@@ -292,7 +292,7 @@ class Invbackend(object):
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         if not self.__iswkspacenamevalid(newbranch):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(newbranch))
-            return 1
+
         curbranch=self.__getbranch()
         if self.__istempbranch(curbranch):
             (branch,commit)=self.__parsetempbranch(curbranch)           
@@ -310,7 +310,7 @@ class Invbackend(object):
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         if not self.__iswkspacenamevalid(branch):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(branch))
-            return 1
+
         try:
             revlist=self.__getallrev(branch)
             if revlist:
@@ -327,7 +327,7 @@ class Invbackend(object):
         self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
         if not self.__iswkspacenamevalid(newbranch):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in workspace name %s"%(newbranch))
-            return 1
+
         curworkspace=self.__getbranch()
         if curworkspace!=newbranch:
             sh.git.stash('save')
@@ -412,7 +412,7 @@ class Invbackend(object):
             else:
                 if not self._validatebrname(revision):
                     raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
-                    return 1
+
                 revision=sh.git.show("%s#%s"%(revision,curworkspace),_tty_out=False)
                 print(revision)
         except sh.ErrorReturnCode as e:
@@ -480,7 +480,6 @@ class Invbackend(object):
         if self.__istempbranch(curworkspace):
             (branch,commit)=self.__parsetempbranch(curworkspace)
             raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
-            return 1
         print("syncing workspace %s from remote repo"%(curworkspace))
         try:
             sh.git.stash('save')
@@ -577,7 +576,6 @@ class Invbackend(object):
         if self.__istempbranch(curworkspace):
             (branch,commit)=self.__parsetempbranch(curworkspace)
             raise InvalidValueException("you are on the %s revision of %s workspace, cannot sync with remote repo"%(commit,branch))
-            return 1
         print("pushing workspace %s to remote repo ..."%(curworkspace))
         try:
             sh.git.push('origin',curworkspace,'--tags')        
@@ -606,11 +604,9 @@ class Invbackend(object):
         if self.__istempbranch(curworkspace):
             (branch,commit)=self.__parsetempbranch(curworkspace)
             raise InvalidValueException("you are on the %s revision of %s workspace, please run \"xcat-inventory checkout --no-import\" to switch to the head of workspace"%(commit,branch))
-            return 1
 
         if not self._validatebrname(revision):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
-            return 1
         print("exporting inventory data from xCAT DB....")
         devNull = open(os.devnull, 'w')
         with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
@@ -659,7 +655,6 @@ class Invbackend(object):
         
         if not self._validatebrname(revision):
             raise InvalidValueException("invalid character \"@\" or \"#\" found in revision name %s"%(revision))
-            return 1
 
         if self.__istempbranch(curbranch) :
             (branch,commit)=self.__parsetempbranch(curbranch)
@@ -676,7 +671,6 @@ class Invbackend(object):
         if revision:
             if not revlist or revision not in revlist:
                 raise InvalidValueException("revision %s not found in workspace %s"%(revision,curbranch))
-                return 1
  
         if revision is None:
             pass
