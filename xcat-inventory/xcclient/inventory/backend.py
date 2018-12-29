@@ -44,11 +44,11 @@ class Invbackend(object):
 
         config = configparser.ConfigParser()
         config.read(cfgpath)
-        if not config:
-            raise ParseException("Unable to parse configuration file %s"%(cfgpath))
-        if 'backend' not in config.keys():
+        #if not config:
+        #    raise ParseException("Unable to parse configuration file %s"%(cfgpath))
+        if 'backend' not in config.sections():
             raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'backend')) 
-        if 'InfraRepo' not in config.keys():
+        if 'InfraRepo' not in config.sections():
             raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'InfraRepo')) 
 
         if 'type' in config['backend'].keys():
