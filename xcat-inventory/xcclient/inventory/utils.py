@@ -160,6 +160,9 @@ def gethome():
     home = os.path.expanduser("~")
     return home
 
+#strip single and double quotes from string
+def stripquotes(instring):
+    return stripquotes.strip('"').strip("'")
 
 #redirect stdout to stream
 @contextmanager

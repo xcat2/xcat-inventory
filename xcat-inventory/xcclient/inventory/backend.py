@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
 from __future__ import print_function
-import 	configparser
+import configparser
 import os
 import sh
 import shutil
@@ -12,16 +13,26 @@ import utils
 import pickle
 import hashlib
 
-class Invbackend:
+class Invbackend(object):
 
     globalcfgpath="/etc/xcat/inventory.cfg"
     bkendcfg={}
 
+    def __init__(self,skip=0): 
+        if not skip:
+            try:
+                self.loadcfg()
+                self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
+                if self.__querycfgsig()!=self.__calcfgsig():
+                    raise BackendNotInitException('Backend not initialized, please initialize the backend with \'xcat-inventory init\'')
+            except:
+                raise BackendNotInitException('Backend not initialized, please initialize the backend with \'xcat-inventory init\'') 
+
     def loadcfg(self,cfgpath=None):
         if cfgpath is None:
             myhome=utils.gethome()
-            cfgpath=myhome+'/.xcatinv/inventory.cfg' 
-        if not os.path.isfile(cfgpath):
+            cfgpath=os.path.join(myhome, '.xcatinv/inventory.cfg') 
+        if not myhome or not os.path.isfile(cfgpath):
             cfgpath=self.globalcfgpath 
 
         if not os.path.exists(cfgpath):
@@ -31,41 +42,45 @@ class Invbackend:
         config.read(cfgpath)
         if not config:
             raise ParseException("Unable to parse configuration file %s"%(cfgpath))
-       
+        if 'backend' not in config.keys():
+            raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'backend')) 
+        if 'InfraRepo' not in config.keys():
+            raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'InfraRepo')) 
+
         if 'type' in config['backend'].keys():
-            self.bkendcfg['type']=config['backend']['type'].strip('"').strip("'")
+            self.bkendcfg['type']=utils.stripquotes(config['backend']['type'])
         else:
             self.bkendcfg['type']='git'
 
         if 'workspace' in config['backend'].keys():
-            self.bkendcfg['workspace']=config['backend']['workspace'].strip('"').strip("'")
+            self.bkendcfg['workspace']=utils.stripquotes(config['backend']['workspace'])
         else:
             self.bkendcfg['workspace']=''
 
         if 'user' in config['backend'].keys():
-            self.bkendcfg['user']=config['backend']['user'].strip('"').strip("'")
+            self.bkendcfg['user']=utils.stripquotes(config['backend']['user'])
         else:
             self.bkendcfg['user']="xcat"
 
         if 'email' in config['backend'].keys():
-            self.bkendcfg['email']=config['backend']['email'].strip('"').strip("'")
+            self.bkendcfg['email']=utils.stripquotes(config['backend']['email'])
         else: 
             self.bkendcfg['email']="xcat@xcat.org"
 
         self.bkendcfg['InfraRepo']={}
         if 'InfraRepo' in config.keys():
             if 'remote_repo' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['remote_repo']=config['InfraRepo']['remote_repo'].strip('"').strip("'")
+                self.bkendcfg['InfraRepo']['remote_repo']=utils.stripquotes(config['InfraRepo']['remote_repo'])
             else:
                 self.bkendcfg['InfraRepo']['remote_repo']=""
 
             if 'local_repo' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['local_repo']=config['InfraRepo']['local_repo'].strip('"').strip("'")
+                self.bkendcfg['InfraRepo']['local_repo']=utils.stripquotes(config['InfraRepo']['local_repo'])
             else:
                 self.bkendcfg['InfraRepo']['local_repo']=utils.gethome()
 
             if 'working_dir' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['working_dir']=config['InfraRepo']['working_dir'].strip('"').strip("'")
+                self.bkendcfg['InfraRepo']['working_dir']=utils.stripquotes(config['InfraRepo']['working_dir'])
             else:
                 self.bkendcfg['InfraRepo']['working_dir']='.'
              
@@ -94,8 +109,7 @@ class Invbackend:
                 shutil.rmtree(self.bkendcfg['InfraRepo']['local_repo'])
             else:
                 isgitrepo=1
-
-        if not os.path.isdir(self.bkendcfg['InfraRepo']['local_repo']):
+        else:
             os.makedirs(self.bkendcfg['InfraRepo']['local_repo'])
             self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
 
@@ -179,15 +193,6 @@ class Invbackend:
         except sh.ErrorReturnCode as e:
             pass
 
-    def __init__(self,skip=0): 
-        if not skip:
-            try:
-                self.loadcfg()
-                self._change_dir(self.bkendcfg['InfraRepo']['local_repo'])
-                if self.__querycfgsig()!=self.__calcfgsig():
-                    raise BackendNotInitException('Backend not initialized, please initialize the backend with \'xcat-inventory init\'')
-            except:
-                raise BackendNotInitException('Backend not initialized, please initialize the backend with \'xcat-inventory init\'') 
         
 
     def __getstash(self):
