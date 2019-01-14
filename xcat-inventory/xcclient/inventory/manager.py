@@ -261,7 +261,7 @@ class InventoryFactory(object):
         if partialobjdict:
             for subtype in partialobjdict.keys():
                 subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
-                subdict=subhdl.importObjs(None,partialobjdict[subtype],update=True,envar=envar)
+                subdict=subhdl.importObjs(None,partialobjdict[subtype],update,envar=envar)
 
         return objfiles
 
