@@ -332,7 +332,7 @@ def validate_args(args, action):
        
     if args.exclude:
         if args.type or args.name:
-            raise CommandException("Error: \"-c|--exclude\" cannot be used with \"-t|--type\" or \"-o|--objects\"") 
+            raise CommandException("Error: \"-x|--exclude\" cannot be used with \"-t|--type\" or \"-o|--objects\"") 
 
         for et in [n.strip() for n in args.exclude.split(',')]:
             if et.lower() not in InventoryFactory.getvalidobjtypes():
@@ -482,7 +482,7 @@ def getgitinfo(location):
 
 
 
-def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None,exclude=None):
+def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None,exclude=[]):
     location=filepath
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
@@ -539,6 +539,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
     objfiledict={}
     exptmsglist=[]
     if objtypelist: 
+        objtypelist=list(set(objtypelist)-set(exclude))
         nonexistobjtypelist=list(set(objtypelist).difference(set(obj_attr_dict.keys())))
         if nonexistobjtypelist:
             raise ObjTypeNonExistException("Error: cannot find object types: %(f)s in the file "+location+'!', f=','.join(nonexistobjtypelist))
@@ -557,6 +558,8 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
                 continue
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
+            if objtype in exclude:
+                continue
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
