@@ -446,7 +446,7 @@ class Invbackend(object):
         print("exporting inventory data from xCAT DB...")
         devNull = open(os.devnull, 'w')
         with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
-            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
+            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=['credential'])
         print("generating diff report...") 
         try:
             sh.git.add("./*")
@@ -616,7 +616,7 @@ class Invbackend(object):
         print("exporting inventory data from xCAT DB....")
         devNull = open(os.devnull, 'w')
         with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
-            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=None)
+            manager.export_by_type(None,None,None,'.',fmt='yaml',version=None,exclude=['credential'])
         
         if revision:
             print("creating revision %s in workspace %s ..."%(revision,curworkspace))
@@ -692,7 +692,7 @@ class Invbackend(object):
             print("importing inventory data to xCAT DB...")
             devNull = open(os.devnull, 'w')
             with utils.stdout_redirector(devNull),utils.stderr_redirector(devNull):
-                manager.importobj(None,".",None,None,None,None,False,None)
+                manager.importobj(None,".",None,None,None,None,False,None,None,exclude=['credential'])
 
         if revision is None:
             print("checked out to latest revision")
