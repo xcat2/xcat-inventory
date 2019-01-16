@@ -99,10 +99,11 @@ class matrixdbfactory():
                continue
            tabobjs=[]
            tabkeys=tab.primkeys()
-           if len(keys)==0:
+           if not keys or len(keys)==0:
                tabobjs=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            elif len(tabkeys)==1:
-               tabobjs=dbsession.query(tab).filter(getattr(tab,tabkeys[0]).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+               tabobjs = dbsession.query(tab).filter(getattr(tab, tabkeys[0]).in_(keys),
+                                                     or_(tab.disable == None, tab.disable.notin_(['1', 'yes']))).all()
            elif len(tabkeys)>1:
                for key in keys:
                    if type(key)!=tuple:
