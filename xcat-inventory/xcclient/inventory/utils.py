@@ -185,3 +185,46 @@ def stderr_redirector(stream):
         yield
     finally:
         sys.stderr = old_stderr
+
+
+
+#traverse the inventory object directory and get the object type and object names
+def traverseobjdir(path):
+    if not os.path.isdir(path):
+        return None
+    ret={}
+    from manager import InventoryFactory
+    for subdir in os.listdir(path):
+        objpath=os.path.join(path,subdir) 
+        if os.path.isdir(objpath):
+            if os.path.isfile(os.path.join(objpath,'definition.yaml')):
+                objfile=os.path.join(objpath,'definition.yaml')
+                with open(objfile, 'r') as stream:
+                    try:
+                        obj_attr_dict = yaml.load(stream)
+                    except:
+                        continue
+            elif os.path.isfile(os.path.join(objpath,'definition.json')):
+                objfile=os.path.join(objpath,'definition.json')
+                with open(objfile, 'r') as stream:
+                    try:
+                        obj_attr_dict = json.loads(stream)
+                    except:
+                        continue
+            else:
+                continue
+            objtypes=list(set(obj_attr_dict.keys()) & set(InventoryFactory.getvalidobjtypes(ignorepartial=1)))
+            if objtypes and len(objtypes)==1:
+                objtype=objtypes[0] 
+                if objtype not in ret.keys():
+                    ret[objtype]=[subdir]
+                else:
+                    ret[objtype].append(subdir)
+    return ret
+     
+
+
+
+ 
+            
+            
