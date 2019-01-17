@@ -422,24 +422,26 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
                 mylocation=os.path.join(destdir,'cluster.json')
 
             dumpobj(wholedict, fmt,mylocation)
-            with open(mylocation, "a") as myfile:
-                myfile.write("#%s"%(xcatversion))
+            if fmt.lower() == 'yaml':
+                with open(mylocation, "a") as myfile:
+                    myfile.write("#%s"%(xcatversion))
             print("The cluster inventory data has been dumped to %s"%(mylocation),file=sys.stdout)
         elif destfile:
             dumpobj(wholedict, fmt,destfile)
-            with open(destfile, "a") as myfile:
-                myfile.write("#%s"%(xcatversion))
+            if fmt.lower() == 'yaml':
+                with open(destfile, "a") as myfile:
+                    myfile.write("#%s"%(xcatversion))
             print("The inventory data has been dumped to %s"%(destfile),file=sys.stdout)
         else: 
             if not fmt or fmt.lower() == 'yaml':
                 dump2yaml(wholedict)
+                print("#%s"%(xcatversion))
             elif fmt == 'dict':
                 dbsession.close()
                 return wholedict
             else:
                 dump2json(wholedict)
 
-            print("#%s"%(xcatversion))
     dbsession.close() 
 
 
