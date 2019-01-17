@@ -658,6 +658,7 @@ def importfromdir(location,objtype=None,objnamelist=None,dryrun=None,version=Non
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         hdl.removeObjs()
         update=True
+    objnotfound=[]
     for objname in objnamelist:
         if os.path.exists(os.path.join(location,objname)):
             objdir=os.path.join(location,objname)
@@ -669,7 +670,11 @@ def importfromdir(location,objtype=None,objnamelist=None,dryrun=None,version=Non
             else:
                 importobjdir(objdir,dryrun,version,update,dbsession,envs,objtype)
         else:
-            print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
+            objnotfound.append(objname)
+
+    if objnotfound:
+        raise ObjTypeNonExistException("the specified object \"%s\" does not exist under \"%s\"!"%(','.join(objnotfound),location),file=sys.stderr)
+
     if dbsession:
         dbsession.commit()
         dbsession.close()
