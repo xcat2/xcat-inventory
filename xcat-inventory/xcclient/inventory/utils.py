@@ -207,8 +207,9 @@ def traverseobjdir(path):
             elif os.path.isfile(os.path.join(objpath,'definition.json')):
                 objfile=os.path.join(objpath,'definition.json')
                 with open(objfile, 'r') as stream:
+                    string=stream.read()
                     try:
-                        obj_attr_dict = json.loads(stream)
+                        obj_attr_dict = json.loads(string)
                     except:
                         continue
             else:
