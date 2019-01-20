@@ -12,3 +12,10 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp)
 
 from .network import NetworkResource
+api.add_resource(NetworkResource, '/network')
+
+from .site import SiteResource
+api.add_resource(SiteResource, '/site')
+
+from .nodehm import PowerResource
+api.add_resource(PowerResource, '/nodehm/power')

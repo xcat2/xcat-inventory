@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from __future__ import print_function
+import sys
 import dbobject
 from dbobject import *
 from dbsession import DBsession
@@ -334,7 +335,7 @@ class dbfactory():
                 if objkey:
                     query=query.filter(getattr(tabcls,tabkey).in_(objkey)) 
                 query.delete(synchronize_session='fetch')
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
         #else:
         #    print("table "+tab+ "cleared!")

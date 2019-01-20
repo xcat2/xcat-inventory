@@ -5,8 +5,11 @@
 # -*- coding: utf-8 -*-
 
 """The app module, containing the app factory function."""
+
+import os
+import logging
 from flask import Flask, Blueprint
-from flask_restful import Api, Resource
+
 #from .extensions import bcrypt, cache, db, migrate, jwt, cors
 
 from xcclient.inventory.dbsession import DBsession
@@ -22,6 +25,7 @@ def create_app(config_object=None):
     if config_object:
         app.config.from_object(config_object)
 
+    register_logger(app)
     register_extensions(app)
     register_blueprints(app)
     #register_errorhandlers(app)
@@ -33,6 +37,20 @@ def create_app(config_object=None):
         return 'pong'
 
     return app
+
+def register_logger(app):
+    logger = logging.getLogger()
+    # Formatter
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(process)d %(thread)d %(module)s %(message)s')
+    if not os.path.isdir('log'):
+        os.mkdir('log')
+    file_handler = logging.FileHandler('log/xcatapi.log')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    if app.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
 def register_extensions(app):
     """Register Flask extensions."""
@@ -78,3 +96,4 @@ def register_commands(app):
     app.cli.add_command(commands.lint)
     app.cli.add_command(commands.clean)
     app.cli.add_command(commands.urls)
+

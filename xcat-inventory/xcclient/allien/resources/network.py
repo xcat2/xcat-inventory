@@ -6,9 +6,7 @@
 
 from flask_restful import Resource
 from xcclient.allien.app import dbi
-from xcclient.allien.resources import api
 
-@api.resource('/network')
 class NetworkResource(Resource):
     def get(self):
         return dbi.gettab(['networks'])
