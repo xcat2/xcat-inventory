@@ -16,13 +16,11 @@ import logging
 
 # LOG UTILITIES
 
-# TODO: Merge this code into kusu.util.log
-
 class CustomLogger(logging.Logger):
 
     def __init__(self, name):
         logging.Logger.__init__(self, name)
-        lc_str = os.environ.get('KUSU_LOG_CLASSES', '')
+        lc_str = os.environ.get('FLASK_LOG_CLASSES', '')
         self._log_classes = dict.fromkeys(lc_str.split(), 1)
 
     def lc_debug(self, lc, msg, *args, **kwargs):

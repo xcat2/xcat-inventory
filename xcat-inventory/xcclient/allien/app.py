@@ -12,6 +12,7 @@ from flask import Flask, Blueprint
 
 #from .extensions import bcrypt, cache, db, migrate, jwt, cors
 
+from xcclient.xcatd.client import xcat_log
 from xcclient.inventory.dbsession import DBsession
 from xcclient.inventory.dbfactory import dbfactory
 dbsession = DBsession()
@@ -39,7 +40,7 @@ def create_app(config_object=None):
     return app
 
 def register_logger(app):
-    logger = logging.getLogger()
+    logger = xcat_log.get_logger()
     # Formatter
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(process)d %(thread)d %(module)s %(message)s')
     if not os.path.isdir('log'):
