@@ -40,18 +40,18 @@ def create_app(config_object=None):
     return app
 
 def register_logger(app):
-    logger = xcat_log.get_logger()
+    app.logger = xcat_log.get_logger()
     # Formatter
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(process)d %(thread)d %(module)s %(message)s')
     if not os.path.isdir('log'):
         os.mkdir('log')
     file_handler = logging.FileHandler('log/xcatapi.log')
     file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    app.logger.addHandler(file_handler)
     if app.debug:
-        logger.setLevel(logging.DEBUG)
+        app.logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.INFO)
+        app.logger.setLevel(logging.INFO)
 
 def register_extensions(app):
     """Register Flask extensions."""

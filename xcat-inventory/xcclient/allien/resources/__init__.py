@@ -20,5 +20,6 @@ api.add_resource(NetworkResource, '/network')
 from .site import SiteResource
 api.add_resource(SiteResource, '/site')
 
-from .nodehm import PowerResource
-api.add_resource(PowerResource, '/nodehm/power')
+from .nodehm import *
+api.add_resource(PowerResource, '/node/<string:id>/power')
+api.add_resource(PowerRangeResource, '/power')
