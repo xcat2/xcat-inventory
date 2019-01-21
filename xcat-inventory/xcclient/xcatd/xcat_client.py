@@ -14,8 +14,6 @@
 from .client.constants import *
 from .client.timer import Timer
 from .client.xcat_client_base import XCATClientBase
-from .client.xcat_ssl import SSLClient
-
 from .client.xcat_cmd_helpers import *
 
 #
@@ -23,12 +21,12 @@ from .client.xcat_cmd_helpers import *
 #
 
 class XCATClientParams(object):
-    def __init__(self):
+    def __init__(self, xcatmaster=None, xcatport=None):
         # Hostname or IP address of SSL server
-        self.host = XCAT_HOST
+        self.host = xcatmaster or XCAT_HOST
 
         # Port of SSL server
-        self.port = XCAT_SSL_PORT
+        self.port = xcatport or XCAT_SSL_PORT
 
         # Path of file containing CA certificates to verify 
         # server certificate is signed by legitimate authority
@@ -70,9 +68,7 @@ class XCATClient(XCATClientBase):
     # General operations
     #
 
-    def init(self, logger, params=XCATClientParams(),
-                           default_sockopts=XCATClientSocketOptions(),
-                           cmd_sockopts={}):
+    def init(self, logger, params=XCATClientParams(), default_sockopts=XCATClientSocketOptions(), cmd_sockopts={}):
         """Initialize the client object. Always call this before you call
         any client methods.
         Params: 
@@ -244,9 +240,9 @@ class XCATClient(XCATClientBase):
         Exceptions:
             XCATClientError       (see client/xcat_exceptions.py)
         """
+        t = Timer().start_timer()
         try:
             self._logger.trace('Entering')
-            t = Timer().start_timer()
             return self._run_command(LsdefHelper(args))
         finally:
             t.stop_timer()
