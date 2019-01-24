@@ -395,12 +395,18 @@ class zone(Base,mixin):
     __tablename__ = 'zone'
     __table_args__ = {'autoload':True}
 ########################################################################
+class osdistro(Base,mixin):
+    """"""
+    Base.metadata.bind = DBsession.getEngine('osdistro')
+    __tablename__ = 'osdistro'
+    __table_args__ = {'autoload':True}
+########################################################################
 class site(Base,mixin):
     """"""
     Base.metadata.bind = DBsession.getEngine('site')
     __tablename__ = 'site'
     __table_args__ = {'autoload':True}
-
+########################################################################
     def getdict(self):
         mydict={}
         mykey=self.__dict__['key']
