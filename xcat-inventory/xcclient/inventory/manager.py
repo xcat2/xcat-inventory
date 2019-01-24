@@ -29,7 +29,7 @@ VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn,'prodkey':ProductKey}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn,'prodkey':ProductKey,'osdistro':Osdistro}
     __InventoryClass_WithFiles__=['osimage','credential']
     __InventoryClass_partial__=['networkconn','prodkey']
     __db__ = None
