@@ -606,5 +606,8 @@ class NetworkConn(XcatBase):
 class ProductKey(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/prodkey.yaml')
 
+class Osdistro(XcatBase):
+    _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/osdistro.yaml')
+
 if __name__ == "__main__":
     pass

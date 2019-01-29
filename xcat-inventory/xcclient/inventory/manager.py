@@ -29,7 +29,7 @@ VALID_OBJ_FORMAT = ['yaml', 'json']
 
 class InventoryFactory(object):
     __InventoryHandlers__ = {}
-    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn,'prodkey':ProductKey}
+    __InventoryClass__ = {'node': Node, 'network': Network, 'osimage': Osimage, 'route': Route, 'policy': Policy, 'passwd': Passwd,'site': Site,'zone':Zone,'credential':Credential,'networkconn':NetworkConn,'prodkey':ProductKey,'osdistro':Osdistro}
     __InventoryClass_WithFiles__=['osimage','credential']
     __InventoryClass_partial__=['networkconn','prodkey']
     __db__ = None
@@ -53,6 +53,9 @@ class InventoryFactory(object):
 
     @staticmethod
     def createHandler(objtype,dbsession,schemaversion=None):
+        if objtype not in InventoryFactory.getvalidobjtypes():
+            raise CommandException("Error: Invalid object type: \"%(t)s\". Valid types: \"%(ts)s\"", t=objtype,ts=','.join(InventoryFactory.getvalidobjtypes(ignorepartial=1)))
+             
         if schemaversion is None:
             schemaversion=InventoryFactory.getValidSchemaVersion(objtype)
         if schemaversion is None:
@@ -261,7 +264,7 @@ class InventoryFactory(object):
         if partialobjdict:
             for subtype in partialobjdict.keys():
                 subhdl = InventoryFactory.createHandler(subtype,self.dbsession,self.schemaversion)
-                subdict=subhdl.importObjs(None,partialobjdict[subtype],update=True,envar=envar)
+                subdict=subhdl.importObjs(None,partialobjdict[subtype],update,envar=envar)
 
         return objfiles
 
@@ -304,7 +307,7 @@ def validate_args(args, action):
         objtypelist.extend([n.strip() for n in args.type.split(',')])
         invalidobjtypes=list(set(objtypelist).difference(set(InventoryFactory.getvalidobjtypes())))
         if invalidobjtypes:
-            raise CommandException("Error: Invalid object type: \"%(t)s\". Valid types: \"%(ts)s\"", t=','.join(invalidobjtypes),ts=','.join(InventoryFactory.getvalidobjtypes()))
+            raise CommandException("Error: Invalid object type: \"%(t)s\". Valid types: \"%(ts)s\"", t=','.join(invalidobjtypes),ts=','.join(InventoryFactory.getvalidobjtypes(ignorepartial=1)))
         if len(objtypelist)!=1 and args.name:
             raise CommandException("Error: object names cannot be specified with multiple object types!")
     if args.name == '':
@@ -330,6 +333,13 @@ def validate_args(args, action):
             if not os.path.isdir(mydir):
                 raise CommandException("Error: the directory %(f)s does not exist or is not a directory!", f=mydir)
        
+    if args.exclude:
+        if args.type or args.name:
+            raise CommandException("Error: \"-x|--exclude\" cannot be used with \"-t|--type\" or \"-o|--objects\"") 
+
+        for et in [n.strip() for n in args.exclude.split(',')]:
+            if et.lower() not in InventoryFactory.getvalidobjtypes():
+                raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
     
     if action == 'import': #extra validation for export
         if not args.path and not args.directory:
@@ -344,12 +354,9 @@ def validate_args(args, action):
         #    raise CommandException("Error: -f|--path is only valid for -t|--type=osimage")
         if args.format and args.format.lower() not in VALID_OBJ_FORMAT:
             raise CommandException("Error: Invalid exporting format: %(f)s", f=args.format)
-        if args.exclude:
-            for et in [n.strip() for n in args.exclude.split(',')]:
-                if et.lower() not in InventoryFactory.getvalidobjtypes():
-                    raise CommandException("Error: Invalid object type to exclude: \"%(t)s\"", t=et)
 
-def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',version=None,exclude=None):
+
+def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',version=None,exclude=[]):
     if objtype and objtype not in InventoryFactory.getObjTypesWithFiles()  and destdir:
         raise CommandException("Error: directory %(f)s specified by -f|--path is only supported when [-t|--type osimage|credential] or export all without [-t|--type] specified",f=destdir)
 
@@ -415,24 +422,26 @@ def export_by_type(objtype, names, destfile=None, destdir=None, fmt='yaml',versi
                 mylocation=os.path.join(destdir,'cluster.json')
 
             dumpobj(wholedict, fmt,mylocation)
-            with open(mylocation, "a") as myfile:
-                myfile.write("#%s"%(xcatversion))
+            if fmt.lower() == 'yaml':
+                with open(mylocation, "a") as myfile:
+                    myfile.write("#%s"%(xcatversion))
             print("The cluster inventory data has been dumped to %s"%(mylocation),file=sys.stdout)
         elif destfile:
             dumpobj(wholedict, fmt,destfile)
-            with open(destfile, "a") as myfile:
-                myfile.write("#%s"%(xcatversion))
+            if fmt.lower() == 'yaml':
+                with open(destfile, "a") as myfile:
+                    myfile.write("#%s"%(xcatversion))
             print("The inventory data has been dumped to %s"%(destfile),file=sys.stdout)
         else: 
             if not fmt or fmt.lower() == 'yaml':
                 dump2yaml(wholedict)
+                print("#%s"%(xcatversion))
             elif fmt == 'dict':
                 dbsession.close()
                 return wholedict
             else:
                 dump2json(wholedict)
 
-            print("#%s"%(xcatversion))
     dbsession.close() 
 
 
@@ -478,7 +487,7 @@ def getgitinfo(location):
 
 
 
-def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None):
+def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=True,dbsession=None,envs=None,rootdir=None,exclude=[]):
     location=filepath
     dirpath=os.path.dirname(os.path.realpath(location))
     filename=os.path.basename(os.path.realpath(location))
@@ -535,6 +544,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
     objfiledict={}
     exptmsglist=[]
     if objtypelist: 
+        objtypelist=list(set(objtypelist)-set(exclude))
         nonexistobjtypelist=list(set(objtypelist).difference(set(obj_attr_dict.keys())))
         if nonexistobjtypelist:
             raise ObjTypeNonExistException("Error: cannot find object types: %(f)s in the file "+location+'!', f=','.join(nonexistobjtypelist))
@@ -553,6 +563,8 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
                 continue
     else:
         for objtype in obj_attr_dict.keys():#VALID_OBJ_TYPES:
+            if objtype in exclude:
+                continue
             hdl = InventoryFactory.createHandler(objtype,dbsession,version)
             if objtype not in objfiledict.keys():
                 objfiledict[objtype]={}
@@ -625,17 +637,28 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
             print("Warning: the file \""+srcfile+"\" of "+objtype+" \""+objname+"\" does not exist!",file=sys.stderr)
     print("The object "+objname+" has been imported",file=sys.stdout)
 
-def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,version=None,update=True,dbsession=None,envs=None):
+#import objects from object type inventory directory
+def importfromdir(location,objtype=None,objnamelist=None,dryrun=None,version=None,update=True,dbsession=None,envs=None):
     importall=0
-    if not objnamelist:
-        objnamelist = [filename for filename in os.listdir(location) if os.path.isdir(os.path.join(location,filename))]
-        importall=1
+    typeobjdict=utils.traverseobjdir(location)
+    if typeobjdict:
+        objtypeindir=typeobjdict.keys()[0]
+        objnamesindir=typeobjdict[objtypeindir]
+        if objtype is None:
+            objtype=objtypeindir
+        if not objnamelist:
+            objnamelist=objnamesindir
+            importall=1
+    if objtype is None:
+        raise ObjTypeNonExistException("Error: cannot find any xCAT inventory object in directory \"%s\""%(location))
+
     if update==False:
         if dbsession is None:
             dbsession=DBsession()
         hdl = InventoryFactory.createHandler(objtype,dbsession,version)
         hdl.removeObjs()
         update=True
+    objnotfound=[]
     for objname in objnamelist:
         if os.path.exists(os.path.join(location,objname)):
             objdir=os.path.join(location,objname)
@@ -647,13 +670,17 @@ def importfromdir(location,objtype='osimage',objnamelist=None,dryrun=None,versio
             else:
                 importobjdir(objdir,dryrun,version,update,dbsession,envs,objtype)
         else:
-            print("the specified object \""+objname+"\" does not exist under \""+location+"\"!",file=sys.stderr)
+            objnotfound.append(objname)
+
+    if objnotfound:
+        raise ObjTypeNonExistException("the specified object \"%s\" does not exist under \"%s\"!"%(','.join(objnotfound),location),file=sys.stderr)
+
     if dbsession:
         dbsession.commit()
         dbsession.close()
 
      
-def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True,envs=None,env_files=None):
+def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,update=True,envs=None,env_files=None,exclude=[]):
      objtypelist=[]
      importallobjtypes=0
      if objtype:
@@ -686,7 +713,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
      dbsession=None
 
      if srcfile and os.path.isfile(srcfile):
-         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,dbsession,envs=envs)
+         importfromfile(objtypelist, objnamelist,srcfile,dryrun,version,update,dbsession,envs=envs,rootdir=None,exclude=exclude)
      elif srcdir and os.path.isdir(srcdir):
          clusterfile=None
          if os.path.isfile(os.path.join(srcdir,'cluster.yaml')):
@@ -701,7 +728,9 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                   myobjtypelist.extend(objtypelist)
              if importallobjtypes:
                   myobjtypelist.extend(InventoryFactory.getvalidobjtypes(ignorepartial=1)) 
-             objdirs=[d for d in os.listdir(srcdir) if os.path.isdir(os.path.join(srcdir,d)) and (d in myobjtypelist or (importallobjtypes and d in InventoryFactory.getvalidobjtypes()))]
+             if exclude:
+                  myobjtypelist=list(set(myobjtypelist)-set(exclude))
+             objdirs=[d for d in os.listdir(srcdir) if os.path.isdir(os.path.join(srcdir,d)) and (d in myobjtypelist or (importallobjtypes and d in list(set(InventoryFactory.getvalidobjtypes())-set(exclude))))]
              for dirtoimport in objdirs:
                  myobjtypelist.remove(dirtoimport)
                  importfromdir(os.path.join(srcdir,dirtoimport),dirtoimport,objnamelist,dryrun,version,update,dbsession,envs=envs)
@@ -719,7 +748,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                   myobjtypelist.extend(objtypelist)
              #if importallobjtypes:
              #     myobjtypelist.extend(InventoryFactory.getvalidobjtypes()) 
-             for myobjtype in InventoryFactory.getObjTypesWithFiles(): 
+             for myobjtype in list(set(InventoryFactory.getObjTypesWithFiles())-set(exclude)): 
                  if myobjtype in myobjtypelist or importallobjtypes:
                      if importallobjtypes:
                          myobjtype=None
@@ -738,20 +767,22 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                                  importobjdir(srcdir,dryrun,version,update,dbsession,envs,myobjtype)
                              except ObjTypeNonExistException,e:
                                  if importallobjtypes:
+                                     print(str(e),file=sys.stderr)
                                      continue
                                  else:
                                      raise ObjTypeNonExistException(str(e))
 
                      else:
-                         #this is an obj inventory directory for a objtye
                          try:
+                             #this is an obj inventory directory for a objtype
                              importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,dbsession,envs=envs)
                          except ObjTypeNonExistException,e:
                              if importallobjtypes:
+                                 print(str(e),file=sys.stderr)
                                  continue
                              else:
-                                 raise ObjTypeNonExistException(str(e))                             
-                             
+                                 raise ObjTypeNonExistException(str(e))
+                          
                      if myobjtype in objtypelist:
                          objtypelist.remove(myobjtype)
  
