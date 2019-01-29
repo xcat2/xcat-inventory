@@ -10,13 +10,15 @@ import os
 import logging
 from flask import Flask, Blueprint
 
-#from .extensions import bcrypt, cache, db, migrate, jwt, cors
+# from .extensions import bcrypt, cache, db, migrate, jwt, cors
 
 from xcclient.xcatd.client import xcat_log
 from xcclient.inventory.dbsession import DBsession
 from xcclient.inventory.dbfactory import dbfactory
+from xcclient.inventory.utils import initglobal
 dbsession = DBsession()
 dbi = dbfactory(dbsession)
+
 
 def create_app(config_object=None):
     """Application factory"""
@@ -33,11 +35,15 @@ def create_app(config_object=None):
     #register_shellcontext(app)
     #register_commands(app)
 
+    # TODO: need a method to monitor the version is changed.
+    initglobal()
+
     @app.route('/ping', methods=['GET'])
     def test():
         return 'pong'
 
     return app
+
 
 def register_logger(app):
     app.logger = xcat_log.get_logger()
@@ -53,6 +59,7 @@ def register_logger(app):
     else:
         app.logger.setLevel(logging.INFO)
 
+
 def register_extensions(app):
     """Register Flask extensions."""
     pass
@@ -63,6 +70,7 @@ def register_blueprints(app):
 
     from .resources import api_bp
     app.register_blueprint(api_bp)
+
 
 def register_errorhandlers(app):
 

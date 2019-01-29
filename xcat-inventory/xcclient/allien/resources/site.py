@@ -7,6 +7,7 @@
 from flask_restful import Resource
 from xcclient.allien.app import dbi
 
+
 class SiteResource(Resource):
     def get(self):
         return dbi.gettab(['site'])

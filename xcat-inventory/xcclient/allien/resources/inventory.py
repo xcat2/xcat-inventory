@@ -6,11 +6,13 @@
 
 from flask import current_app
 from flask_restful import Resource
-from xcclient.inventory.manager import export_by_type
+from xcclient.inventory.manager import InventoryFactory
 from xcclient.allien.app import dbsession
 
+
 class InventoryNodeResource(Resource):
-    def get(self, id):
+
+    def get(self, id=None):
         hdl = InventoryFactory.createHandler('node', dbsession, None)
 
         nodelist = []
