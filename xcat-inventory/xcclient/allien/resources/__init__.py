@@ -23,3 +23,6 @@ api.add_resource(SiteResource, '/site')
 from .nodehm import *
 api.add_resource(PowerResource, '/node/<string:id>/power')
 api.add_resource(PowerRangeResource, '/power')
+
+from .inventory import *
+api.add_resource(InventoryNodeResource, '/inventory/node', '/inventory/node/<string:id>')
