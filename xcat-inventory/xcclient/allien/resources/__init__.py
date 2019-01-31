@@ -14,6 +14,9 @@ api = Api(api_bp)
 from .node import NodeResource
 api.add_resource(NodeResource, '/node')
 
+from .noderange import NodeRangeResource
+api.add_resource(NodeRangeResource, '/noderange/<string:nr>')
+
 from .network import NetworkResource
 api.add_resource(NetworkResource, '/network')
 

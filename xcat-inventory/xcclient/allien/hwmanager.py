@@ -4,8 +4,6 @@
 
 # -*- coding: utf-8 -*-
 
-from .app import dbi
-from .noderange import Noderange
 from .nodemanager import get_hmi_by_list
 
 try:

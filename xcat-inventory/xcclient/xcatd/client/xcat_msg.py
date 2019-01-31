@@ -39,7 +39,8 @@ from .xcat_data import *
 class XCATRequestBuilder(object):
     """Creates an XML request to run an xCAT command."""
 
-    def to_xmlobj(self, xcat_req):
+    @classmethod
+    def to_xmlobj(cls, xcat_req):
         """Returns the request as an ElementTree XML object"""
 
         r = xcat_req
@@ -69,7 +70,8 @@ class XCATRequestBuilder(object):
 
         return root
 
-    def to_string(self, xcat_req):
+    @classmethod
+    def to_xml(cls, xcat_req):
         """Returns the request as an XML string
            Example:
                 <xcatrequest>
@@ -77,10 +79,10 @@ class XCATRequestBuilder(object):
                   <noderange>compute1</noderange>
                   <arg>-d</arg>
                   <cwd>/tmp</cwd>
-                  <clienttype>cli</clienttype>
+                  <clienttype>restapi</clienttype>
                 </xcatrequest>
         """
-        root = self.to_xmlobj(xcat_req)
+        root = cls.to_xmlobj(xcat_req)
         return etree.tostring(root)+'\n'
 
 
@@ -100,7 +102,7 @@ class XCATTableRowParser(object):
            Params: 
               An object representing a table row element:
               <row>
-                <node>compute0</node>
+                <node>compute01</node>
                 <groups>compute,all</groups>
               </row>
 
@@ -125,8 +127,8 @@ class XCATNodesetRecordParser(object):
               <node>
                 <data>boot</data>
                 <destiny>boot</destiny>
-                <imgserver>pcm-m100</imgserver>
-                <name>compute0</name>
+                <imgserver>xcatmn</imgserver>
+                <name>compute01</name>
               </node>
 
            Returns:  XCATNodesetRecord 

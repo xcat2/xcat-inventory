@@ -125,7 +125,7 @@ class XCATClientBase(object):
             
             # Submit request
             req = cmd_helper.get_request()
-            req_str = XCATRequestBuilder().to_string(req)
+            req_str = XCATRequestBuilder().to_xml(req)
             ssl_client.write_all(req_str)
 
             # Parse response

@@ -4,17 +4,52 @@
 
 # -*- coding: utf-8 -*-
 
+from flask import g
+
 from .app import dbi
-from .noderange import Noderange
+from .noderange import NodeRange
+
+OPT_QUERY_THRESHHOLD = 18
 
 
 def get_nodes_by_range(noderange=None):
 
-    # parse the node range in literal to a list
-    nr = Noderange(noderange)
+    # parse the node range in literal to a list objects (might be node, group, or non existence)
+    nr = NodeRange(noderange)
 
-    # get attributes from nodelist
-    return dbi.gettab(['nodelist'], nr.get_nodes())
+    # Get attributes from nodelist
+    if nr.all or nr.size > OPT_QUERY_THRESHHOLD:
+        # query whole if the range size larger than 255
+        dataset = dbi.gettab(['nodelist', 'nodegroup'])
+    else:
+        dataset = dbi.gettab(['nodelist', 'nodegroup'], nr.nodes)
+
+    g.nodeset = dataset
+    if nr.all:
+        return dataset.keys(), None
+
+    nodelist = dict()
+    nonexistence = list()
+    for name in nr.nodes:
+        if name in dataset:
+            nodelist[name] = dataset[name]
+        else:
+            nonexistence.append(name)
+
+    # For nonexistence, need to check if it is a group or tag
+    return nodelist.keys(), nonexistence
+
+
+def _check_groups_in_noderange(nodelist, noderange):
+    unique_groups = set()  # unique group or tag name
+
+    # get all group names
+    for node, values in nodelist.iteritems():
+        groups = values.get('nodelist.groups', '')
+        if groups:
+            unique_groups.update(groups.split(','))
+
+    return list(unique_groups)
 
 
 def get_nodes_by_list(nodelist=None):
@@ -28,13 +63,4 @@ def get_hmi_by_list(nodelist=None):
 
     return result
 
-def get_groups(nodelist):
-    unquire_groups = set()  # unique group or tag name
 
-    # get all group names
-    for node, values in nodelist.iteritems():
-        groups = values.get('nodelist.groups', '')
-        if groups:
-            unquire_groups.update(groups.split(','))
-
-    return list(unquire_groups)
