@@ -19,7 +19,7 @@ class PowerResource(Resource):
 
         self._validator(args)
         # 1, parse node range, and get power, mgmt interface of specified nodes, and categorize them in dict
-        nodelist = ['mid05tor12cn01','mid05tor12cn02', 'mid05tor12cn03', 'mid05tor12cn04', 'mid05tor12cn05']
+        nodelist = ['mid05tor12cn01', 'mid05tor12cn02', 'mid05tor12cn03', 'mid05tor12cn04', 'mid05tor12cn05']
         # 2, handle each interface for the nodes in parallel with plugins
         #    - invoke rpc to new hw process (run it directly in api server for temporary)
         #    - socket to xcatd for legacy mode: hmc, ipmi (later will use pyghmi)

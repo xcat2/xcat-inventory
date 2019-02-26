@@ -28,6 +28,9 @@ class Singleton(object):
 
 class DBsession(Singleton):
     _dbcfgpath='/etc/xcat/cfgloc'
+    if os.path.exists('./xcat_cfgloc'):
+        _dbcfgpath='./xcat_cfgloc'
+
     _dbcfgregex=re.compile("^(\S+):dbname=(\S+);host=(\S+)\|(\S+)\|(\S*)$")
 
     def __init__(self):

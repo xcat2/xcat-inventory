@@ -1,8 +1,12 @@
 #!/usr/bin/python
 from __future__ import print_function
 import sys
-import dbobject
-from dbobject import *
+try:
+    import dbobject
+    from dbobject import *
+except:
+    print("Failed to connected with database...")
+
 from dbsession import DBsession
 from sqlalchemy import or_
 #from xcclient.shell import CommandException
