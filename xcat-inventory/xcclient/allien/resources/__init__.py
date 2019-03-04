@@ -12,8 +12,8 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp, version='1.0', title='xCAT API',
           description='RESTful API of xCAT service',
 )
-from .node import NodeResource
-api.add_resource(NodeResource, '/node')
+from .node import ns as api_node_ns
+api.add_namespace(api_node_ns)
 
 from .noderange import NodeRangeResource
 api.add_resource(NodeRangeResource, '/noderange/<string:nr>')

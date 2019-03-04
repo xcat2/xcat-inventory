@@ -6,11 +6,17 @@
 
 from flask import g
 
-from .app import dbi
+from .app import dbi, dbsession
 from .noderange import NodeRange
+from ..inventory.manager import InventoryFactory
 
 OPT_QUERY_THRESHHOLD = 18
 
+
+def get_nodes_list():
+
+    # get all records from nodelist table
+    return dbi.gettab(['nodelist'])
 
 def get_nodes_by_range(noderange=None):
 
@@ -64,3 +70,23 @@ def get_hmi_by_list(nodelist=None):
     return result
 
 
+def get_node_attributes():
+    pass
+
+
+def get_inventory_by_type(objtype, ids=None):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+
+    wants = None
+    if ids:
+        if type(ids) == 'list':
+            wants = ids
+        else:
+            wants = [ids]
+
+    result = hdl.exportObjs(wants, None, fmt='json')
+    if not result:
+        return []
+
+    return result[objtype]

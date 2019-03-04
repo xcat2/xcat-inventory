@@ -7,7 +7,6 @@
 from flask_restplus import Namespace, Resource, fields, reqparse
 from xcclient.allien.app import dbi
 
-#from . import api
 ns = Namespace('globalconf', description='System Level Settings')
 
 site = ns.model('Site', {

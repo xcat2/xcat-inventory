@@ -8,7 +8,7 @@ jinja2
 psycopg2
 pymysql
 pyyaml
-pyparse
+pyparsing
 requests
 sh
 six

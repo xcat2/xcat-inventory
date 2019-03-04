@@ -5,7 +5,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import current_app
-from flask_restful import Resource
+from flask_restplus import Resource
 from xcclient.inventory.manager import InventoryFactory
 from xcclient.allien.app import dbsession
 

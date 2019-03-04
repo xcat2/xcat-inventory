@@ -128,9 +128,9 @@ def initglobal():
     else:
         globalvars.isxcatrunning=0
     if globalvars.isxcatrunning:
-        (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
+        (retcode,out,err)=runCommand("XCATBYPASS=0 /opt/xcat/bin/lsxcatd -v")
     if not globalvars.isxcatrunning or retcode!=0:
-        (retcode,out,err)=runCommand("XCATBYPASS=1 lsxcatd -v")
+        (retcode,out,err)=runCommand("XCATBYPASS=1 /opt/xcat/bin/lsxcatd -v")
     if retcode!=0:
         globalvars.xcat_version=""
         globalvars.xcat_verno=""
