@@ -13,10 +13,21 @@ from ..inventory.manager import InventoryFactory
 OPT_QUERY_THRESHHOLD = 18
 
 
-def get_nodes_list():
+def get_nodes_list(ids=None):
 
-    # get all records from nodelist table
-    return dbi.gettab(['nodelist'])
+    wants = []
+    if ids:
+        if type(ids) is list:
+            wants.extend(ids)
+        else:
+            wants.append(ids)
+
+    # get wanted records from nodelist table
+    return dbi.gettab(['nodelist'], wants)
+
+def get_node_basic(id):
+
+    return dbi.gettab(['nodelist'], [id])
 
 def get_nodes_by_range(noderange=None):
 
@@ -70,17 +81,27 @@ def get_hmi_by_list(nodelist=None):
     return result
 
 
-def get_node_attributes():
-    pass
+def get_node_attributes(node):
+
+    target_node = get_nodes_list(node)
+    if not target_node:
+        return None
+
+    groups = target_node.values()[0].get('nodelist.groups')
+
+    # combine the attribute from groups
+    needs = [node]
+    needs.extend(groups.split(','))
+    return get_node_inventory('node', needs)
 
 
-def get_inventory_by_type(objtype, ids=None):
-    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+def get_node_inventory(objtype, ids=None):
+    hdl = InventoryFactory.createHandler('node', dbsession, None)
 
 
     wants = None
     if ids:
-        if type(ids) == 'list':
+        if type(ids) is list:
             wants = ids
         else:
             wants = [ids]
@@ -89,4 +110,5 @@ def get_inventory_by_type(objtype, ids=None):
     if not result:
         return []
 
-    return result[objtype]
+    # TODO: filter by objtype
+    return result['node']

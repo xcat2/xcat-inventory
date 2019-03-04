@@ -8,7 +8,7 @@ import os
 from flask import current_app
 from flask_restplus import Namespace, Resource, fields, reqparse
 
-from ..nodemanager import get_nodes_list,get_inventory_by_type
+from ..nodemanager import get_nodes_list, get_node_inventory, get_node_attributes
 from xcclient.xcatd import XCATClient, XCATClientParams
 
 ns = Namespace('nodes', ordered=True, description='Node Management')
@@ -47,7 +47,11 @@ class NodeListResource(Resource):
 class NodeDetailResource(Resource):
 
     def get(self, node=None):
-        return get_nodes_list().values()
+
+        if not node:
+            return get_nodes_list().values()
+
+        return get_node_attributes(node)
 
 
 @ns.route('/inventory', '/<node>/inventory')
@@ -55,4 +59,4 @@ class NodeInventoryResource(Resource):
 
     def get(self, node=None):
 
-        return get_inventory_by_type('node', node)
+        return get_node_inventory('node', node)
