@@ -10,6 +10,7 @@ import os
 import logging
 from flask import Flask, Blueprint
 
+from flask_caching import Cache
 # from .extensions import bcrypt, cache, db, migrate, jwt, cors
 
 from xcclient.xcatd.client import xcat_log
@@ -18,6 +19,12 @@ from xcclient.inventory.dbfactory import dbfactory
 from xcclient.inventory.utils import initglobal
 dbsession = DBsession()
 dbi = dbfactory(dbsession)
+
+# TODO put this into global config
+redis_cli_config = { 'CACHE_TYPE': 'redis', 'CACHE_REDIS_HOST': '127.0.0.1', 'CACHE_REDIS_PORT': 6379, 'CACHE_REDIS_DB': '', 'CACHE_REDIS_PASSWORD': '' }
+# redis_cli_config = {'CACHE_TYPE': 'simple'}
+
+cache = Cache(config=redis_cli_config)
 
 
 def create_app(config_object=None):
@@ -62,7 +69,7 @@ def register_logger(app):
 
 def register_extensions(app):
     """Register Flask extensions."""
-    pass
+    cache.init_app(app)
 
 
 def register_blueprints(app):

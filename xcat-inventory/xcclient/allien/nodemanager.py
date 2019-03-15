@@ -6,7 +6,7 @@
 
 from flask import g
 
-from .app import dbi, dbsession
+from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
 
@@ -22,12 +22,38 @@ def get_nodes_list(ids=None):
         else:
             wants.append(ids)
 
-    # get wanted records from nodelist table
-    return dbi.gettab(['nodelist'], wants)
+    try:
+        nodes = cache.get('nodes_list_all')
+    except:
+        # Error when connection cache
+        nodes = None
 
+    if nodes is None:
+        # get wanted records from nodelist table
+        nodes = dbi.gettab(['nodelist'], wants)
+        if not wants:
+            try:
+                cache.set('nodes_list_all', nodes, timeout=60)
+            except:
+                pass
+
+    if wants:
+
+        results = dict()
+        for key in wants:
+            if key in nodes:
+                results[key] = nodes.get(key)
+    else:
+        results = dict(nodes)
+
+    return results
+
+
+@cache.cached(timeout=50, key_prefix='get_node_basic')
 def get_node_basic(id):
 
     return dbi.gettab(['nodelist'], [id])
+
 
 def get_nodes_by_range(noderange=None):
 
@@ -81,6 +107,7 @@ def get_hmi_by_list(nodelist=None):
     return result
 
 
+@cache.memoize(timeout=50)
 def get_node_attributes(node):
 
     target_node = get_nodes_list(node)

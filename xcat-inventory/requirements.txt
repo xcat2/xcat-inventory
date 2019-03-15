@@ -1,14 +1,16 @@
 configparser
 deepdiff
 flask
-flask-restful
+flask_caching
 flask-restplus
+gunicorn
 gevent
 jinja2
 psycopg2
 pymysql
 pyyaml
 pyparsing
+redis
 requests
 sh
 six

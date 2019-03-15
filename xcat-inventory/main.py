@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 # IBM(c) 2019 EPL license http://www.eclipse.org/legal/epl-v10.html
 ###############################################################################
@@ -6,15 +7,20 @@
 
 import sys
 # Set path for openbmc-py
-sys.path.insert(0, '/opt/xcat/lib/python/agent')
+if '/opt/xcat/lib/python' not in sys.path:
+    sys.path.insert(1, '/opt/xcat/lib/python')
 
 from gevent import monkey
 monkey.patch_all()
 
 from xcclient.allien.app import create_app
+from xcclient.inventory.shell import main
 
 # Main entry without external WSGI server
 if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        sys.exit(main())
 
     app = create_app()
     if app.debug:
