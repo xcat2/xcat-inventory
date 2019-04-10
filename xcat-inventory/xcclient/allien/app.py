@@ -7,6 +7,7 @@
 """The app module, containing the app factory function."""
 
 import os
+from datetime import timedelta
 import logging
 from flask import Flask, Blueprint
 
@@ -27,10 +28,27 @@ redis_cli_config = { 'CACHE_TYPE': 'redis', 'CACHE_REDIS_HOST': '127.0.0.1', 'CA
 cache = Cache(config=redis_cli_config)
 
 
+class URLSchemeFixMiddleware:
+    def __init__(self, application):
+        self.app = application
+
+    def __call__(self, environ, start_response):
+        scheme = environ.get('HTTP_X_FORWARDED_PROTO')
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        return self.app(environ, start_response)
+
+
 def create_app(config_object=None):
     """Application factory"""
 
     app = Flask(__name__)
+    #app = Flask(__name__, static_folder='../../../static', template_folder='../../../templates')
+    #app.wsgi_app = URLSchemeFixMiddleware(app.wsgi_app)
+    #app.config['SESSION_TYPE'] = 'memcached'
+    #app.config['SECRET_KEY'] = 'super secret key for devops'
+    #app.permanent_session_lifetime = timedelta(minutes=10)
+
     app.url_map.strict_slashes = False
     if config_object:
         app.config.from_object(config_object)
@@ -78,6 +96,9 @@ def register_blueprints(app):
     from .resources import api_bp
     app.register_blueprint(api_bp)
 
+    #from .view import console_bp
+    #app.register_blueprint(console_bp)
+
 
 def register_errorhandlers(app):
 
@@ -95,12 +116,6 @@ def register_shellcontext(app):
     def shell_context():
         """Shell context objects."""
         return {
-            'db': db,
-            'User': user.models.User,
-            'UserProfile': profile.models.UserProfile,
-            'Article': articles.models.Article,
-            'Tag': articles.models.Tags,
-            'Comment': articles.models.Comment,
         }
 
     app.shell_context_processor(shell_context)

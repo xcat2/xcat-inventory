@@ -4,7 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
-from flask_restful import Resource
+from flask_restplus import Resource
 from xcclient.allien.app import dbi
 
 

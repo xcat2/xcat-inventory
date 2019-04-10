@@ -6,7 +6,7 @@
 
 import os
 from flask import current_app
-from flask_restful import Resource
+from flask_restplus import Resource
 from xcclient.allien.nodemanager import get_nodes_by_range
 
 

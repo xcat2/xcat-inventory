@@ -5,7 +5,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import current_app
-from flask_restful import Resource, reqparse
+from flask_restplus import Resource, reqparse
 from ..hwmanager import *
 
 class PowerResource(Resource):

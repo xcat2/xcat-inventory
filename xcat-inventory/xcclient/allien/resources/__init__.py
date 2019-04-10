@@ -24,9 +24,9 @@ api.add_resource(NetworkResource, '/network')
 from .site import ns as api_setting_ns
 api.add_namespace(api_setting_ns)
 
-from .nodehm import *
-api.add_resource(PowerResource, '/node/<string:id>/power')
-api.add_resource(PowerRangeResource, '/power')
+#from .nodehm import *
+#api.add_resource(PowerResource, '/node/<string:id>/power')
+#api.add_resource(PowerRangeResource, '/power')
 
 from .inventory import *
 api.add_resource(InventoryNodeResource, '/inventory/node', '/inventory/node/<string:id>')
