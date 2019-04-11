@@ -81,15 +81,16 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 ```
 # git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
 # cd xcat-inventory
-# docker build -f ./Dockerfile -t xcat-inv .
+# docker build -f ./Dockerfile -t xcat-apiserver .
+# docker tag xcat-apiserver xcatdevops/xcat-apiserver:latest
 ```
 
-You can tag and push it to your dock registry (for example, myaccount/xcat-inv:latest), and then you can run it on an xCAT management node with below:
+You can tag and push it to your dock registry (for example, xcatdevops/xcat-apiserver:latest), and then you can run it on an xCAT management node with below:
 
 ```
-docker run -it -v /etc/xcat:/etc/xcat -v `pwd`/xcat-inventory:/opt/xcat-inventory -p 5000:5000 robin2008/xcat-inv-testing /bin/bash
-[root@668c801c5e25 xcat-inventory]# source /opt/xcat-venv/bin/activate
-(xcat-venv) [root@668c801c5e25 xcat-inventory]# FLASK_DEBUG=1 python main.py
+docker run -it -v /etc/xcat:/etc/xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
+# source /venv/bin/activate
+# FLASK_DEBUG=1 python main.py
 
 ```
 ## Dependency
