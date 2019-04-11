@@ -4,7 +4,7 @@ MAINTAINER The xCAT Project
 
 ENV container docker
 
-RUN yum install -y -q gcc python-devel python-virtualenv postgresql-devel && \
+RUN yum install -y -q gcc python-devel libffi-devel postgresql-devel python-virtualenv && \
     yum clean all
 
 WORKDIR /xcat-apiserver

@@ -4,6 +4,7 @@ flask
 flask_caching
 flask-restplus
 gunicorn
+cffi
 gevent
 jinja2
 psycopg2
