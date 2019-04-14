@@ -8,18 +8,18 @@
 from flask import Blueprint
 from flask_restplus import Resource, Api
 
-api_bp = Blueprint('api', __name__, url_prefix='/api')
+api_bp = Blueprint('api', __name__, url_prefix='/api/v2')
 api = Api(api_bp, version='1.0', title='xCAT API',
           description='RESTful API of xCAT service',
 )
 from .node import ns as api_node_ns
 api.add_namespace(api_node_ns)
 
-from .noderange import NodeRangeResource
-api.add_resource(NodeRangeResource, '/noderange/<string:nr>')
+#from .noderange import NodeRangeResource
+#api.add_resource(NodeRangeResource, '/noderange/<string:nr>')
 
-from .network import NetworkResource
-api.add_resource(NetworkResource, '/network')
+from .network import ns as api_net_ns
+api.add_namespace(api_net_ns)
 
 from .site import ns as api_setting_ns
 api.add_namespace(api_setting_ns)
@@ -30,3 +30,5 @@ api.add_namespace(api_setting_ns)
 
 from .inventory import *
 api.add_resource(InventoryNodeResource, '/inventory/node', '/inventory/node/<string:id>')
+
+

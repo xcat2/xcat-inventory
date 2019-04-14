@@ -6,6 +6,7 @@
 
 from flask_restplus import Namespace, Resource, fields, reqparse
 from xcclient.allien.app import dbi
+from ..invmanager import get_inventory_by_type
 
 ns = Namespace('globalconf', description='System Level Settings')
 
@@ -19,20 +20,24 @@ site_list = ns.model('Site', {
     'value': fields.String(required=True, description='The attribute value'),
 })
 
-#########################################
-# Mock data for site
-SITES = [
-    {'master': '10.1.1.101', 'domain': 'example.com'},
-]
-#########################################
+
+@ns.route('/sites')
+class SitesResource(Resource):
+
+    def get(self):
+        return get_inventory_by_type('site')
+
+    def post(self):
+        pass
 
 
-@ns.route('/site')
+@ns.route('/sites/<name>')
+@ns.response(404, 'Context not found')
 class SiteResource(Resource):
     @ns.doc('list_site')
     @ns.param('attr', 'The site attribute name')
-    def get(self):
-        '''List all site attributes'''
+    def get(self, context):
+        """List all site attributes"""
         parser = reqparse.RequestParser()
         parser.add_argument('attrs', location='args', action='split', help='Queried attributes')
         args = parser.parse_args()
@@ -40,32 +45,34 @@ class SiteResource(Resource):
         return dbi.gettab(['site'])
 
     def put(self):
-        '''Modify site with all attributes'''
+        """Modify site with all attributes"""
         return dbi.gettab(['site'])
 
     def patch(self):
-        '''Modify some attributes of site'''
+        """Modify some attributes of site"""
         return dbi.gettab(['site'])
 
 
-@ns.route('/site/<attr>')
+@ns.route('/sites/<name>/attr/<attr>')
+@ns.param('name', 'The site context name')
 @ns.param('attr', 'The site attribute name')
 @ns.response(404, 'Attribute not found')
-class SiteAttr(Resource):
+class SiteAttrResource(Resource):
     @ns.doc('get_site_attr')
-    #@ns.marshal_with(site)
+    # @ns.marshal_with(site)
     def get(self, attr):
-        '''Fetch a site attribute given its name'''
+        """Fetch a site attribute given its name"""
         for nv in SITES:
             if attr['name'] == nv:
                 return attr['value']
         ns.abort(404)
 
+
 @ns.route('/secrets')
 class SecretsResource(Resource):
     @ns.doc('list_secrets')
     def get(self):
-        '''List all secrets objects'''
+        """List all secrets objects"""
         return dbi.gettab(['passwd'])
 
 

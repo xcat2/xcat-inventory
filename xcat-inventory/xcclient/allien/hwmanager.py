@@ -4,7 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
-from .nodemanager import get_hmi_by_list
+from .invmanager import get_hmi_by_list
 
 try:
     from hwctl.executor.openbmc_power import OpenBMCPowerTask

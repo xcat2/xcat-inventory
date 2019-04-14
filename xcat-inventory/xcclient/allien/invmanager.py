@@ -139,3 +139,32 @@ def get_node_inventory(objtype, ids=None):
 
     # TODO: filter by objtype
     return result['node']
+
+
+def get_inventory_by_type(objtype, ids=None):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+    wants = None
+    if ids:
+        if type(ids) is list:
+            wants = ids
+        else:
+            wants = [ids]
+
+    return hdl.exportObjs(wants, None, fmt='json').get(objtype)
+
+
+def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+    return hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
+
+
+def transform_inv(obj_d):
+    """transform the object model to k8s like"""
+    assert obj_d is not None or type(obj_d) is dict
+
+    if len(obj_d) > 0:
+        name, spec = obj_d.popitem()
+        rd = dict(meta=dict(name=name), spec=spec)
+        return rd

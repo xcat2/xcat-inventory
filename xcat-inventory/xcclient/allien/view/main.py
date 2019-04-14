@@ -8,7 +8,7 @@
 from flask import redirect, render_template, url_for
 
 from . import console_bp
-from ..nodemanager import get_nodes_list
+from ..invmanager import get_nodes_list
 
 @console_bp.route('/', methods=['GET', 'POST', 'PUT'])
 def index():

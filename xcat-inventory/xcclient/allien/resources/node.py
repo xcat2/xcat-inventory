@@ -8,7 +8,7 @@ import os
 from flask import current_app
 from flask_restplus import Namespace, Resource, fields, reqparse
 
-from ..nodemanager import get_nodes_list, get_node_inventory, get_node_attributes
+from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes
 from xcclient.xcatd import XCATClient, XCATClientParams
 
 ns = Namespace('nodes', ordered=True, description='Node Management')
@@ -24,6 +24,7 @@ node = ns.model('Node', {
     'app_updated_time': fields.String(attribute=lambda x: x.get('nodelist.appstatustime')),
     'description': fields.String(attribute=lambda x: x.get('nodelist.comments')),
 })
+
 
 @ns.route('/')
 class NodeListResource(Resource):
