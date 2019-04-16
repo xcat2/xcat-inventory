@@ -14,9 +14,8 @@ api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
 )
 
 
-#from .inventory import ns as api_inv_ns
-#api.add_namespace(api_inv_ns)
-# api.add_resource(InventoryNodeResource, '/inventory/node', '/inventory/node/<string:id>')
+from .inventory import ns as api_inv_ns
+api.add_namespace(api_inv_ns)
 
 from .node import ns as api_node_ns
 api.add_namespace(api_node_ns)

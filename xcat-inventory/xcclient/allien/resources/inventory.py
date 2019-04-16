@@ -5,7 +5,7 @@
 # -*- coding: utf-8 -*-
 
 from flask_restplus import Resource, Namespace, fields
-from xcclient.inventory.manager import InventoryFactory
+from xcclient.inventory.manager import InventoryFactory, export_by_type
 from xcclient.allien.app import dbsession
 
 ns = Namespace('inventory', ordered=True, description='Inventory Management')
@@ -16,12 +16,23 @@ resource = ns.model('Resource', {
 })
 
 
-class InventoryNodeResource(Resource):
+@ns.route('/')
+class InventoryResource(Resource):
 
-    def get(self, id=None):
-        hdl = InventoryFactory.createHandler('node', dbsession, None)
+    def get(self):
+        """get all inventory defined in store"""
+        # TODO, support `fmt` in query parameter
+        return export_by_type(None, None, destfile=None, destdir=None, fmt='json', version=None, exclude=['osimage','node'])
 
-        nodelist = []
-        if id:
-            nodelist.append(id)
-        return hdl.exportObjs(nodelist, None, fmt='json')
+    @ns.doc('import_inventory')
+    @ns.expect(resource)
+    @ns.response(201, 'Inventory successfully imported.')
+    def post(self):
+        """import inventory objects"""
+        data = request.get_json()
+
+        # TODO: call inventory to store in DB
+
+        return None, 201
+
+
