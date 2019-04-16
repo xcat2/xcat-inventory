@@ -161,6 +161,12 @@ def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     return hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
 
 
+def del_inventory_by_type(objtype, obj_list):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+    return hdl.importObjs(obj_list, {}, update=False, envar={})
+
+
 def transform_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a list"""
     assert obj_d is not None

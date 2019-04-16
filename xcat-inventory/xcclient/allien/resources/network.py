@@ -6,7 +6,7 @@
 
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
-from ..invmanager import get_inventory_by_type, upd_inventory_by_type, transform_from_inv, transform_to_inv
+from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv
 from ..invmanager import InvalidValueException, ParseException
 
 ns = Namespace('net', ordered=True, description='Networking Management')
@@ -44,18 +44,6 @@ class NetworkListResource(Resource):
         return None, 201
 
 
-@ns.route('/subnets/_bulk')
-class NetworkListResource(Resource):
-
-    def get(self):
-        """get networks defined in store"""
-        return get_inventory_by_type('network')
-
-    def post(self):
-        """bulk delete network object"""
-        pass
-
-
 @ns.route('/subnets/<string:name>')
 @ns.response(404, 'Subnet not found.')
 class NetworkResource(Resource):
@@ -68,12 +56,20 @@ class NetworkResource(Resource):
 
         return transform_from_inv(result)[-1]
 
-    def delete(self, net):
-        pass
+    def delete(self, name):
+        """delete a subnet object"""
+        del_inventory_by_type('network', [name])
 
-    def put(self, net):
+    def put(self, name):
+        """modify a subnet object"""
         data = request.get_json()
-        upd_inventory_by_type('network', data)
+        # TODO, need to check if the name is consistent
+        try:
+            upd_inventory_by_type('network', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 200
 
 
 @ns.route('/routes')
@@ -110,8 +106,17 @@ class RouteResource(Resource):
 
         return transform_from_inv(result)[-1]
 
-    def delete(self, net):
-        pass
+    def delete(self, name):
+        """delete a subnet object"""
+        del_inventory_by_type('network', [name])
 
     def put(self, name):
-        upd_inventory_by_type('route', transform_to_inv(request.json))
+        """modify a static route object"""
+        data = request.get_json()
+        # TODO, need to check if the name is consistent
+        try:
+            upd_inventory_by_type('route', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 200
