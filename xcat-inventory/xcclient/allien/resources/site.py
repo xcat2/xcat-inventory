@@ -27,6 +27,7 @@ class SitesResource(Resource):
     def get(self):
         return get_inventory_by_type('site')
 
+    @ns.expect(site)
     def post(self):
         pass
 

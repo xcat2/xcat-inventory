@@ -9,6 +9,7 @@ from flask import g
 from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
+from ..inventory.exceptions import *
 
 OPT_QUERY_THRESHHOLD = 18
 
@@ -160,11 +161,39 @@ def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     return hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
 
 
-def transform_inv(obj_d):
-    """transform the object model to k8s like"""
-    assert obj_d is not None or type(obj_d) is dict
+def transform_from_inv(obj_d):
+    """transform the inventory object model(dict for collection) to a list"""
+    assert obj_d is not None
+    assert type(obj_d) is dict
 
-    if len(obj_d) > 0:
+    results = list()
+    while len(obj_d) > 0:
         name, spec = obj_d.popitem()
         rd = dict(meta=dict(name=name), spec=spec)
-        return rd
+        results.append(rd)
+
+    return results
+
+
+def transform_to_inv(obj_d):
+    """transform the REST object(list or dict) to inventory object model(dict for collection)"""
+    assert obj_d is not None
+    assert type(obj_d) in [dict, list]
+
+    def _dict_to_inv(src):
+        assert 'meta' in src
+        name = obj_d['meta'].get('name')
+        # TODO: name = name or random_name()
+        val = obj_d.get('spec')
+        return name, val
+
+    result = dict()
+    if type(obj_d) is dict:
+        n, v = _dict_to_inv(obj_d)
+        result[n] = v
+    else:
+        # Then it could be a list
+        for ob in obj_d:
+            n, v = _dict_to_inv(ob)
+            result[n] = v
+    return result

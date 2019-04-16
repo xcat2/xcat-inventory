@@ -75,7 +75,7 @@ The HTTP status code as below:
         200 OK
         201 CREATED - [POST/PUT/PATCH]
         204 NO CONTENT - [DELETE]
-        400 INVALID REQUEST - [POST/PUT/PATCH]
+        400 BAD REQUEST - [POST/PUT/PATCH]
         401 Unauthorized
         403 Forbidden
         404 NOT FOUND - [*]
