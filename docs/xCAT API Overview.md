@@ -32,7 +32,7 @@ Currently, there are several API namespace in use:
 
 - **globalconf**: Global configuration
 - **auth**: Authentication, authorization and security stuffs
-- **net**: Networking related objects
+- **inventory**: Networking, Distro, OS image related objects
 - **node**: Node inventory, Node group, etc.
 - **service**: Services related operations
 - **task**: Async administrative tasks (TBD).

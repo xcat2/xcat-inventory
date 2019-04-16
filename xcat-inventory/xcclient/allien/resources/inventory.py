@@ -4,10 +4,16 @@
 
 # -*- coding: utf-8 -*-
 
-from flask import current_app
-from flask_restplus import Resource
+from flask_restplus import Resource, Namespace, fields
 from xcclient.inventory.manager import InventoryFactory
 from xcclient.allien.app import dbsession
+
+ns = Namespace('inventory', ordered=True, description='Inventory Management')
+
+resource = ns.model('Resource', {
+    'meta': fields.Raw(description='The meta info of resource', required=True),
+    'spec': fields.Raw(description='The specification of resource', required=False)
+})
 
 
 class InventoryNodeResource(Resource):
