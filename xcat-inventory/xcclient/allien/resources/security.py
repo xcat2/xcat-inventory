@@ -48,7 +48,7 @@ class SecretsResource(Resource):
         return None, 200
 
 
-@ns.route('/policies')
+@ns.route('/policy')
 class PolicyResource(Resource):
 
     def get(self):
@@ -56,10 +56,8 @@ class PolicyResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('id', location='args', action='split', help='policy ID')
         args = parser.parse_args()
-        wants = None
-        if args.get(id):
-            wants = args.get(id).split(',')
-        result = get_inventory_by_type('policy', wants)
+
+        result = get_inventory_by_type('policy', args.get('id'))
         if not result:
             ns.abort(404)
 
@@ -70,12 +68,12 @@ class PolicyResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('id', location='args', action='split', help='policy ID')
         args = parser.parse_args()
-        wants = None
-        if args.get(id):
+        wants = args.get('id')
+        if wants:
             wants = args.get(id).split(',')
             del_inventory_by_type('policy', wants)
         else:
-            ns.abort(400, "Must specify a policy ID")
+            ns.abort(400, "Not allow to delete all policy rules")
 
     def post(self):
         """create or modify a policy object"""
