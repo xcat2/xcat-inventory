@@ -14,6 +14,9 @@ resource = ns.model('Resource', {
     'spec': fields.Raw(description='The specification of resource', required=False)
 })
 
+inv_resource = ns.model('Inventory', {
+})
+
 
 @ns.route('/')
 class InventoryResource(Resource):
@@ -24,7 +27,7 @@ class InventoryResource(Resource):
         return export_by_type(None, None, destfile=None, destdir=None, fmt='dict', version=None, exclude=['credential'])
 
     @ns.doc('import_inventory')
-    @ns.expect(resource)
+    @ns.expect(inv_resource)
     @ns.response(201, 'Inventory successfully imported.')
     def post(self):
         """import inventory objects"""

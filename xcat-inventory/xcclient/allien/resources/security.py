@@ -8,7 +8,7 @@ from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv
 from ..invmanager import InvalidValueException, ParseException
-from .inventory import ns, resource
+from .inventory import ns, inv_resource
 
 """
 These APIs is to handle security related resources: Password, Policy, Zone, Credential.
@@ -36,6 +36,7 @@ class SecretsResource(Resource):
         args = parser.parse_args()
         del_inventory_by_type('passwd', ["%s.%s" % (args.type, args.name)])
 
+    @ns.expect(inv_resource)
     def post(self):
         """create or modify a user object"""
         data = request.get_json()
@@ -75,6 +76,7 @@ class PolicyResource(Resource):
         else:
             ns.abort(400, "Not allow to delete all policy rules")
 
+    @ns.expect(inv_resource)
     def post(self):
         """create or modify a policy object"""
         data = request.get_json()

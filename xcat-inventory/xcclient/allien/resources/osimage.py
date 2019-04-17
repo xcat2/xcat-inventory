@@ -54,6 +54,7 @@ class OSimageResource(Resource):
         """delete an OS image object"""
         del_inventory_by_type('osimage', [name])
 
+    @ns.expect(resource)
     def put(self, name):
         """modify an OS image object"""
         data = request.get_json()
@@ -106,6 +107,7 @@ class DistroResource(Resource):
         # TODO, need to trigger xcatd to clean the ISO directory
         del_inventory_by_type('osdistro', [name])
 
+    @ns.expect(resource)
     def put(self, name):
         """modify a distro object"""
         data = request.get_json()
