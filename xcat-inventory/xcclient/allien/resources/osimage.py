@@ -66,7 +66,7 @@ class OSimageResource(Resource):
         return None, 200
 
 
-@ns.route('/distroes')
+@ns.route('/distros')
 class DistroListResource(Resource):
 
     def get(self):
@@ -80,18 +80,18 @@ class DistroListResource(Resource):
         """create a distro object"""
         data = request.get_json()
 
-        # TODO: better to handle the exceptions
+        # TODO: This should do copycds: uploading (if client side), return osdirtro object and osimage links
         try:
-            upd_inventory_by_type('osdistro', transform_to_inv(data))
+            pass
         except (InvalidValueException, ParseException) as e:
             ns.abort(400, e.message)
 
         return None, 201
 
 
-@ns.route('/distroes/<string:name>')
+@ns.route('/distros/<string:name>')
 @ns.response(404, 'Distro not found.')
-class OSimageResource(Resource):
+class DistroResource(Resource):
 
     def get(self, name):
         """get specified distro resource"""
@@ -103,6 +103,7 @@ class OSimageResource(Resource):
 
     def delete(self, name):
         """delete a distro object"""
+        # TODO, need to trigger xcatd to clean the ISO directory
         del_inventory_by_type('osdistro', [name])
 
     def put(self, name):
