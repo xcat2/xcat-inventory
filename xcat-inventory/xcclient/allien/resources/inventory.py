@@ -20,8 +20,8 @@ class InventoryResource(Resource):
 
     def get(self):
         """get all inventory defined in store"""
-        # TODO, support `fmt` in query parameter
-        return export_by_type(None, None, destfile=None, destdir=None, fmt='json', version=None, exclude=['osimage','node'])
+        # TODO, support query parameter
+        return export_by_type(None, None, destfile=None, destdir=None, fmt='dict', version=None, exclude=['credential'])
 
     @ns.doc('import_inventory')
     @ns.expect(resource)
