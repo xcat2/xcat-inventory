@@ -33,8 +33,9 @@ Currently, there are several API namespace in use:
 - **globalconf**: Global configuration
 - **auth**: Authentication, authorization and security stuffs
 - **inventory**: Networking, Distro, OS image related objects
-- **node**: Node inventory, Node group, etc.
-- **service**: Services related operations
+- **node**: Node inventory, Node group & range, and operations based on node etc.
+- **security**: Password, Policy, Zone, Credential objects.
+- **service**: Services related operations (TBD)
 - **task**: Async administrative tasks (TBD).
 - **table**: Internal objects on DB tables operation (Deprecated)
 

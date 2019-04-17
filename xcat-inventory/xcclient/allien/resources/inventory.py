@@ -5,8 +5,7 @@
 # -*- coding: utf-8 -*-
 
 from flask_restplus import Resource, Namespace, fields
-from xcclient.inventory.manager import InventoryFactory, export_by_type
-from xcclient.allien.app import dbsession
+from xcclient.inventory.manager import export_by_type
 
 ns = Namespace('inventory', ordered=True, description='Inventory Management')
 
