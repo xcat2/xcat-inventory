@@ -15,3 +15,75 @@ These APIs is to handle security related resources: Password, Policy, Zone, Cred
 """
 
 ns = Namespace('security', description='Security Settings')
+
+
+@ns.route('/secrets')
+class SecretsResource(Resource):
+
+    def get(self):
+        """get specified user resource"""
+        result = get_inventory_by_type('passwd')
+        if not result:
+            ns.abort(404)
+
+        return result
+
+    def delete(self):
+        """delete a user object"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('type', location='args', help='secret type')
+        parser.add_argument('name', location='args', help='secret account name')
+        args = parser.parse_args()
+        del_inventory_by_type('passwd', ["%s.%s" % (args.type, args.name)])
+
+    def post(self):
+        """create or modify a user object"""
+        data = request.get_json()
+
+        try:
+            upd_inventory_by_type('passwd', data)
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 200
+
+
+@ns.route('/policies')
+class PolicyResource(Resource):
+
+    def get(self):
+        """get policy"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', location='args', action='split', help='policy ID')
+        args = parser.parse_args()
+        wants = None
+        if args.get(id):
+            wants = args.get(id).split(',')
+        result = get_inventory_by_type('policy', wants)
+        if not result:
+            ns.abort(404)
+
+        return result
+
+    def delete(self):
+        """delete a policy object"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', location='args', action='split', help='policy ID')
+        args = parser.parse_args()
+        wants = None
+        if args.get(id):
+            wants = args.get(id).split(',')
+            del_inventory_by_type('policy', wants)
+        else:
+            ns.abort(400, "Must specify a policy ID")
+
+    def post(self):
+        """create or modify a policy object"""
+        data = request.get_json()
+
+        try:
+            upd_inventory_by_type('policy', data)
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 200

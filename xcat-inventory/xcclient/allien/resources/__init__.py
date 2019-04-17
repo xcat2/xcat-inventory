@@ -32,6 +32,9 @@ api.add_namespace(api_image_ns)
 from .site import ns as api_setting_ns
 api.add_namespace(api_setting_ns)
 
+from .security import ns as api_security_ns
+api.add_namespace(api_security_ns)
+
 #from .nodehm import *
 #api.add_resource(PowerResource, '/node/<string:id>/power')
 #api.add_resource(PowerRangeResource, '/power')

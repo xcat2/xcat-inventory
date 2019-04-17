@@ -42,7 +42,7 @@ class SiteResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('attrs', location='args', action='split', help='Queried attributes')
         args = parser.parse_args()
-        print(args)
+        # print(args)
         return dbi.gettab(['site'])
 
     def put(self):
@@ -69,12 +69,6 @@ class SiteAttrResource(Resource):
         ns.abort(404)
 
 
-@ns.route('/secrets')
-class SecretsResource(Resource):
-    @ns.doc('list_secrets')
-    def get(self):
-        """List all secrets objects"""
-        return dbi.gettab(['passwd'])
 
 
 
