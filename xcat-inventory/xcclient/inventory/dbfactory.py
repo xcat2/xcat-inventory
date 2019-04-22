@@ -1,7 +1,12 @@
 #!/usr/bin/python
 from __future__ import print_function
-import dbobject
-from dbobject import *
+import sys
+try:
+    import dbobject
+    from dbobject import *
+except:
+    print("Failed to connected with database...")
+
 from dbsession import DBsession
 from sqlalchemy import or_
 #from xcclient.shell import CommandException
@@ -99,10 +104,11 @@ class matrixdbfactory():
                continue
            tabobjs=[]
            tabkeys=tab.primkeys()
-           if len(keys)==0:
+           if not keys or len(keys)==0:
                tabobjs=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            elif len(tabkeys)==1:
-               tabobjs=dbsession.query(tab).filter(getattr(tab,tabkeys[0]).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+               tabobjs = dbsession.query(tab).filter(getattr(tab, tabkeys[0]).in_(keys),
+                                                     or_(tab.disable == None, tab.disable.notin_(['1', 'yes']))).all()
            elif len(tabkeys)>1:
                for key in keys:
                    if type(key)!=tuple:
@@ -333,7 +339,7 @@ class dbfactory():
                 if objkey:
                     query=query.filter(getattr(tabcls,tabkey).in_(objkey)) 
                 query.delete(synchronize_session='fetch')
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
         #else:
         #    print("table "+tab+ "cleared!")

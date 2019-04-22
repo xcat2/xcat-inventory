@@ -24,6 +24,7 @@ The typical workflow:
 - [Installing](#installing)
 - [Building](#building)
 - [Dependencies](#dependency)
+- [Development](#development)
 - [Platform Restrictions](#platform)
 - [Cookbooks](#Cookbooks)
 - [Typical use cases](#usecase)
@@ -34,12 +35,12 @@ The typical workflow:
 
 ## Installing
 
-Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.4/xcat-inventory-0.1.4-c4.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
+Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.4/xcat-inventory-0.1.4-c4.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it.
 
 ## Building
 
 ```
-[root@boston01 ~]# git clone https://github.com/xcat2/xcat-inventory.git
+# git clone https://github.com/xcat2/xcat-inventory.git
 Cloning into 'xcat-inventory'...
 remote: Counting objects: 1844, done.
 remote: Compressing objects: 100% (7/7), done.
@@ -49,19 +50,49 @@ Resolving deltas: 100% (1072/1072), done.
 ```
 
 ```
-[root@boston01 ~]# cd xcat-inventory
-[root@boston01 ~]# git checkout master
+# cd xcat-inventory
+# git checkout master
 Already on 'master'
-[root@boston01 ~]# git pull upstream master --tags
+# git pull upstream master --tags
 From github.com:xcat2/xcat-inventory
  * branch            master     -> FETCH_HEAD
 Already up-to-date.
-[root@boston01 xcat-inventory]# ./makepythonrpm xcat-inventory
+# ./makepythonrpm xcat-inventory
 ...
 Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
 ```
+## Development
 
+### Python virtualenv
+
+```
+# yum install -y yum install -y -q gcc python-devel python-virtualenv postgresql-devel
+# git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
+# cd xcat-inventory/xcat-inventory
+# virtualenv venv
+# source venv/bin/activate
+# pip install --upgrade pip
+# pip install -r requirements.txt
+# FLASK_DEBUG=1 python main.py
+```
+
+### Docker container
+```
+# git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
+# cd xcat-inventory
+# docker build -f ./Dockerfile -t xcat-apiserver .
+# docker tag xcat-apiserver xcatdevops/xcat-apiserver:latest
+```
+
+You can tag and push it to your dock registry (for example, xcatdevops/xcat-apiserver:latest), and then you can run it on an xCAT management node with below:
+
+```
+docker run -it -v /etc/xcat:/etc/xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
+# source /venv/bin/activate
+# FLASK_DEBUG=1 python main.py
+
+```
 ## Dependency
 
 Several python packages are required:

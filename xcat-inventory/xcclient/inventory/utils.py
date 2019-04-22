@@ -123,17 +123,15 @@ def loadfile(filename):
 
 #initialize the global vars in globalvars.py
 def initglobal():
-    if os.path.exists("/var/run/xcatd.pid"):
-        globalvars.isxcatrunning=1
-    else:
-        globalvars.isxcatrunning=0
+
+    globalvars.isxcatrunning=os.path.exists("/var/run/xcatd.pid")
     if globalvars.isxcatrunning:
-        (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
-    if retcode!=0 or not globalvars.isxcatrunning:
-        (retcode,out,err)=runCommand("XCATBYPASS=1 lsxcatd -v")
+        (retcode,out,err)=runCommand("XCATBYPASS=0 /opt/xcat/bin/lsxcatd -v")
+    if not globalvars.isxcatrunning or retcode!=0:
+        (retcode,out,err)=runCommand("XCATBYPASS=1 /opt/xcat/bin/lsxcatd -v")
     if retcode!=0:
         globalvars.xcat_version=""
-        globalvars.xcat_verno=""
+        globalvars.xcat_verno=os.environ.get('XCAT_VERNO', "")
     else:
         globalvars.xcat_version=out.strip()
         globalvars.xcat_verno=globalvars.xcat_version.split(' ')[1]
