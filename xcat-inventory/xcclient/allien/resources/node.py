@@ -11,7 +11,7 @@ from flask_restplus import Namespace, Resource, fields, reqparse
 from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes
 from xcclient.xcatd import XCATClient, XCATClientParams
 
-ns = Namespace('nodes', ordered=True, description='Node Management')
+ns = Namespace('system', ordered=True, description='System Management')
 
 node = ns.model('Node', {
     'name': fields.String(required=True, description='The node name', attribute=lambda x: x.get('nodelist.node')),
@@ -26,10 +26,10 @@ node = ns.model('Node', {
 })
 
 
-@ns.route('/')
+@ns.route('/nodes')
 class NodeListResource(Resource):
 
-    @ns.marshal_list_with(node, envelope='nodes', skip_none=True)
+    @ns.marshal_list_with(node, skip_none=True)
     def get(self):
         return get_nodes_list().values()
 
@@ -44,7 +44,7 @@ class NodeListResource(Resource):
         return result.output_msgs
 
 
-@ns.route('/detail', '/<node>/detail')
+@ns.route('/nodes/_detail', '/nodes/<node>/_detail')
 class NodeDetailResource(Resource):
 
     def get(self, node=None):
@@ -55,7 +55,7 @@ class NodeDetailResource(Resource):
         return get_node_attributes(node)
 
 
-@ns.route('/inventory', '/<node>/inventory')
+@ns.route('/nodes/_inventory', '/nodes/<node>/_inventory')
 class NodeInventoryResource(Resource):
 
     def get(self, node=None):
