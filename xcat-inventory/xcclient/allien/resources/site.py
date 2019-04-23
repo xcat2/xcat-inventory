@@ -6,7 +6,7 @@
 
 from flask_restplus import Namespace, Resource, fields, reqparse
 from xcclient.allien.app import dbi
-from ..invmanager import get_inventory_by_type
+from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv
 
 ns = Namespace('globalconf', description='System Level Settings')
 
@@ -25,7 +25,7 @@ site_list = ns.model('Site', {
 class SitesResource(Resource):
 
     def get(self):
-        return get_inventory_by_type('site')
+        return transform_from_inv(get_inventory_by_type('site'))
 
     @ns.expect(site)
     def post(self):
