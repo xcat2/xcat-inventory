@@ -114,12 +114,12 @@ class SiteAttrResource(Resource):
         if not args.get('value'):
             ns.abort(400, 'Context not found')
 
-        param = XCATClientParams(os.environ.get('XCAT_SERVER'))
+        param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
         cl = XCATClient()
         cl.init(current_app.logger, param)
 
         result = cl.chdef(args=['-t', 'site', '-o', context, "%s=%s" % (attr, args.get('value'))])
-        return result.output_msgs
+        return dict(outputs=result.output_msgs)
 
     @ns.doc('delete_site_attr')
     def delete(self, context, attr):
@@ -128,9 +128,9 @@ class SiteAttrResource(Resource):
         if "clustersite" != context:
             ns.abort(404, 'Context not found')
 
-        param = XCATClientParams(os.environ.get('XCAT_SERVER'))
+        param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
         cl = XCATClient()
         cl.init(current_app.logger, param)
 
         result = cl.chdef(args=['-t', 'site', '-o', context, "%s=" % (attr, )])
-        return result.output_msgs
+        return dict(outputs=result.output_msgs)

@@ -88,9 +88,9 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 You can tag and push it to your dock registry (for example, xcatdevops/xcat-apiserver:latest), and then you can run it on an xCAT management node with below:
 
 ```
-docker run -it -v /etc/xcat:/etc/xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
+docker run -it -v /etc/xcat:/etc/xcat -v /root/.xcat:/root/.xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
 # source /venv/bin/activate
-# FLASK_DEBUG=1 python main.py
+# FLASK_DEBUG=1 XCAT_VERNO=2.14.6 XCAT_SERVER=127.0.0.1 python main.py
 
 ```
 ## Dependency

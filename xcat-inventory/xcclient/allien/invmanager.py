@@ -4,6 +4,7 @@
 
 # -*- coding: utf-8 -*-
 
+import os
 from flask import g
 
 from xcclient.xcatd import XCATClient, XCATClientParams
@@ -170,7 +171,7 @@ def del_inventory_by_type(objtype, obj_list):
 
     #return hdl.importObjs(obj_list, {}, update=False, envar={})
 
-    param = XCATClientParams(os.environ.get('XCAT_SERVER'))
+    param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
 
