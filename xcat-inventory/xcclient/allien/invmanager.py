@@ -160,7 +160,8 @@ def get_inventory_by_type(objtype, ids=None):
 def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     hdl = InventoryFactory.createHandler(objtype, dbsession, None)
 
-    return hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
+    hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
+    dbsession.commit()
 
 
 def del_inventory_by_type(objtype, obj_list):
