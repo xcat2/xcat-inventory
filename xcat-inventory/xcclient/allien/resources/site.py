@@ -8,6 +8,8 @@ import os
 from flask import request, current_app
 from flask_restplus import Namespace, Resource, reqparse
 
+from xcclient.xcatd import XCATClient, XCATClientParams
+
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, transform_from_inv, transform_to_inv
 from ..invmanager import InvalidValueException, ParseException
 from .inventory import resource
