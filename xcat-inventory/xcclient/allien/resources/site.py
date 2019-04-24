@@ -100,6 +100,7 @@ class SiteAttrResource(Resource):
         return {attr: site_obj.get(attr)}
 
     @ns.doc('set_site_attr')
+    @ns.param('value', 'Value set to the attribute')
     @ns.response(400, 'Must specify the value in query parameter.')
     def post(self, context, attr):
         """Set a site attribute by the given name"""
