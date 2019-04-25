@@ -174,7 +174,6 @@ def del_inventory_by_type(objtype, obj_list):
     param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
-
     result = cl.rmdef(args=['-t', objtype, '-o', ','.join(obj_list)])
     return result.output_msgs
 
@@ -190,6 +189,32 @@ def transform_from_inv(obj_d):
         results.append(rd)
 
     return results
+
+def validate_resource_input_data(obj_d, obj_name=None):
+    """input object data should have meta and spec"""
+    if obj_d is None:
+        raise InvalidValueException("Input data should not be None.")
+    if not type(obj_d) in [dict, list]:
+        raise InvalidValueException("Input data format should be dict or list.")
+    if not len(obj_d.keys())==2:
+        raise InvalidValueException("Input data keys number is wrong.")
+    if not obj_d.keys()[0]=="meta":
+        raise InvalidValueException("Input data first key "+obj_d.keys()[0]+" should be meta.")
+    if not obj_d.keys()[1]=="spec":
+        raise InvalidValueException("Input data second key "+obj_d.keys()[1]+" is spec.")
+    if not type(obj_d['spec']) in [dict]:
+        raise InvalidValueException("spec type shoule be dict.")
+    if not type(obj_d['meta']) in [dict]:
+        raise InvalidValueException("meta type shoule be dict.")
+    if not len(obj_d['meta'])==1:
+        raise InvalidValueException("meta key number should be 1.")
+    if not obj_d['meta'].keys()[0]=="name":
+        raise InvalidValueException("meta key should be name.")
+    if not obj_d['meta'].get('name'):
+        raise InvalidValueException("meta name should not be null");
+    if obj_name:
+        if not obj_d['meta'].get('name')==obj_name:
+            raise InvalidValueException("meta name "+obj_d['meta'].get('name')+" is not the same with resource name "+obj_name+".")
 
 
 def transform_to_inv(obj_d):
