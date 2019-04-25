@@ -7,7 +7,7 @@ from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
-from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data
+from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data, patch_inventory_by_type
 from ..invmanager import InvalidValueException, ParseException
 from .inventory import ns, resource
 
@@ -71,6 +71,20 @@ class OSimageResource(Resource):
             ns.abort(400, e.message)
 
         return None, 201
+
+    @ns.expect(resource)
+    def patch(self, name):
+        """Modify an OS image object"""
+        data = request.get_json()
+        try:
+            import pdb
+            pdb.set_trace()
+            patch_inventory_by_type('osimage', name, data) 
+        except (InvalidValueException, XCATClientError) as e:
+            ns.abort(400, str(e))
+
+        return None, 201
+
 
 @ns.route('/distros')
 class DistroListResource(Resource):

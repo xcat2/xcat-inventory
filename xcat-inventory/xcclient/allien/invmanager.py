@@ -5,7 +5,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import g
+from flask import g, current_app
 
 from xcclient.xcatd import XCATClient, XCATClientParams
 
@@ -177,6 +177,29 @@ def del_inventory_by_type(objtype, obj_list):
     result = cl.rmdef(args=['-t', objtype, '-o', ','.join(obj_list)])
     return result.output_msgs
 
+def patch_inventory_by_type(objtype, obj_name, obj_d):
+    """modify object attribute"""
+    if not obj_d:
+        raise InvalidValueException("Input data should not be None.")
+    if not type(obj_d) in [dict, list]:
+        raise InvalidValueException("Input data format should be dict or list.")
+    if not obj_d.keys()[0] == "modify":
+        raise InvalidValueException("Input data key should be modify.")
+    if not obj_d.get('modify'):
+        raise InvalidValueException("Input data value should be null.")
+    kv_pair=''
+    for key,value in obj_d.get('modify').items():
+        if kv_pair is None:
+            kv_pair=key+"="+value
+        else:
+            kv_pair=kv_pair+" "+key+"="+value
+    param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
+    cl = XCATClient()
+    cl.init(current_app.logger, param)
+    result = cl.chdef(args=['-t', objtype, '-o', obj_name, kv_pair])
+    
+    return dict(outputs=result.output_msgs)
+
 def transform_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a list"""
     assert obj_d is not None
@@ -192,7 +215,7 @@ def transform_from_inv(obj_d):
 
 def validate_resource_input_data(obj_d, obj_name=None):
     """input object data should have meta and spec"""
-    if obj_d is None:
+    if not obj_d:
         raise InvalidValueException("Input data should not be None.")
     if not type(obj_d) in [dict, list]:
         raise InvalidValueException("Input data format should be dict or list.")
