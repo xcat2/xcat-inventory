@@ -89,7 +89,7 @@ You can tag and push it to your dock registry (for example, xcatdevops/xcat-apis
 
 ```
 # cd <Git clone directory>
-# docker run -it -v /etc/xcat:/etc/xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
+# docker run -it -v /etc/xcat:/etc/xcat -v /root/.xcat:/root/.xcat -v `pwd`/xcat-inventory:/xcat-apiserver -p 5000:5000 xcatdevops/xcat-apiserver /bin/bash
 # source /venv/bin/activate
 # FLASK_DEBUG=1 XCAT_VERNO=2.14.6 XCAT_SERVER=10.3.5.20 python main.py
 ```

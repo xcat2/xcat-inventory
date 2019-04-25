@@ -13,23 +13,14 @@
 # which is available in Python 2.6 and higher.
 # 
 
-import os
-import sys
 import socket
 import select
+import ssl
 import pprint
 import copy
 import time
 
 from .timer import Timer
-
-try:
-    import ssl
-except ImportError:
-    try:
-        from OpenSSL import SSL
-    except ImportError:
-        raise Exception("This module requires SSL support.  You must install the pyOpenSSL package or install Python version 2.6 or higher.")
 
 
 class BuiltInSSLSocket(object):
@@ -38,7 +29,7 @@ class BuiltInSSLSocket(object):
         self._sock = ssl.wrap_socket(socket.socket(socket.AF_INET, 
                 socket.SOCK_STREAM), cert_reqs=ssl.CERT_REQUIRED,
                 ca_certs=ca_certs, certfile=client_cred, 
-                ssl_version=ssl.PROTOCOL_TLSv1)
+                ssl_version=ssl.PROTOCOL_TLSv1_2)
         self._sock.settimeout(connect_timeout)
         self._sock.connect((host, port)) 
         self._sock.settimeout(None)
@@ -66,43 +57,8 @@ class BuiltInSSLSocket(object):
         return self._sock.close()
 
 
-class PyOpenSSLSocket(object):
-
-    def __init__(self, host, port, ca_certs, client_cred, connect_timeout):
-        ctx = SSL.Context(SSL.SSLv3_METHOD)
-        ctx.use_privatekey_file(client_cred)
-        ctx.use_certificate_file(client_cred)
-        ctx.load_verify_locations(ca_certs)
-
-        self._sock = SSL.Connection(ctx, socket.socket(socket.AF_INET,
-                           socket.SOCK_STREAM))
-        self._sock.settimeout(connect_timeout)
-        self._sock.connect((host, port))
-        self._sock.settimeout(None)
-
-    def __str__(self):
-        m  = '\nSSL module: PyOpenSSL'
-        m += '\nSSL server: %s' % repr(self._sock.getpeername())
-        return m
-
-    def fileno(self):
-        return self._sock.fileno()
-
-    def read(self, size):
-        return self._sock.read(size)
-
-    def write(self, msg):
-        return self._sock.write(msg)
-
-    def shutdown(self):
-        return self._sock.shutdown()
-
-    def close(self):
-        return self._sock.close()
-
-
 class SSLClientSocketOptions(object):
-    """Set of options to control socket oeprations"""
+    """Set of options to control socket operations"""
 
     def __init__(self):
         # Number of seconds to wait before retrying connection
@@ -349,11 +305,7 @@ class SSLClient(object):
                            '\nCA certs file: %s' % ca_certs + \
                            '\nClient cred file: %s' % client_cred)
 
-        if globals().has_key('SSL'):
-            self._ssl_sock = PyOpenSSLSocket(host, port, ca_certs, client_cred, connect_timeout)
-        else:
-            self._ssl_sock = BuiltInSSLSocket(host, port, ca_certs, client_cred, connect_timeout)
-
+        self._ssl_sock = BuiltInSSLSocket(host, port, ca_certs, client_cred, connect_timeout)
         self._logger.trace('After create:' + str(self._ssl_sock))
 
     def _write_all(self, msg):

@@ -7,7 +7,6 @@
 """The app module, containing the app factory function."""
 
 import os
-from datetime import timedelta
 import logging
 from flask import Flask, Blueprint
 
@@ -15,6 +14,7 @@ from flask_caching import Cache
 # from .extensions import bcrypt, cache, db, migrate, jwt, cors
 
 from xcclient.xcatd.client import xcat_log
+from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from xcclient.inventory.dbsession import DBsession
 from xcclient.inventory.dbfactory import dbfactory
 from xcclient.inventory.utils import initglobal
@@ -56,7 +56,7 @@ def create_app(config_object=None):
     register_logger(app)
     register_extensions(app)
     register_blueprints(app)
-    #register_errorhandlers(app)
+    register_errorhandlers(app)
     #register_shellcontext(app)
     #register_commands(app)
 
@@ -107,7 +107,7 @@ def register_errorhandlers(app):
         response.status_code = error.status_code
         return response
 
-    app.errorhandler(InvalidUsage)(errorhandler)
+    app.errorhandler(XCATClientError)(errorhandler)
 
 
 def register_shellcontext(app):

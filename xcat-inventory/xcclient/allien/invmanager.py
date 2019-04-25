@@ -4,7 +4,10 @@
 
 # -*- coding: utf-8 -*-
 
+import os
 from flask import g
+
+from xcclient.xcatd import XCATClient, XCATClientParams
 
 from .app import dbi, dbsession, cache
 from .noderange import NodeRange
@@ -158,14 +161,22 @@ def get_inventory_by_type(objtype, ids=None):
 def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     hdl = InventoryFactory.createHandler(objtype, dbsession, None)
 
-    return hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
+    hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
+    dbsession.commit()
 
 
 def del_inventory_by_type(objtype, obj_list):
-    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+    """delete objects from data store"""
+    # hdl = InventoryFactory.createHandler(objtype, dbsession, None)
 
-    return hdl.importObjs(obj_list, {}, update=False, envar={})
+    #return hdl.importObjs(obj_list, {}, update=False, envar={})
 
+    param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
+    cl = XCATClient()
+    cl.init(current_app.logger, param)
+
+    result = cl.rmdef(args=['-t', objtype, '-o', ','.join(obj_list)])
+    return result.output_msgs
 
 def transform_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a list"""
