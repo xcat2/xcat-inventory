@@ -77,8 +77,6 @@ class OSimageResource(Resource):
         """Modify an OS image object"""
         data = request.get_json()
         try:
-            import pdb
-            pdb.set_trace()
             patch_inventory_by_type('osimage', name, data) 
         except (InvalidValueException, XCATClientError) as e:
             ns.abort(400, str(e))
