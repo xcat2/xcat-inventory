@@ -9,15 +9,13 @@ from flask import request, current_app
 from flask_restplus import Namespace, Resource, reqparse, fields
 
 from xcclient.xcatd import XCATClient, XCATClientParams
-
-from ..invmanager import get_inventory_by_type, upd_inventory_by_type, transform_from_inv, transform_to_inv
-from ..invmanager import InvalidValueException, ParseException
-from .inventory import resource
+from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
 ns = Namespace('manager', description='Manage services and tasks')
 srvreq = ns.model('SvrReq', {
     'noderange': fields.String(description='The nodes or groups to be operated', required=True),
-    'spec': fields.Raw(description='The specification of operation', required=False)
+    'boot_state': fields.String(description='The specified operation', required=False),
+    'boot_param': fields.Raw(description='The optional parameters of the operation', required=False)
 })
 
 
@@ -48,7 +46,10 @@ class ProvisionResource(Resource):
         param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
         cl = XCATClient()
         cl.init(current_app.logger, param)
+        try:
+            result = cl.nodeset(noderange=data['noderange'], boot_state=boot_state)
+        except XCATClientError as e:
+            ns.abort(500, str(e))
 
-        result = cl.nodeset(noderange=data['noderange'], boot_state=boot_state)
         return dict(outputs=result.output_msgs)
 
