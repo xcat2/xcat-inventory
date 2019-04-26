@@ -16,6 +16,7 @@ from .inventory import resource
 
 ns = Namespace('globalconf', description='System Level Settings')
 
+
 @ns.route('/sites')
 class SitesResource(Resource):
 
@@ -23,6 +24,7 @@ class SitesResource(Resource):
     def get(self):
         """List all site contexts"""
         return transform_from_inv(get_inventory_by_type('site'))
+
 
 @ns.route('/sites/<string:context>')
 @ns.response(404, 'Context not found')
