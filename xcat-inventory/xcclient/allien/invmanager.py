@@ -177,6 +177,7 @@ def del_inventory_by_type(objtype, obj_list):
     result = cl.rmdef(args=['-t', objtype, '-o', ','.join(obj_list)])
     return result.output_msgs
 
+
 def patch_inventory_by_type(objtype, obj_name, obj_d):
     """modify object attribute"""
     if not obj_d:
@@ -200,6 +201,7 @@ def patch_inventory_by_type(objtype, obj_name, obj_d):
     
     return dict(outputs=result.output_msgs)
 
+
 def transform_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a list"""
     assert obj_d is not None
@@ -212,6 +214,7 @@ def transform_from_inv(obj_d):
         results.append(rd)
 
     return results
+
 
 def validate_resource_input_data(obj_d, obj_name=None):
     """input object data should have meta and spec"""
@@ -262,3 +265,27 @@ def transform_to_inv(obj_d):
             n, v = _dict_to_inv(ob)
             result[n] = v
     return result
+
+
+def split_inventory_types(types):
+
+    include = list()
+    exclude = ['credential']
+
+    # get the include and exclude
+    for rt in types:
+        rt = rt.strip()
+        if not rt:
+            raise InvalidValueException("Invalid inventory type name: %s" % rt)
+
+        if rt.startswith('-'):
+            ert = rt[1:]
+            if ert not in InventoryFactory.getvalidobjtypes():
+                raise InvalidValueException("Invalid inventory type name: %s" % rt)
+            exclude.append(ert)
+        else:
+            if rt not in InventoryFactory.getvalidobjtypes():
+                raise InvalidValueException("Invalid inventory type name: %s" % rt)
+            include.append(rt)
+
+    return include, exclude
