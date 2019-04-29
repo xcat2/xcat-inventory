@@ -3,6 +3,7 @@
 ###############################################################################
 
 # -*- coding: utf-8 -*-
+import os
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
 from xcclient.xcatd import XCATClient, XCATClientParams
@@ -14,6 +15,10 @@ from .inventory import ns, resource
 """
 These APIs is to handle Image related resources: osimage, osdistro,.
 """
+
+patch_action = ns.model('modify', {
+    'modify': fields.Raw(description='The update attr and value info of resource', required=True)
+})
 
 
 @ns.route('/osimages')
@@ -72,7 +77,7 @@ class OSimageResource(Resource):
 
         return None, 201
 
-    @ns.expect(resource)
+    @ns.expect(patch_action)
     def patch(self, name):
         """Modify an OS image object"""
         data = request.get_json()
@@ -92,21 +97,29 @@ class DistroListResource(Resource):
         return transform_from_inv(get_inventory_by_type('osdistro'))
 
     @ns.doc('create_distro')
-    @ns.expect(resource)
+    @ns.param('Image paths', 'Image names')
     @ns.response(201, 'Distro successfully created.')
     def post(self):
         """create a distro object"""
-        data = request.get_json()
-
-        # TODO: This should do copycds: uploading (if client side), return osdirtro object and osimage links
         try:
-            pass
-        except (InvalidValueException, ParseException) as e:
-            ns.abort(400, e.message)
+            # TODO: This should do copycds: uploading (if client side), return osdirtro object and osimage links
+            parser = reqparse.RequestParser()
+            parser.add_argument('Image paths', location='args', action='split', help='Queried image location')
+            args = parser.parse_args()
+            locations=[]
+            locations=args.get('Image paths')
+            if not locations:
+                ns.abort(400, 'Image not found')
 
+            param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
+            cl = XCATClient()
+            cl.init(current_app.logger, param)
+             
+            result = cl.copycds(args=locations)
+        except (InvalidValueException, XCATClientError) as e:
+            ns.abort(400, str(e))
         return None, 201
-
-
+    
 @ns.route('/distros/<string:name>')
 @ns.response(404, 'Distro not found.')
 class DistroResource(Resource):
@@ -123,15 +136,3 @@ class DistroResource(Resource):
         """delete a distro object"""
         # TODO, need to trigger xcatd to clean the ISO directory
         del_inventory_by_type('osdistro', [name])
-
-    @ns.expect(resource)
-    def put(self, name):
-        """modify a distro object"""
-        data = request.get_json()
-        # TODO, need to check if the name is consistent
-        try:
-            upd_inventory_by_type('osdistro', transform_to_inv(data))
-        except (InvalidValueException, ParseException) as e:
-            ns.abort(400, e.message)
-
-        return None, 200
