@@ -60,6 +60,7 @@ class InventoryResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('types', action='split', help="inventory types, started with '-' means to exclude")
         parser.add_argument('clean', help="clean mode. If specified, all objects other than the ones to import will be removed.")
+
         args = parser.parse_args()
 
         include = None
@@ -80,5 +81,6 @@ class InventoryResource(Resource):
         importobj(invfile.name, None, include, None, dryrun=False, version=None,
                   update=args.get('clean'), envs=args.get('environs'), env_files=None, exclude=exclude)
         os.unlink(invfile.name)
+
         return None, 201
 
