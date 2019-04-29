@@ -494,9 +494,7 @@ class XCATClient(XCATClientBase):
         try:
             self._logger.trace('Entering')
             t = Timer().start_timer()
-            # TODO: 
-            raise Exception('TBI')
-            # return self._run_command(CopycdsHelper(args))
+            return self._run_command(CopycdsHelper(args))
         finally:
             t.stop_timer()
             self._logger.perf('%s msec' % t.get_elapsed_in_msec())

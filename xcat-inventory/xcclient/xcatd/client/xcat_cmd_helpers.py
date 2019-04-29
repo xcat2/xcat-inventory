@@ -166,6 +166,16 @@ class RmdefHelper(GenericCmdHelper):
         parser = XCATGenericCmdResultParser(req, ssl_client, output_msg_tags=['info'])
         return parser.parse()
 
+class CopycdsHelper(GenericCmdHelper):
+    """Helper class for copycds command"""
+
+    def __init__(self, args):
+        GenericCmdHelper.__init__(self, 'copycds', args=args)
+
+    def parse_response(self, ssl_client):
+        req = self.get_request()
+        parser = XCATGenericCmdResultParser(req, ssl_client, output_msg_tags=['info'])
+        return parser.parse()
 
 #
 # make* commands
