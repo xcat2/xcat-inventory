@@ -97,17 +97,17 @@ class DistroListResource(Resource):
         return transform_from_inv(get_inventory_by_type('osdistro'))
 
     @ns.doc('create_distro')
-    @ns.param('location', 'Image names')
+    @ns.param('Image paths', 'Image names')
     @ns.response(201, 'Distro successfully created.')
     def post(self):
         """create a distro object"""
         try:
             # TODO: This should do copycds: uploading (if client side), return osdirtro object and osimage links
             parser = reqparse.RequestParser()
-            parser.add_argument('location', location='args', action='split', help='Queried image location')
+            parser.add_argument('Image paths', location='args', action='split', help='Queried image location')
             args = parser.parse_args()
             locations=[]
-            locations=args.get('location')
+            locations=args.get('Image paths')
             if not locations:
                 ns.abort(400, 'Image not found')
 
