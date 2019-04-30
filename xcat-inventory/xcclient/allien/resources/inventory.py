@@ -16,7 +16,9 @@ resource = ns.model('Resource', {
 
 inv_resource = ns.model('Inventory', {
 })
-
+patch_action = ns.model('modify', {
+    'modify': fields.Raw(description='The update attr and value info of resource', required=True)
+})
 
 @ns.route('/')
 class InventoryResource(Resource):

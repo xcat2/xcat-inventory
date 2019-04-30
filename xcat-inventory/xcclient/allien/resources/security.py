@@ -6,9 +6,11 @@
 
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
-from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv
-from ..invmanager import InvalidValueException, ParseException
-from .inventory import ns, inv_resource
+
+from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
+from ..invmanager import *
+from .inventory import ns, inv_resource, patch_action
 
 """
 These APIs is to handle security related resources: Password, Policy, Zone, Credential.
@@ -52,38 +54,69 @@ class SecretsResource(Resource):
 @ns.route('/policy')
 class PolicyResource(Resource):
 
+    @ns.doc('list_policy_rules')
     def get(self):
-        """get policy"""
+        """get policy rules"""
         parser = reqparse.RequestParser()
         parser.add_argument('id', location='args', action='split', help='policy ID')
         args = parser.parse_args()
 
-        result = get_inventory_by_type('policy', args.get('id'))
-        if not result:
-            ns.abort(404)
+        return transform_from_inv(get_inventory_by_type('policy', args.get('id')))
 
-        return result
-
-    def delete(self):
-        """delete a policy object"""
-        parser = reqparse.RequestParser()
-        parser.add_argument('id', location='args', action='split', help='policy ID')
-        args = parser.parse_args()
-        wants = args.get('id')
-        if wants:
-            wants = args.get(id).split(',')
-            del_inventory_by_type('policy', wants)
-        else:
-            ns.abort(400, "Not allow to delete all policy rules")
-
+    @ns.doc('create_policy_rule')
+    @ns.response(201, 'Policy rule successfully created.')
     @ns.expect(inv_resource)
     def post(self):
         """create or modify a policy object"""
         data = request.get_json()
 
         try:
-            upd_inventory_by_type('policy', data)
+            upd_inventory_by_type('policy', transform_to_inv(data))
         except (InvalidValueException, ParseException) as e:
             ns.abort(400, e.message)
 
         return None, 200
+
+@ns.route('/policy/<string:ruleid>')
+class PolicyRuleResource(Resource):
+
+    def get(self, ruleid):
+        """get specified policy rule"""
+
+        result = get_inventory_by_type('policy', [ruleid])
+        if not result:
+            ns.abort(404)
+
+        return transform_from_inv(result)[-1]
+
+    def delete(self, ruleid):
+        """delete a policy object"""
+        try:
+            del_inventory_by_type('policy', [ruleid])
+        except XCATClientError as e:
+            ns.abort(400, str(e))
+
+        return None, 200
+
+    @ns.expect(inv_resource)
+    def put(self, ruleid):
+        """replace a policy rule object"""
+        data = request.get_json()
+        try:
+            validate_resource_input_data(data, ruleid)
+            upd_inventory_by_type('policy', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 201
+
+    @ns.expect(patch_action)
+    def patch(self, ruleid):
+        """Modify a policy rule object"""
+        data = request.get_json()
+        try:
+            patch_inventory_by_type('policy', ruleid, data)
+        except (InvalidValueException, XCATClientError) as e:
+            ns.abort(400, str(e))
+
+        return None, 201
