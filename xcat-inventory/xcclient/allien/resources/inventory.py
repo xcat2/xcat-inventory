@@ -4,8 +4,14 @@
 
 # -*- coding: utf-8 -*-
 
-from flask_restplus import Resource, Namespace, fields
-from xcclient.inventory.manager import export_by_type
+import os
+import tempfile
+
+from flask import request, current_app
+from flask_restplus import Resource, Namespace, fields, inputs, reqparse
+from xcclient.inventory.manager import export_by_type, importobj
+
+from ..invmanager import InvalidValueException, split_inventory_types
 
 ns = Namespace('inventory', ordered=True, description='Inventory Management')
 
@@ -21,20 +27,60 @@ inv_resource = ns.model('Inventory', {
 @ns.route('/')
 class InventoryResource(Resource):
 
+    @ns.doc('export_inventory')
+    @ns.param('types', 'inventory types for exporting')
     def get(self):
         """get all inventory defined in store"""
-        # TODO, support query parameter
-        return export_by_type(None, None, destfile=None, destdir=None, fmt='dict', version=None, exclude=['credential'])
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('types', action='split', help="inventory types, started with '-' means to exclude")
+        args = parser.parse_args()
+
+        include = None
+        exclude = None
+        try:
+            include, exclude = split_inventory_types(args.get('types'))
+            if args.get('types'):
+                if include:
+                    include = ','.join(include)
+        except InvalidValueException as e:
+            ns.abort(400, e.message)
+
+        return export_by_type(include, None, destfile=None, destdir=None, fmt='dict', version=None, exclude=exclude)
 
     @ns.doc('import_inventory')
+    @ns.param('types', 'inventory types for importing')
+    @ns.param('clean', 'clean mode. IF specified, all objects other than the ones to import will be removed.')
     @ns.expect(inv_resource)
     @ns.response(201, 'Inventory successfully imported.')
     def post(self):
         """import inventory objects"""
-        data = request.get_json()
 
-        # TODO: call inventory to store in DB
+        # TODO:  need to lock the operation as xcat-inventory will conflict when run it in the mean time.
+        parser = reqparse.RequestParser()
+        parser.add_argument('types', action='split', help="inventory types, started with '-' means to exclude")
+        parser.add_argument('clean', type=inputs.boolean, help="clean mode. If specified, all objects other than the ones to import will be removed.")
+
+        args = parser.parse_args()
+
+        include = None
+        exclude = None
+        try:
+            include, exclude = split_inventory_types(args.get('types'))
+            if args.get('types'):
+                if include:
+                    include = ','.join(include)
+        except InvalidValueException as e:
+            ns.abort(400, e.message)
+
+        data = request.get_data()
+        invfile = tempfile.NamedTemporaryFile(delete=False)
+        invfile.write(data)
+        invfile.close()
+
+        importobj(invfile.name, None, include, None, dryrun=False, version=None,
+                  update=not args.get('clean'), envs=args.get('environs'), env_files=None, exclude=exclude)
+        os.unlink(invfile.name)
 
         return None, 201
-
 
