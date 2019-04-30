@@ -34,7 +34,7 @@ The typical workflow:
 
 ## Installing
 
-Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.4/xcat-inventory-0.1.4-c4.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
+Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.6/xcat-inventory-0.1.6-c0.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
 ## Building
 
