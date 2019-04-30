@@ -24,6 +24,7 @@ sec_resource = ns.model('Resource', {
     'spec': fields.Raw(description='The specification of resource', required=True)
 })
 
+
 @ns.route('/secrets')
 class SecretsResource(Resource):
 
@@ -56,18 +57,59 @@ class SecretsResource(Resource):
         return None, 200
 
 
+def _policy_from_inv(obj_d):
+    """transform the inventory object model(dict for collection) to a policy rule list"""
+    assert obj_d is not None
+    assert type(obj_d) is dict
+
+    results = list()
+    while len(obj_d) > 0:
+        name, spec = obj_d.popitem()
+        spec['priority'] = name
+        rd = dict(id=name, kind='policy', spec=spec)
+        results.append(rd)
+
+    return results
+
+def _policy_to_inv(obj_d):
+    """transform the REST object(list or dict) to policy inventory object model(dict for collection)"""
+    assert obj_d is not None
+    assert type(obj_d) in [dict, list]
+
+    def _dict_to_inv(src):
+        assert 'spec' in src
+        val = obj_d.get('spec')
+        if 'priority' in val:
+            name = val.pop('priority')
+        else:
+            name = obj_d.get('id')
+
+        assert name is not None
+        return name, val
+
+    result = dict()
+    if type(obj_d) is dict:
+        n, v = _dict_to_inv(obj_d)
+        result[n] = v
+    else:
+        # Then it could be a list
+        for ob in obj_d:
+            n, v = _dict_to_inv(ob)
+            result[n] = v
+    return result
+
 @ns.route('/policy')
 class PolicyResource(Resource):
 
     @ns.doc('list_policy_rules')
-    @ns.marshal_list_with(sec_resource, skip_none=True)
+    @ns.param('id', 'Policy rule ids')
     def get(self):
         """get policy rules"""
         parser = reqparse.RequestParser()
         parser.add_argument('id', location='args', action='split', help='policy ID')
         args = parser.parse_args()
 
-        return get_inventory_by_type('policy', args.get('id'))
+        return _policy_from_inv(get_inventory_by_type('policy', args.get('id')))
 
     @ns.doc('create_policy_rule')
     @ns.response(201, 'Policy rule successfully created.')
@@ -76,53 +118,66 @@ class PolicyResource(Resource):
         """create or modify a policy object"""
         data = request.get_json()
 
+        # TODO, more input checking
         try:
-            upd_inventory_by_type('policy', transform_to_inv(data))
+            if not data.get('spec'):
+                raise InvalidValueException("No (spec) section to specify the resource attributes")
+
+            if data.get('kind') and 'policy' != data.get('kind'):
+                raise InvalidValueException("Wrong kind is specified")
+
+            name = data['spec'].get('priority') or data.get('id')
+            if not name:
+                raise InvalidValueException("Priority of the rule is mandatory")
+
+            upd_inventory_by_type('policy', _policy_to_inv(data))
+
         except (InvalidValueException, ParseException) as e:
             ns.abort(400, e.message)
 
         return None, 200
 
-@ns.route('/policy/<string:ruleid>')
+@ns.route('/policy/<string:id>')
 class PolicyRuleResource(Resource):
 
-    def get(self, ruleid):
+    def get(self, id):
         """get specified policy rule"""
 
-        result = get_inventory_by_type('policy', [ruleid])
+        result = get_inventory_by_type('policy', [id])
         if not result:
             ns.abort(404)
 
-        return transform_from_inv(result)[-1]
+        return _policy_from_inv(result)[-1]
 
-    def delete(self, ruleid):
+    def delete(self, id):
         """delete a policy object"""
         try:
-            del_inventory_by_type('policy', [ruleid])
+            del_inventory_by_type('policy', [id])
         except XCATClientError as e:
             ns.abort(400, str(e))
 
         return None, 200
 
-    @ns.expect(inv_resource)
-    def put(self, ruleid):
-        """replace a policy rule object"""
+    @ns.expect(sec_resource)
+    def post(self, id):
+        """modify a policy rule object"""
         data = request.get_json()
         try:
-            validate_resource_input_data(data, ruleid)
-            upd_inventory_by_type('policy', transform_to_inv(data))
+
+            if not data.get('spec'):
+                raise InvalidValueException("No (spec) section to specify the resource attributes")
+
+            if data.get('kind') and 'policy' != data.get('kind'):
+                raise InvalidValueException("Wrong kind is specified")
+
+            name = data['spec'].get('priority') or data.get('id')
+            if not name:
+                raise InvalidValueException("Priority of the rule is mandatory")
+
+            upd_inventory_by_type('policy', _policy_to_inv(data))
+
         except (InvalidValueException, ParseException) as e:
             ns.abort(400, e.message)
 
         return None, 201
 
-    @ns.expect(patch_action)
-    def patch(self, ruleid):
-        """Modify a policy rule object"""
-        data = request.get_json()
-        try:
-            patch_inventory_by_type('policy', ruleid, data)
-        except (InvalidValueException, XCATClientError) as e:
-            ns.abort(400, str(e))
-
-        return None, 201
