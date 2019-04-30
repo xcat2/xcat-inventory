@@ -8,7 +8,7 @@ import os
 import tempfile
 
 from flask import request, current_app
-from flask_restplus import Resource, Namespace, fields, reqparse
+from flask_restplus import Resource, Namespace, fields, inputs, reqparse
 from xcclient.inventory.manager import export_by_type, importobj
 
 from ..invmanager import InvalidValueException, split_inventory_types
@@ -59,7 +59,7 @@ class InventoryResource(Resource):
         # TODO:  need to lock the operation as xcat-inventory will conflict when run it in the mean time.
         parser = reqparse.RequestParser()
         parser.add_argument('types', action='split', help="inventory types, started with '-' means to exclude")
-        parser.add_argument('clean', help="clean mode. If specified, all objects other than the ones to import will be removed.")
+        parser.add_argument('clean', type=inputs.boolean, help="clean mode. If specified, all objects other than the ones to import will be removed.")
 
         args = parser.parse_args()
 
@@ -79,7 +79,7 @@ class InventoryResource(Resource):
         invfile.close()
 
         importobj(invfile.name, None, include, None, dryrun=False, version=None,
-                  update=args.get('clean'), envs=args.get('environs'), env_files=None, exclude=exclude)
+                  update=not args.get('clean'), envs=args.get('environs'), env_files=None, exclude=exclude)
         os.unlink(invfile.name)
 
         return None, 201
