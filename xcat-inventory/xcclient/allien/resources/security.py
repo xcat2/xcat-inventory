@@ -18,6 +18,11 @@ These APIs is to handle security related resources: Password, Policy, Zone, Cred
 
 ns = Namespace('security', description='Security Settings')
 
+sec_resource = ns.model('Resource', {
+    'id': fields.String(description='The ID of Secret'),
+    'kind': fields.String(description='The kind of Secrets', required=True),
+    'spec': fields.Raw(description='The specification of resource', required=True)
+})
 
 @ns.route('/secrets')
 class SecretsResource(Resource):
@@ -55,17 +60,18 @@ class SecretsResource(Resource):
 class PolicyResource(Resource):
 
     @ns.doc('list_policy_rules')
+    @ns.marshal_list_with(sec_resource, skip_none=True)
     def get(self):
         """get policy rules"""
         parser = reqparse.RequestParser()
         parser.add_argument('id', location='args', action='split', help='policy ID')
         args = parser.parse_args()
 
-        return transform_from_inv(get_inventory_by_type('policy', args.get('id')))
+        return get_inventory_by_type('policy', args.get('id'))
 
     @ns.doc('create_policy_rule')
     @ns.response(201, 'Policy rule successfully created.')
-    @ns.expect(inv_resource)
+    @ns.expect(sec_resource)
     def post(self):
         """create or modify a policy object"""
         data = request.get_json()
