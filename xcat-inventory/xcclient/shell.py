@@ -13,12 +13,10 @@ Command-line interface skeleton to xCAT
 from __future__ import print_function
 import argparse
 import logging
-import os
-import sys
-import six
+
 import re
-import inventory.exceptions 
-import inventory.globalvars
+from .inventory import exceptions as exp
+from .inventory import globalvars
 
 # Decorator to define CLI args
 def arg(*args, **kwargs):
@@ -161,7 +159,7 @@ class ClusterShell(object):
             if args.command in self.subcommands:
                 self.subcommands[args.command].print_help()
             else:
-                raise inventory.exceptions.CommandException("Error: '%s' is not a valid subcommand" %
+                raise exp.CommandException("Error: '%s' is not a valid subcommand" %
                                        args.command)
         else:
             self.parser.print_help()
@@ -170,7 +168,7 @@ class ClusterShell(object):
         # Parse args once to find version
         parser = self.get_common_parser(description)
         (options, args) = parser.parse_known_args(argv)
-        inventory.globalvars.verbose=options.verbose     
+        globalvars.verbose=options.verbose
         self.setup_debugging(options.debug)
 
         # build available subcommands based on version
@@ -189,7 +187,7 @@ class ClusterShell(object):
 
         if args[0] not in self.subcommands.keys():
             self.do_help(options)
-            raise inventory.exceptions.CommandException("Error: not a valid subcommand to run")
+            raise exp.CommandException("Error: not a valid subcommand to run")
 
         if '-h' in argv or '--help' in argv:
             args.append('-h')

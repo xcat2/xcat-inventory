@@ -29,6 +29,11 @@ def runCommand(cmd, env=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
         out, err = p.communicate()
+        if type(out) is bytes:
+            out = out.decode()
+        if type(err) is bytes:
+            err = err.decode()
+
     except OSError:
         return p.returncode,out, err
     return p.returncode,out, err

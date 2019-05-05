@@ -5,16 +5,16 @@
 # -*- coding: utf-8 -*-
 #
 import yaml
-import json
+
 import re
 from copy import *
 
-from dbobject import *
-from dbfactory import *
-from exceptions import *
-from utils import *
-import vutil
-import pdb
+from .dbobject import *
+from .dbfactory import *
+from .exceptions import *
+from .utils import *
+from .vutil import *
+#import pdb
 
 
 
@@ -235,7 +235,8 @@ class XcatBase(object):
         evalexp=eval("lambda "+myexpression,None,ctxdict)
         result=evalexp()
         if myschmpath:
-            if 0==cmp(result,tabcol):
+            #if 0==cmp(result,tabcol):
+            if 0 == (result > tabcol) - (result < tabcol):
                 value=Util_getdictval(self._mydict,myschmpath)
                 self._dbhash[tabcol]=value
             else:
@@ -527,7 +528,7 @@ class Node(XcatBase):
                                 nicsdict[nic]={}
                             nicsdict[nic][key]=nicattr.split('|')
                 except Exception:
-                    raise InvalidValueException("Error: invalid value \""+nicent+"\" for object "+self.name+" found "+"in nics table") 
+                    raise InvalidValueException("Error: invalid value \""+key+"\" for object "+self.name+" found "+"in nics table")
                 Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
