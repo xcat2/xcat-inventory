@@ -11,10 +11,10 @@ import re
 import subprocess
 import json
 import yaml
-import sys
-import globalvars
-from exceptions import *
 from contextlib import contextmanager
+
+from . import globalvars
+from .exceptions import *
 
 def runCommand(cmd, env=None):
     """
@@ -29,7 +29,7 @@ def runCommand(cmd, env=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
         out, err = p.communicate()
-    except OSError,e:
+    except OSError:
         return p.returncode,out, err
     return p.returncode,out, err
 
@@ -116,7 +116,7 @@ def loadfile(filename):
         except ValueError:
             try:
                 contents = yaml.load(f)
-            except Exception,e:
+            except Exception:
                 raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
         return contents, fmt
     return None, fmt
@@ -191,7 +191,7 @@ def traverseobjdir(path):
     if not os.path.isdir(path):
         return None
     ret={}
-    from manager import InventoryFactory
+    from .manager import InventoryFactory
     for subdir in os.listdir(path):
         objpath=os.path.join(path,subdir) 
         if os.path.isdir(objpath):

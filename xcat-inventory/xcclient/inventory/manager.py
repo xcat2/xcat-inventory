@@ -6,20 +6,21 @@
 #
 
 from __future__ import print_function
-from dbsession import DBsession
-from dbfactory import dbfactory
-from xcatobj import *
-from exceptions import *
-from utils import *
-import globalvars
 import os
 import shutil
-from jinja2 import Template,Environment,meta,FileSystemLoader
+from jinja2 import Environment,meta,FileSystemLoader
 import yaml
 try:
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
+
+from .dbsession import DBsession
+from .dbfactory import dbfactory
+from .xcatobj import *
+from .exceptions import *
+from . import utils
+from . import globalvars
 
 """
 Command-line interface to xCAT inventory import/export
@@ -92,7 +93,7 @@ class InventoryFactory(object):
             try:
                 myclass = InventoryFactory.__InventoryClass__[objtype]
                 myclass.validate_schema_version(schemapath)
-            except Exception,e:
+            except Exception:
                 continue
             return ver   
         return None
@@ -165,7 +166,7 @@ class InventoryFactory(object):
                         dstfile=mydir+filetobak
                         try:
                             os.makedirs(os.path.dirname(dstfile))
-                        except OSError, e:
+                        except OSError as e:
                             if e.errno != os.errno.EEXIST:
                                 raise
                             pass
@@ -216,15 +217,15 @@ class InventoryFactory(object):
 
         for key, attrs in obj_attr_dict.items():
                  
-            verbose("  converting object \"%s\" to table entries"%(key),file=sys.stdout)
+            utils.verbose("  converting object \"%s\" to table entries"%(key),file=sys.stdout)
             if not objlist or key in objlist:
                 if 'OBJNAME' in envar.keys() and type(attrs)==dict:
                     envar['OBJNAME']=key
-                    Util_subvarsindict(attrs,envar)    
+                    utils.Util_subvarsindict(attrs,envar)
                 else:
                     envar['OBJNAME']=key
                 if self.objtype == 'osimage' and envar is not None:
-                    Util_setdictval(attrs,'environvars',','.join([item+'='+envar[item] for item in envar.keys()]))   
+                    utils.Util_setdictval(attrs,'environvars',','.join([item+'='+envar[item] for item in envar.keys()]))
 
                 objfiles[key]=[]
                 attrlist=[]
@@ -237,11 +238,11 @@ class InventoryFactory(object):
                     for (attrpath,reftype) in outrefs.items():
                         partialobj=utils.Util_getdictval(attr,attrpath)
                         if partialobj:
-                            Util_setdictval(partialobjdict,"%s.%s"%(reftype[0],key),partialobj)
-                            Util_deldictkey(attr,attrpath)
+                            utils.Util_setdictval(partialobjdict,"%s.%s"%(reftype[0],key),partialobj)
+                            utils.Util_deldictkey(attr,attrpath)
                     try:
                         newobj = myclass.createfromfile(key, attr)
-                    except InvalidValueException,e:
+                    except InvalidValueException as e:
                         exptmsglist.append(str(e)) 
                         continue
                     objfiles[key].extend(newobj.getfilestosave(rootdir))
@@ -455,7 +456,7 @@ def getgitinfo(location):
     vardict={}
     oldcwd=os.getcwd()
     os.chdir(os.path.dirname(os.path.realpath(location)))
-    (retcode,out,err)=runCommand("git rev-parse --show-toplevel")
+    (retcode,out,err)=utils.runCommand("git rev-parse --show-toplevel")
     if retcode==0:
         out=out.strip()
         vardict['GITROOT']=out.strip()
@@ -464,7 +465,7 @@ def getgitinfo(location):
         os.chdir(oldcwd)
         return None
 
-    (retcode,out,err)=runCommand("git branch|grep '*'|cut -d' ' -f2-")
+    (retcode,out,err)=utils.runCommand("git branch|grep '*'|cut -d' ' -f2-")
     if retcode==0:
         out=out.strip()
         matched=re.search(r'\(detached from (.*)\)',out)
@@ -472,13 +473,13 @@ def getgitinfo(location):
             out=matched.group(1).strip()
         vardict['GITBRANCH']=out
 
-    (retcode,out,err)=runCommand("git describe  --candidates 0")
+    (retcode,out,err)=utils.runCommand("git describe  --candidates 0")
     if retcode==0:
         out=out.strip()
         matched=re.search(r'\(detached from (.*)',out)
         vardict['GITTAG']=out.strip()
     
-    (retcode,out,err)=runCommand("git rev-parse --short=7 HEAD")
+    (retcode,out,err)=utils.runCommand("git rev-parse --short=7 HEAD")
     if retcode==0:
         out=out.strip()
         vardict['GITCOMMIT']=out.strip()
@@ -525,7 +526,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
     except ValueError:
         try: 
             obj_attr_dict = yaml.load(contents,Loader=Loader)
-        except Exception,e:
+        except Exception as e:
             raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(location,location,location))
   
     versinfile=None
@@ -558,7 +559,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
                 objfiledict[myobjtype]={}
             try: 
                 objfiledict[myobjtype].update(hdl.importObjs(objlist, obj_attr_dict[myobjtype],update,envar,rootdir))
-            except InvalidValueException,e:
+            except InvalidValueException as e:
                 exptmsglist.append(str(e))
                 continue
     else:
@@ -570,7 +571,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
                 objfiledict[objtype]={}
             try: 
                 objfiledict[objtype].update(hdl.importObjs([], obj_attr_dict[objtype],update,envar,rootdir))
-            except InvalidValueException,e:
+            except InvalidValueException as e:
                 exptmsglist.append(str(e))
                 continue
 
@@ -579,7 +580,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
     if not dryrun:
         try:
             dbsession.commit()   
-        except Exception, e: 
+        except Exception as e:
             raise DBException("Error on commit DB transactions: "+str(e))
         else:
             print('Inventory import successfully!',file=sys.stdout)
@@ -617,7 +618,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
             else:
                 try:
                     os.makedirs(os.path.dirname(myfile))
-                except OSError, e:
+                except OSError as e:
                     if e.errno != os.errno.EEXIST:
                         raise
                     pass
@@ -631,7 +632,7 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
                 else:
                     try:
                         shutil.copyfile(srcfile,myfile)
-                    except Exception,e:
+                    except Exception as e:
                         raise InvalidFileException("Error encountered while copying \"%s\" to \"%s\":\n%s"%(srcfile,myfile,str(e)))
         else:
             print("Warning: the file \""+srcfile+"\" of "+objtype+" \""+objname+"\" does not exist!",file=sys.stderr)
@@ -665,7 +666,7 @@ def importfromdir(location,objtype=None,objnamelist=None,dryrun=None,version=Non
             if importall:
                 try:
                     importobjdir(objdir,dryrun,version,update,dbsession,envs,objtype)
-                except ObjTypeNonExistException,e:
+                except ObjTypeNonExistException:
                        raise ObjTypeNonExistException("cannot find \"%s\" type objects in directory \"%s\""%(objtype,objtype))
             else:
                 importobjdir(objdir,dryrun,version,update,dbsession,envs,objtype)
@@ -700,7 +701,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                 f = open(env_file)
                 vardict.update( yaml.load(f) )
                 f.close()
-            except Exception,e:
+            except Exception:
                 raise InvalidFileException("Error: Failed to load variable file '%s', please check ..." % env_file)
 
      if envs:
@@ -765,7 +766,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                              #import current object
                              try:
                                  importobjdir(srcdir,dryrun,version,update,dbsession,envs,myobjtype)
-                             except ObjTypeNonExistException,e:
+                             except ObjTypeNonExistException as e:
                                  if importallobjtypes:
                                      print(str(e),file=sys.stderr)
                                      continue
@@ -776,7 +777,7 @@ def importobj(srcfile,srcdir,objtype,objnames=None,dryrun=None,version=None,upda
                          try:
                              #this is an obj inventory directory for a objtype
                              importfromdir(srcdir,myobjtype,objnamelist,dryrun,version,update,dbsession,envs=envs)
-                         except ObjTypeNonExistException,e:
+                         except ObjTypeNonExistException as e:
                              if importallobjtypes:
                                  print(str(e),file=sys.stderr)
                                  continue
