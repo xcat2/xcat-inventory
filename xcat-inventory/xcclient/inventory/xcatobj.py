@@ -14,6 +14,7 @@ from .dbfactory import *
 from .exceptions import *
 from .utils import *
 from .vutil import *
+from . import vutil
 #import pdb
 
 
@@ -303,7 +304,7 @@ class XcatBase(object):
             schema=cls._schema
         else:
             try:
-                schemacontent=yaml.load(file(schemapath,'r'))
+                schemacontent = yaml.load(open(schemapath, 'r'), Loader=yaml.FullLoader)
             except Exception as e:
                 raise BadSchemaException("Error: Invalid schema file \""+schemapath+"\"!")
             schmkey=schemacontent.keys()[0]
@@ -339,9 +340,9 @@ class XcatBase(object):
     def loadschema(cls,schema=None):
         if schema is None:
             schema=cls._schema_loc__
-        #cls._schema=yaml.load(file(schema,'r'))['node']
+        #cls._schema=yaml.load(open(schema,'r'))['node']
         try: 
-            schemacontent=yaml.load(file(schema,'r'))
+            schemacontent=yaml.load(open(schema, 'r'), Loader=yaml.FullLoader)
         except Exception:
             raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
         schmkey=schemacontent.keys()[0]
@@ -610,5 +611,4 @@ class ProductKey(XcatBase):
 class Osdistro(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/osdistro.yaml')
 
-if __name__ == "__main__":
-    pass
+
