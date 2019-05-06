@@ -107,7 +107,7 @@ class DBsession(Singleton):
                 return self._sessions[tablename]
         else:    
             if self._sessions:
-                mykey=self._sessions.keys()[0]
+                mykey=list(self._sessions.keys())[0]
                 return self._sessions[mykey]
             else:
                 session=self.__class__.createSession(tablename)

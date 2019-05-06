@@ -307,7 +307,7 @@ class XcatBase(object):
                 schemacontent = yaml.load(open(schemapath, 'r'), Loader=yaml.FullLoader)
             except Exception as e:
                 raise BadSchemaException("Error: Invalid schema file \""+schemapath+"\"!")
-            schmkey=schemacontent.keys()[0]
+            schmkey=list(schemacontent.keys())[0]
             schema=schemacontent[schmkey]
    
         ctxdict={}
@@ -345,7 +345,7 @@ class XcatBase(object):
             schemacontent=yaml.load(open(schema, 'r'), Loader=yaml.FullLoader)
         except Exception:
             raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
-        schmkey=schemacontent.keys()[0]
+        schmkey=list(schemacontent.keys())[0]
         cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
         cls.scanschema()

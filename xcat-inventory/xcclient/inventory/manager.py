@@ -137,7 +137,7 @@ class InventoryFactory(object):
                 for attr in attrs:
                     newsubobj=myclass.createfromdb(key, attr)
                     subobjdict=newsubobj.getobjdict()
-                    objdictkey=subobjdict.keys()[0]
+                    objdictkey=list(subobjdict.keys())[0]
                     if objdictkey not in myobjdict.keys():
                         myobjdict[objdictkey]=[]
                     myobjdict[objdictkey].append(subobjdict[objdictkey])
@@ -605,11 +605,11 @@ def importobjdir(location,dryrun=None,version=None,update=True,dbsession=None,en
     if len(objfilesdict.keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object type")  
     else:
-        objtype=objfilesdict.keys()[0]
+        objtype=list(objfilesdict.keys())[0]
     if len(objfilesdict[objtype].keys()) !=1:
         raise InvalidFileException("Error: invalid definition file: \""+objfile+"\": should contain only 1 object")
     else:
-        objname=objfilesdict[objtype].keys()[0]
+        objname=list(objfilesdict[objtype].keys())[0]
     objfiles=objfilesdict[objtype][objname]
     for myfile in objfiles:
         srcfile=location+myfile
@@ -644,7 +644,7 @@ def importfromdir(location,objtype=None,objnamelist=None,dryrun=None,version=Non
     importall=0
     typeobjdict=utils.traverseobjdir(location)
     if typeobjdict:
-        objtypeindir=typeobjdict.keys()[0]
+        objtypeindir=list(typeobjdict.keys())[0]
         objnamesindir=typeobjdict[objtypeindir]
         if objtype is None:
             objtype=objtypeindir

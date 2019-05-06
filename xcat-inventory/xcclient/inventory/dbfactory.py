@@ -156,8 +156,8 @@ class matrixdbfactory():
                    ret[mykey].update(dictoftab[mykey])
 
         for mykey in ret.keys():
-            if len(ret[mykey].keys())==1 and ret[mykey].keys()[0] in tabs :
-                ret[mykey]=ret[mykey][ret[mykey].keys()[0]]          
+            if len(ret[mykey].keys())==1 and list(ret[mykey].keys())[0] in tabs :
+                ret[mykey]=ret[mykey][list(ret[mykey].keys())[0]]
 
         return ret 
 
