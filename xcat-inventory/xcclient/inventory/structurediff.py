@@ -3,6 +3,10 @@
 from __future__ import print_function
 import deepdiff
 
+import yaml
+import json
+import re
+
 from .utils import *
 
 class format_diff_output(object):

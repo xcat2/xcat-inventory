@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from structurediff import StructureDiff
 
+from .structurediff import StructureDiff
 from . import manager as mgr
 from .utils import *
 

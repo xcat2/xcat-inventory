@@ -9,6 +9,7 @@ from __future__ import print_function
 import os
 import shutil
 from jinja2 import Environment,meta,FileSystemLoader
+import json
 import yaml
 try:
     from yaml import CLoader as Loader
