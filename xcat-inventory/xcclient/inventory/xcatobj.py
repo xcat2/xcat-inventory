@@ -304,7 +304,7 @@ class XcatBase(object):
             schema=cls._schema
         else:
             try:
-                schemacontent = yaml.load(open(schemapath, 'r'), Loader=yaml.FullLoader)
+                schemacontent = yaml.load(open(schemapath, 'r'), Loader=Loader)
             except Exception as e:
                 raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schemapath, e))
             schmkey=list(schemacontent.keys())[0]
@@ -342,7 +342,7 @@ class XcatBase(object):
             schema=cls._schema_loc__
         #cls._schema=yaml.load(open(schema,'r'))['node']
         try: 
-            schemacontent=yaml.load(open(schema, 'r'), Loader=yaml.FullLoader)
+            schemacontent=yaml.load(open(schema, 'r'), Loader=Loader)
         except Exception as e:
             raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schema, e))
         schmkey=list(schemacontent.keys())[0]
