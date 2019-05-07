@@ -35,7 +35,6 @@ class NetworkListResource(Resource):
         """create a network object"""
         data = request.get_json()
 
-        # TODO: better to handle the exceptions
         try:
             upd_inventory_by_type('network', transform_to_inv(data))
         except (InvalidValueException, ParseException) as e:
