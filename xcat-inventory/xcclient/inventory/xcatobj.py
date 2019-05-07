@@ -306,7 +306,7 @@ class XcatBase(object):
             try:
                 schemacontent = yaml.load(open(schemapath, 'r'), Loader=yaml.FullLoader)
             except Exception as e:
-                raise BadSchemaException("Error: Invalid schema file \""+schemapath+"\"!")
+                raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schemapath, e))
             schmkey=list(schemacontent.keys())[0]
             schema=schemacontent[schmkey]
    

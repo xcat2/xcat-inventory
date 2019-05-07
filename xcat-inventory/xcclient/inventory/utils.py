@@ -120,7 +120,7 @@ def loadfile(filename):
             contents=json.loads(f)
         except ValueError:
             try:
-                contents = yaml.load(f)
+                contents = yaml.load(f, Loader=yaml.FullLoader)
             except Exception:
                 raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
         return contents, fmt
