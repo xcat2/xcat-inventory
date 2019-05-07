@@ -10,18 +10,19 @@ Command-line interface to xCAT inventory import/export
 """
 
 from __future__ import print_function
-from xcclient import shell
-from exceptions import *
-import backend
+
 import re
 import sys
 import traceback
-import os
-import utils
+
+from xcclient import shell
+from .exceptions import *
+from . import backend, utils
+
 
 try: 
     import xcclient.inventory.manager as mgr
-except ImportError,e:
+except ImportError as e:
      if re.match(r'No module named pymysql',str(e),re.I):
          print(r'Error: '+str(e), file=sys.stderr)
          print(r"Please install package 'python-PyMySQL-0.7.x' or 'PyMySQL 0.7.x' on PyPI",file=sys.stderr)
@@ -71,7 +72,7 @@ class InventoryShell(shell.ClusterShell):
             mybackend=backend.Invbackend()
             mybackend.diff()
         else:
-            from inventorydiff import InventoryDiff
+            from .inventorydiff import InventoryDiff
             InventoryDiff(args).inventory_diff()
 
     def do_envlist(self,args):
@@ -157,7 +158,8 @@ class InventoryShell(shell.ClusterShell):
         """tell me where i am, which branch,which revision. shortcut:\"w\""""
         mybackend=backend.Invbackend()
         mybackend.whereami()
-    
+
+
 # main entry for CLI
 def main():
     utils.initglobal()
@@ -166,7 +168,7 @@ def main():
     except KeyboardInterrupt:
         print("... terminating xCAT inventory management tool", file=sys.stderr)
         sys.exit(2)
-    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException,BackendNotInitException,ShErrorReturnException,DirNotExistException), e:
+    except (InvalidFileException,ObjNonExistException,CommandException,InvalidValueException,BadDBHdlException,BadSchemaException,DBException,ParseException,InternalException,ObjTypeNonExistException,FileNotExistException,BackendNotInitException,ShErrorReturnException,DirNotExistException) as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     #except (ParserError), e:

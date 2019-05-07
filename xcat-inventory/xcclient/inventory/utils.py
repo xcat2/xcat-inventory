@@ -11,10 +11,10 @@ import re
 import subprocess
 import json
 import yaml
-import sys
-import globalvars
-from exceptions import *
 from contextlib import contextmanager
+
+from . import globalvars
+from .exceptions import *
 
 def runCommand(cmd, env=None):
     """
@@ -29,7 +29,12 @@ def runCommand(cmd, env=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
         out, err = p.communicate()
-    except OSError,e:
+        if type(out) is bytes:
+            out = out.decode()
+        if type(err) is bytes:
+            err = err.decode()
+
+    except OSError:
         return p.returncode,out, err
     return p.returncode,out, err
 
@@ -115,18 +120,16 @@ def loadfile(filename):
             contents=json.loads(f)
         except ValueError:
             try:
-                contents = yaml.load(f)
-            except Exception,e:
+                contents = yaml.load(f, Loader=yaml.FullLoader)
+            except Exception:
                 raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
         return contents, fmt
     return None, fmt
 
 #initialize the global vars in globalvars.py
 def initglobal():
-    if os.path.exists("/var/run/xcatd.pid"):
-        globalvars.isxcatrunning=1
-    else:
-        globalvars.isxcatrunning=0
+
+    globalvars.isxcatrunning=os.path.exists("/var/run/xcatd.pid")
     if globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
     if retcode!=0 or not globalvars.isxcatrunning:
@@ -193,7 +196,7 @@ def traverseobjdir(path):
     if not os.path.isdir(path):
         return None
     ret={}
-    from manager import InventoryFactory
+    from .manager import InventoryFactory
     for subdir in os.listdir(path):
         objpath=os.path.join(path,subdir) 
         if os.path.isdir(objpath):

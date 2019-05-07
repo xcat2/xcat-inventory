@@ -5,17 +5,18 @@ import configparser
 import os
 import shutil
 import re
-import sys
-from exceptions import * 
-import manager 
-import utils
 import pickle
 import hashlib
+
+from .exceptions import *
+from . import manager
+from . import utils
 
 try:
     import sh
 except:
     raise InternalException("cannot find module \"sh\", please install it with \"pip install sh\"")
+
 
 class Invbackend(object):
 

@@ -8,12 +8,10 @@
 
 from __future__ import print_function
 import os
-import yaml
-import sys
 import re
-import utils
-import globalvars
 from distutils.version import LooseVersion, StrictVersion
+
+from . import globalvars
 
 def isIPaddr(varin):
     ValidIpAddressRegex = "^([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.(([0-9]|[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([0-9]|[0-9]{2}|0[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";

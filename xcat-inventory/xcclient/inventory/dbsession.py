@@ -10,9 +10,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import re
 import os
-import sqlalchemy.exc
-from exceptions import *
+#import sqlalchemy.exc
 import codecs
+
+from .exceptions import *
 
 codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
 
@@ -103,7 +104,7 @@ class DBsession(Singleton):
                 return self._sessions[tablename]
         else:    
             if self._sessions:
-                mykey=self._sessions.keys()[0]
+                mykey=list(self._sessions.keys())[0]
                 return self._sessions[mykey]
             else:
                 session=self.__class__.createSession(tablename)

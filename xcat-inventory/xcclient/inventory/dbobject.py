@@ -1,8 +1,11 @@
 #!/usr/bin/python
-from dbsession import *
+
 from copy import *
 from sqlalchemy import inspect
-import pdb
+# import pdb
+
+from .dbsession import *
+
 
 class mixin(object):
     def getdict(self):

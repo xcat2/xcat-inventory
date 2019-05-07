@@ -5,16 +5,17 @@
 # -*- coding: utf-8 -*-
 #
 import yaml
-import json
+
 import re
 from copy import *
 
-from dbobject import *
-from dbfactory import *
-from exceptions import *
-from utils import *
-import vutil
-import pdb
+from .dbobject import *
+from .dbfactory import *
+from .exceptions import *
+from .utils import *
+from .vutil import *
+from . import vutil
+#import pdb
 
 
 
@@ -235,7 +236,8 @@ class XcatBase(object):
         evalexp=eval("lambda "+myexpression,None,ctxdict)
         result=evalexp()
         if myschmpath:
-            if 0==cmp(result,tabcol):
+            #if 0==cmp(result,tabcol):
+            if 0 == (result > tabcol) - (result < tabcol):
                 value=Util_getdictval(self._mydict,myschmpath)
                 self._dbhash[tabcol]=value
             else:
@@ -269,7 +271,7 @@ class XcatBase(object):
         try:
             evalexp=eval("lambda "+myexpression,None,ctxdict)
             value=evalexp()
-        except Exception,e:
+        except Exception as e:
             raise  InvalidValueException("Error: failed to process schema entry ["+valpath+"]: \""+myexpression+"\": "+str(e))
         Util_setdictval(self._mydict,valpath,value)
         return value 
@@ -302,10 +304,10 @@ class XcatBase(object):
             schema=cls._schema
         else:
             try:
-                schemacontent=yaml.load(file(schemapath,'r'))
-            except Exception, e:
-                raise BadSchemaException("Error: Invalid schema file \""+schemapath+"\"!")
-            schmkey=schemacontent.keys()[0]
+                schemacontent = yaml.load(open(schemapath, 'r'), Loader=yaml.FullLoader)
+            except Exception as e:
+                raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schemapath, e))
+            schmkey=list(schemacontent.keys())[0]
             schema=schemacontent[schmkey]
    
         ctxdict={}
@@ -325,7 +327,7 @@ class XcatBase(object):
                 try:
                     evalexp=eval("lambda "+rule,None,ctxdict)
                     (value,errmsg)=evalexp()
-                except Exception,e:
+                except Exception as e:
                     raise  InternalException("Error: encountered some error when validating version of schema \"%s\": %s"%(schemapath,str(e)))
                 if not value:
                     raise BadSchemaException("Error: invalid schema %s: %s"%(schemapath,errmsg))
@@ -338,12 +340,12 @@ class XcatBase(object):
     def loadschema(cls,schema=None):
         if schema is None:
             schema=cls._schema_loc__
-        #cls._schema=yaml.load(file(schema,'r'))['node']
+        #cls._schema=yaml.load(open(schema,'r'))['node']
         try: 
-            schemacontent=yaml.load(file(schema,'r'))
-        except Exception, e:
-            raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
-        schmkey=schemacontent.keys()[0]
+            schemacontent=yaml.load(open(schema, 'r'), Loader=yaml.FullLoader)
+        except Exception as e:
+            raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schema, e))
+        schmkey=list(schemacontent.keys())[0]
         cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
         cls.scanschema()
@@ -405,7 +407,7 @@ class XcatBase(object):
                 try:
                     evalexp=eval("lambda "+myexpression)
                     value=evalexp()
-                except Exception,e:                    
+                except Exception as e:
                     raise  InternalException("Error: encountered some error when validate attribute ["+key+"] of object \""+self.name+"\": "+str(e)) 
                 if not value:
                     retcode=False
@@ -414,7 +416,7 @@ class XcatBase(object):
 
     @classmethod
     def getfilerules(cls):
-        print yaml.dump(cls._files)
+        print(yaml.dump(cls._files))
 
     def getfilestosave(self,rootdir=None):
         filelist=[]
@@ -435,7 +437,7 @@ class XcatBase(object):
                 try:
                     evalexp=eval("lambda "+myexpression,None,ctxdict)
                     value=evalexp()
-                except Exception,e:                    
+                except Exception as e:
                     raise  InvalidValueException("Error: encountered some error when get the files to save in [%s] of object \"%s\": %s"%(key,self.name,str(e))) 
                 if value:
                     filelist.extend(filter(None,value))
@@ -526,8 +528,8 @@ class Node(XcatBase):
                             if nic not in nicsdict.keys():
                                 nicsdict[nic]={}
                             nicsdict[nic][key]=nicattr.split('|')
-                except Exception,e:
-                    raise InvalidValueException("Error: invalid value \""+nicent+"\" for object "+self.name+" found "+"in nics table") 
+                except Exception:
+                    raise InvalidValueException("Error: invalid value \""+key+"\" for object "+self.name+" found "+"in nics table")
                 Util_setdictval(ret[self.name],nicspath,nicsdict)
         return ret
 
@@ -609,5 +611,4 @@ class ProductKey(XcatBase):
 class Osdistro(XcatBase):
     _schema_loc__ = os.path.join(os.path.dirname(__file__), 'schema/latest/osdistro.yaml')
 
-if __name__ == "__main__":
-    pass
+
