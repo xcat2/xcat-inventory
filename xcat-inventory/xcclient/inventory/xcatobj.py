@@ -343,8 +343,8 @@ class XcatBase(object):
         #cls._schema=yaml.load(open(schema,'r'))['node']
         try: 
             schemacontent=yaml.load(open(schema, 'r'), Loader=yaml.FullLoader)
-        except Exception:
-            raise BadSchemaException("Error: Invalid schema file \""+schema+"\"!") 
+        except Exception as e:
+            raise BadSchemaException("Error: Invalid schema file \"%s\": %s" % (schema, e))
         schmkey=list(schemacontent.keys())[0]
         cls._schema=schemacontent[schmkey] 
         cls._schema_loc__=schema
