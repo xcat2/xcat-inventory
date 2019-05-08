@@ -149,13 +149,15 @@ def initglobal():
 # if "key" of d1 or "key" of d1[key] not in d2, delete it
 def filter_dict_keys(d1, d2):
     tmp_d1 = d1
-    for key in tmp_d1.keys():
+    tmp_d1_keys = list(tmp_d1.keys())
+    for key in tmp_d1_keys:
         if key not in d2:
             del tmp_d1[key]
             continue
         if type(tmp_d1[key]) != dict:
             continue
-        for subkey in tmp_d1[key].keys():
+        tmp_d1_v_keys = list(tmp_d1[key].keys())
+        for subkey in tmp_d1_v_keys:
             if subkey not in d2[key]:
                 del tmp_d1[key][subkey]
     return tmp_d1

@@ -238,10 +238,10 @@ class XcatBase(object):
         result=evalexp()
         if myschmpath:
             if sys.version_info < (3,0):
-                equal = bool(cmp(result,tabcol))
+                equal = bool(0 == cmp(result,tabcol))
             else:
                 result = result or ''
-                equal = bool((result > tabcol) - (result < tabcol))
+                equal = bool(0 == (result > tabcol) - (result < tabcol))
             if equal :
                 value=Util_getdictval(self._mydict,myschmpath)
                 self._dbhash[tabcol]=value
