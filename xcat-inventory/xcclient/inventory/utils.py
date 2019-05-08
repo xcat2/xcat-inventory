@@ -44,7 +44,8 @@ def runCommand(cmd, env=None):
 
 #remove the dict entries whose value is null or ''
 def Util_rmnullindict(mydict):
-    for key in mydict.keys():
+    key_list = list(mydict.keys())
+    for key in key_list:
         if isinstance(mydict[key],dict):
             Util_rmnullindict(mydict[key])
             if not mydict[key].keys():

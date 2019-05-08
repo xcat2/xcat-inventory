@@ -6,6 +6,7 @@
 #
 import yaml
 
+import sys
 import re
 from copy import *
 
@@ -236,8 +237,12 @@ class XcatBase(object):
         evalexp=eval("lambda "+myexpression,None,ctxdict)
         result=evalexp()
         if myschmpath:
-            #if 0==cmp(result,tabcol):
-            if 0 == (result > tabcol) - (result < tabcol):
+            if sys.version_info < (3,0):
+                equal = bool(cmp(result,tabcol))
+            else:
+                result = result or ''
+                equal = bool((result > tabcol) - (result < tabcol))
+            if equal :
                 value=Util_getdictval(self._mydict,myschmpath)
                 self._dbhash[tabcol]=value
             else:
@@ -375,7 +380,7 @@ class XcatBase(object):
                    invalidkeylist.append(curpath)
                    return
                for key in objdict.keys():
-                   if schemadict.has_key(key):
+                   if key in schemadict:
                        _dictcmp(schemadict[key],objdict[key],invalidkeylist,curpath+'.'+key)
                    else:
                        invalidkeylist.append(curpath+'.'+key)

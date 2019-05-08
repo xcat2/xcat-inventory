@@ -117,7 +117,8 @@ class DBsession(Singleton):
             self._sessions[session].commit()
     #close all sessions
     def close(self):
-        for session in self._sessions.keys():
+        se_list = list(self._sessions.keys())
+        for session in se_list:
             self._sessions[session].close()
             del self._sessions[session]
         

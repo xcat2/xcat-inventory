@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import sys
 from copy import *
 from sqlalchemy import inspect
 # import pdb
@@ -11,8 +12,15 @@ class mixin(object):
     def getdict(self):
         mydict={}
         for mykey in self.__dict__.keys():
-           if mykey in self.__table__.columns:
-              mydict[self.__tablename__+'.'+mykey.encode()]= self.__dict__[mykey] if self.__dict__[mykey] is None else self.__dict__[mykey].encode()
+            if mykey in self.__table__.columns:
+                myvalue = self.__dict__[mykey]
+                if sys.version_info < (3,0):
+                    if type(mykey) is unicode:
+                        mykey = mykey.encode()
+
+                    if type(myvalue) is unicode:
+                        myvalue = myvalue.encode()
+                mydict["%s.%s" % (self.__tablename__, mykey)]= myvalue
         try:
             self.__class__.outprocess(mydict)
         except:
@@ -24,7 +32,7 @@ class mixin(object):
     def primkeys(cls):
         ins = inspect(cls)
         prikeys=[ item.key for item in ins.primary_key ]
-        prikeys.sort(None,None,reverse=False)
+        prikeys.sort(reverse=False)
         return tuple(prikeys)
 
     #return the key of object in table row
