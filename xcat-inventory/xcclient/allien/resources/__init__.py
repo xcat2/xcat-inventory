@@ -35,6 +35,9 @@ api.add_namespace(api_setting_ns)
 from .security import ns as api_security_ns
 api.add_namespace(api_security_ns)
 
+from .service import ns as api_manager_ns
+api.add_namespace(api_manager_ns)
+
 #from .nodehm import *
 #api.add_resource(PowerResource, '/node/<string:id>/power')
 #api.add_resource(PowerRangeResource, '/power')
