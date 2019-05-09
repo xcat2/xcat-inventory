@@ -18,13 +18,13 @@ These APIs is to handle security related resources: Password, Policy, Zone, Cred
 
 ns = Namespace('security', description='Security Settings')
 
-sec_resource = ns.model('Resource', {
+sec_resource = ns.model('sec_Resource', {
     'id': fields.String(description='The ID of Secret'),
     'kind': fields.String(description='The kind of Secrets', required=True),
     'spec': fields.Raw(description='The specification of resource', required=True)
 })
 
-sec_post_resource = ns.model('Resource', {
+sec_post_resource = ns.model('sec_post_Resource', {
     'kind': fields.String(description='The kind of Secrets', required=True),
     'spec': fields.Raw(description='The specification of resource', required=True)
 })
