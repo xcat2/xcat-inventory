@@ -11,10 +11,14 @@ import re
 import subprocess
 import json
 import yaml
-import sys
-import globalvars
-from exceptions import *
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 from contextlib import contextmanager
+
+from . import globalvars
+from .exceptions import *
 
 def runCommand(cmd, env=None):
     """
@@ -29,13 +33,19 @@ def runCommand(cmd, env=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
         out, err = p.communicate()
-    except OSError,e:
+        if type(out) is bytes:
+            out = out.decode()
+        if type(err) is bytes:
+            err = err.decode()
+
+    except OSError:
         return p.returncode,out, err
     return p.returncode,out, err
 
 #remove the dict entries whose value is null or ''
 def Util_rmnullindict(mydict):
-    for key in mydict.keys():
+    key_list = list(mydict.keys())
+    for key in key_list:
         if isinstance(mydict[key],dict):
             Util_rmnullindict(mydict[key])
             if not mydict[key].keys():
@@ -115,18 +125,16 @@ def loadfile(filename):
             contents=json.loads(f)
         except ValueError:
             try:
-                contents = yaml.load(f)
-            except Exception,e:
+                contents = yaml.load(f, Loader=Loader)
+            except Exception:
                 raise InvalidFileException("Error: failed to load file \"%s\", please validate the file with 'yamllint %s'(for yaml format) or 'cat %s|python -mjson.tool'(for json format)!"%(filename,filename,filename))
         return contents, fmt
     return None, fmt
 
 #initialize the global vars in globalvars.py
 def initglobal():
-    if os.path.exists("/var/run/xcatd.pid"):
-        globalvars.isxcatrunning=1
-    else:
-        globalvars.isxcatrunning=0
+
+    globalvars.isxcatrunning=os.path.exists("/var/run/xcatd.pid")
     if globalvars.isxcatrunning:
         (retcode,out,err)=runCommand("XCATBYPASS=0 lsxcatd -v")
     if retcode!=0 or not globalvars.isxcatrunning:
@@ -141,13 +149,15 @@ def initglobal():
 # if "key" of d1 or "key" of d1[key] not in d2, delete it
 def filter_dict_keys(d1, d2):
     tmp_d1 = d1
-    for key in tmp_d1.keys():
+    tmp_d1_keys = list(tmp_d1.keys())
+    for key in tmp_d1_keys:
         if key not in d2:
             del tmp_d1[key]
             continue
         if type(tmp_d1[key]) != dict:
             continue
-        for subkey in tmp_d1[key].keys():
+        tmp_d1_v_keys = list(tmp_d1[key].keys())
+        for subkey in tmp_d1_v_keys:
             if subkey not in d2[key]:
                 del tmp_d1[key][subkey]
     return tmp_d1
@@ -193,7 +203,7 @@ def traverseobjdir(path):
     if not os.path.isdir(path):
         return None
     ret={}
-    from manager import InventoryFactory
+    from .manager import InventoryFactory
     for subdir in os.listdir(path):
         objpath=os.path.join(path,subdir) 
         if os.path.isdir(objpath):

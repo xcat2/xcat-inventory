@@ -1,12 +1,18 @@
 #!/usr/bin/python
 from __future__ import print_function
-import dbobject
-from dbobject import *
-from dbsession import DBsession
+import sys
+
+try:
+    from . import dbobject
+    from .dbobject import *
+except Exception:
+    print("Failed to connected with database...")
+
+
 from sqlalchemy import or_
 #from xcclient.shell import CommandException
-from exceptions import *
-import utils
+from .exceptions import *
+from . import utils
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkeys=tabcls.primkeys()
@@ -60,14 +66,14 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         for tabkey in tabkeys:
             query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
         record=query.all()
-    except Exception, e:
+    except Exception as e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
         if delrow:
             try:
                 for item in record:
                     session.delete(item)
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: delete "+key+" is failed: "+str(e))
             #else:
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
@@ -77,12 +83,12 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
                #for tabkey in tabkeys:
                #    query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
                query.update(newdict)
-           except Exception, e:
+           except Exception as e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
     elif delrow == 0:
         try:
             session.execute(tabcls.__table__.insert(), newdict)
-        except Exception, e:
+        except Exception as e:
             raise DBException("Error: import object "+key+" is failed: "+str(e)) 
 
 class matrixdbfactory():
@@ -99,10 +105,11 @@ class matrixdbfactory():
                continue
            tabobjs=[]
            tabkeys=tab.primkeys()
-           if len(keys)==0:
+           if not keys or len(keys)==0:
                tabobjs=dbsession.query(tab).filter(or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
            elif len(tabkeys)==1:
-               tabobjs=dbsession.query(tab).filter(getattr(tab,tabkeys[0]).in_(keys),or_(tab.disable == None, tab.disable.notin_(['1','yes']))).all()
+               tabobjs = dbsession.query(tab).filter(getattr(tab, tabkeys[0]).in_(keys),
+                                                     or_(tab.disable == None, tab.disable.notin_(['1', 'yes']))).all()
            elif len(tabkeys)>1:
                for key in keys:
                    if type(key)!=tuple:
@@ -149,8 +156,8 @@ class matrixdbfactory():
                    ret[mykey].update(dictoftab[mykey])
 
         for mykey in ret.keys():
-            if len(ret[mykey].keys())==1 and ret[mykey].keys()[0] in tabs :
-                ret[mykey]=ret[mykey][ret[mykey].keys()[0]]          
+            if len(ret[mykey].keys())==1 and list(ret[mykey].keys())[0] in tabs :
+                ret[mykey]=ret[mykey][list(ret[mykey].keys())[0]]
 
         return ret 
 
@@ -333,7 +340,7 @@ class dbfactory():
                 if objkey:
                     query=query.filter(getattr(tabcls,tabkey).in_(objkey)) 
                 query.delete(synchronize_session='fetch')
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: failed to clear table "+str(tab)+": "+str(e))
         #else:
         #    print("table "+tab+ "cleared!")

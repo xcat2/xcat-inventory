@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from structurediff import StructureDiff
-import manager as mgr 
-from exceptions import *
-from utils import *
-import re
+
+from .structurediff import StructureDiff
+from . import manager as mgr
+from .utils import *
+
 
 def line_diff(file1, file2, filename=None):
     (retcode,out,err)=runCommand("diff -u %s %s"%(file1, file2))
