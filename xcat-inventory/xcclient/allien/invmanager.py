@@ -157,13 +157,22 @@ def get_inventory_by_type(objtype, ids=None):
 
     return hdl.exportObjs(wants, None, fmt='json').get(objtype)
 
-
 def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     hdl = InventoryFactory.createHandler(objtype, dbsession, None)
 
     hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
     dbsession.commit()
 
+def del_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+    hdl.deleteTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
+
+def add_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None) 
+    hdl.addTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
 
 def del_inventory_by_type(objtype, obj_list):
     """delete objects from data store"""

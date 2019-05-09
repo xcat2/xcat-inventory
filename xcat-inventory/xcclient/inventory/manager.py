@@ -268,6 +268,11 @@ class InventoryFactory(object):
 
         return objfiles
 
+    def addTabEntrybykey(self, table, obj_attr_dict):
+        self.getDBInst().addtabentries(table, obj_attr_dict)
+
+    def deleteTabEntrybykey(self, table, obj_attr_dict):
+        self.getDBInst().deltabentries(table, obj_attr_dict)
     
     def removeObjs(self):
         self.importObjs(None,{},False,None)

@@ -344,5 +344,39 @@ class dbfactory():
         #else:
         #    print("table "+tab+ "cleared!")
 
+    def addtabentries(self,tab,objdict):
+        if hasattr(dbobject,tab):
+            tabcls=getattr(dbobject,tab)
+        else:
+            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+        tabkeys=tabcls.primkeys()
+        try:
+            query=session.query(tabcls)
+            for tabkey in tabkeys:
+                query=query.filter(getattr(tabcls,tabkey) == objdict[tabkey])
+            record=query.all()
+            if record:
+                raise DBException("Error: "+record+" exist")
+            else:
+                query.update(objdict)
+        except Exception as e:
+            raise DBException("Error: "+str(tab)+": "+str(e))
+
+    def deltabentries(self,tab,objdict):
+        if hasattr(dbobject,tab):
+            tabcls=getattr(dbobject,tab)
+        else:
+            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+        tabkeys=tabcls.primkeys()
+        try:
+            dbsession=self._dbsession.loadSession(tab)
+            query=dbsession.query(tabcls)
+            for tabkey in tabkeys:
+                query=query.filter(getattr(tabcls,tabkey) == objdict[tabkey])
+            query.delete(synchronize_session='fetch')
+            
+        except Exception as e:
+            raise DBException("Error:"+str(tab)+": "+str(e))
+
 if __name__ == "__main__":
      pass
