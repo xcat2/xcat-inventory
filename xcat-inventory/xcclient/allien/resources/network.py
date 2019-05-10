@@ -6,19 +6,16 @@
 
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
-from xcclient.xcatd import XCATClient, XCATClientParams
+
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data, patch_inventory_by_type
 from ..invmanager import InvalidValueException, ParseException
-from .inventory import ns, resource
+from .inventory import ns, resource, patch_action
 
 """
 These APIs is to handle networking related resources: subnet, route.
 """
-
-patch_action = ns.model('modify', {
-    'modify': fields.Raw(description='The update attr and value info of resource', required=True)
-})
 
 
 @ns.route('/subnets')
@@ -131,7 +128,6 @@ class RouteResource(Resource):
             ns.abort(400, str(e))
 
         return None, 200
-
 
     @ns.expect(resource)
     def put(self, name):

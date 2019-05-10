@@ -15,8 +15,7 @@ from ..srvmanager import provision
 ns = Namespace('manager', description='Manage services and tasks')
 srvreq = ns.model('SvrReq', {
     'noderange': fields.String(description='The nodes or groups to be operated', required=True),
-    'boot_state': fields.String(description='The specified operation', required=False),
-    'boot_param': fields.Raw(description='The optional parameters of the operation', required=False)
+    'action_spec': fields.Raw(description='The optional parameters of the operation', required=False)
 })
 
 
@@ -40,15 +39,14 @@ class ProvisionResource(Resource):
 
         # Now just invode `rinstall` to xcatd
         data = request.get_json()
-        boot_state = data.get('boot_state')
-        if data.get('boot_param'):
-            current_app.logger.debug("boot_param=%s" % data.get('boot_param'))
+        if data.get('action_spec'):
+            current_app.logger.debug("action_spec=%s" % data.get('action_spec'))
 
         try:
-            result = provision(data['noderange'], target=boot_state)
+            result = provision(data['noderange'], data.get('action_spec'))
         except XCATClientError as e:
             ns.abort(500, str(e))
 
         # TODO: a reasonable response for each nodes, now just return xcatd output
-        return dict(outputs=result.output_msgs)
+        return dict(outputs=result)
 

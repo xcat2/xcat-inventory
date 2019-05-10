@@ -6,19 +6,17 @@
 import os
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
+
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data, patch_inventory_by_type
 from ..invmanager import InvalidValueException, ParseException
-from .inventory import ns, resource
+from .inventory import ns, resource, patch_action
 
 """
 These APIs is to handle Image related resources: osimage, osdistro,.
 """
-
-patch_action = ns.model('modify', {
-    'modify': fields.Raw(description='The update attr and value info of resource', required=True)
-})
 
 
 @ns.route('/osimages')
@@ -43,6 +41,7 @@ class OSimageListResource(Resource):
             ns.abort(400, e.message)
 
         return None, 201
+
 
 @ns.route('/osimages/<string:name>')
 @ns.response(404, 'OSimage not found.')
@@ -119,7 +118,8 @@ class DistroListResource(Resource):
         except (InvalidValueException, XCATClientError) as e:
             ns.abort(400, str(e))
         return None, 201
-    
+
+
 @ns.route('/distros/<string:name>')
 @ns.response(404, 'Distro not found.')
 class DistroResource(Resource):

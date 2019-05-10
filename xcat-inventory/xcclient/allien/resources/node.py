@@ -35,10 +35,6 @@ actionreq = ns.model('ActionReq', {
 })
 
 
-SUPPORTED_OPERATIONS = {
-    'rinstall': _rinstall
-}
-
 @ns.route('/nodes')
 class NodeListResource(Resource):
 
@@ -76,14 +72,9 @@ class NodeInventoryResource(Resource):
         return get_node_inventory('node', node)
 
 
-def _rinstall(node, spec=None):
-    """Helper method to parse payload and do rintall"""
-
-    boot_state = 'osimage'
-    if 'boot_state' in spec:
-        boot_state = spec['boot_state']
-
-    provision(node, target=boot_state)
+SUPPORTED_OPERATIONS = {
+    'rinstall': provision
+}
 
 
 @ns.route('/nodes/<node>/_operation')
@@ -109,5 +100,5 @@ class NodeOperationResource(Resource):
         except XCATClientError as e:
             ns.abort(500, str(e))
 
-        current_app.logger.debug("outputs=%s" % result.output_msgs)
+        current_app.logger.debug("outputs=%s" % result)
         return 'Success'
