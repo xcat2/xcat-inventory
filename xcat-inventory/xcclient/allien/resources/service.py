@@ -8,8 +8,9 @@ import os
 from flask import request, current_app
 from flask_restplus import Namespace, Resource, reqparse, fields
 
-from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
+from ..srvmanager import provision
 
 ns = Namespace('manager', description='Manage services and tasks')
 srvreq = ns.model('SvrReq', {
@@ -43,13 +44,11 @@ class ProvisionResource(Resource):
         if data.get('boot_param'):
             current_app.logger.debug("boot_param=%s" % data.get('boot_param'))
 
-        param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
-        cl = XCATClient()
-        cl.init(current_app.logger, param)
         try:
-            result = cl.rinstall(noderange=data['noderange'], boot_state=boot_state)
+            result = provision(data['noderange'], target=boot_state)
         except XCATClientError as e:
             ns.abort(500, str(e))
 
+        # TODO: a reasonable response for each nodes, now just return xcatd output
         return dict(outputs=result.output_msgs)
 
