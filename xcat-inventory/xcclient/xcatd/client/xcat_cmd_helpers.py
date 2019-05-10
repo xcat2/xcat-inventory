@@ -81,6 +81,34 @@ class GetNodesAttribsHelper(object):
         return parser.parse()
 
 #
+# rinstall commands
+#
+
+
+class RinstallHelper(object):
+    """Helper class for rinstall command"""
+
+    def __init__(self, noderange, boot_state):
+        self.command = 'rinstall'
+        self.noderange = noderange
+        self.boot_state = boot_state
+
+    def __str__(self):
+        return '%s: noderange=%s, boot_state=%s' % \
+            (self.command, self.noderange, self.boot_state)
+
+    def get_request(self):
+        return XCATRequest(command=self.command,
+                           noderange=self.noderange,
+                           args=[self.boot_state])
+
+    def parse_response(self, ssl_client):
+        req = self.get_request()
+        parser = XCATGenericCmdResultParser(req, ssl_client, output_msg_tags=['info'])
+        return parser.parse()
+
+
+#
 # Node commands
 #
 
@@ -166,6 +194,7 @@ class RmdefHelper(GenericCmdHelper):
         parser = XCATGenericCmdResultParser(req, ssl_client, output_msg_tags=['info'])
         return parser.parse()
 
+
 class CopycdsHelper(GenericCmdHelper):
     """Helper class for copycds command"""
 
@@ -180,6 +209,7 @@ class CopycdsHelper(GenericCmdHelper):
 #
 # make* commands
 #
+
 
 class MakedhcpHelper(GenericCmdHelper):
     """Helper class for makedhcp command"""
@@ -214,11 +244,11 @@ class MakeknownhostsHelper(GenericCmdHelper):
         GenericCmdHelper.__init__(self, 'makeknownhosts', noderange, args)
 
 
-class MakeconservercfHelper(GenericCmdHelper):
-    """Helper class for makeconservercf command"""
+class MakeconsoleHelper(GenericCmdHelper):
+    """Helper class for makegocons command"""
 
     def __init__(self, noderange, args):
-        GenericCmdHelper.__init__(self, 'makeconservercf', noderange, args)
+        GenericCmdHelper.__init__(self, 'makegocons', noderange, args)
 
 
 class MknbHelper(GenericCmdHelper):

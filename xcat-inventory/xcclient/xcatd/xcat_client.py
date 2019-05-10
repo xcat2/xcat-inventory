@@ -165,6 +165,29 @@ class XCATClient(XCATClientBase):
     # Node commands
     #
 
+
+    def rinstall(self, noderange, boot_state):
+        """Install to boot state for a noderange
+        Params:
+            noderange: xCAT noderange expression (str)
+            boot_state:  Node boot state, e.g., boot, install, etc. (str)
+        Returns:
+            XCATGenericCmdResult  (see client/xcat_data.py)
+        Exceptions:
+            XCATClientError  (see client/xcat_exceptions.py)
+        """
+        try:
+            self._logger.trace('Entering')
+            t = Timer().start_timer()
+            return self._run_command(RinstallHelper(noderange, boot_state))
+        finally:
+            t.stop_timer()
+            self._logger.perf('%s msec' % t.get_elapsed_in_msec())
+            self._logger.trace('Leaving')
+
+
+
+
     def nodeset(self, noderange, boot_state):
         """Sets the boot state for a noderange
         Params:
@@ -393,7 +416,7 @@ class XCATClient(XCATClientBase):
             self._logger.trace('Leaving')
 
 
-    def makeconservercf(self, noderange, args=[]):
+    def makeconsole(self, noderange, args=[]):
         """Generates the conserver configuration file from info in 
         in xCAT tables.
         Params:
@@ -407,7 +430,7 @@ class XCATClient(XCATClientBase):
         try:
             self._logger.trace('Entering')
             t = Timer().start_timer()
-            return self._run_command(MakeconservercfHelper(noderange, args))
+            return self._run_command(MakeconsoleHelper(noderange, args))
         finally:
             t.stop_timer()
             self._logger.perf('%s msec' % t.get_elapsed_in_msec())

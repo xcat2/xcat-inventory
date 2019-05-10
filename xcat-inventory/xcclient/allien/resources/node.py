@@ -5,11 +5,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import current_app
+from flask import request, current_app
 from flask_restplus import Namespace, Resource, fields, reqparse
 
-from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes
 from xcclient.xcatd import XCATClient, XCATClientParams
+from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
+from ..invmanager import InvalidValueException, ParseException
+from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes
+from ..srvmanager import provision
 
 ns = Namespace('system', ordered=True, description='System Management')
 
@@ -23,6 +27,11 @@ node = ns.model('Node', {
     'app_status': fields.String(attribute=lambda x: x.get('nodelist.appstatus')),
     'app_updated_time': fields.String(attribute=lambda x: x.get('nodelist.appstatustime')),
     'description': fields.String(attribute=lambda x: x.get('nodelist.comments')),
+})
+
+actionreq = ns.model('ActionReq', {
+    'action': fields.String(description='The specified operation', required=True),
+    'action_spec': fields.Raw(description='The optional parameters of the operation', required=False)
 })
 
 
@@ -61,3 +70,35 @@ class NodeInventoryResource(Resource):
     def get(self, node=None):
 
         return get_node_inventory('node', node)
+
+
+SUPPORTED_OPERATIONS = {
+    'rinstall': provision
+}
+
+
+@ns.route('/nodes/<node>/_operation')
+class NodeOperationResource(Resource):
+
+    @ns.expect(actionreq)
+    @ns.doc('operate_node')
+    def post(self, node):
+        """Operate a node with specified action"""
+
+        data = request.get_json()
+        action = data.get('action')
+        if action not in SUPPORTED_OPERATIONS:
+            ns.abort(400, 'Not supported operation: %s' % action)
+
+        if data.get('action_spec'):
+            current_app.logger.debug("action_spec=%s" % data.get('action_spec'))
+
+        try:
+            result = SUPPORTED_OPERATIONS[action](node, data.get('action_spec'))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, str(e))
+        except XCATClientError as e:
+            ns.abort(500, str(e))
+
+        current_app.logger.debug("outputs=%s" % result)
+        return 'Success'
