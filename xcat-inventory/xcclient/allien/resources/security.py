@@ -6,9 +6,8 @@
 
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
-
+from exceptions import *
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
-
 from ..invmanager import *
 from .inventory import ns, inv_resource, patch_action
 
@@ -104,15 +103,19 @@ class SecretsListResource(Resource):
 
             if not data.get('kind'):
                 raise InvalidValueException("kind of the secret is mandatory")
-            passwd_dict={"key":data.get('kind')}
+
+            passwd_dict={u"key":data.get('kind')}
             passwd_dict.update(data.get('spec'))
-
-            add_table_entry_by_key('passwd', passwd_dict, clean=False)
-
-        except (InvalidValueException, ParseException) as e:
+            add_table_entry_by_key('passwd', passwd_dict)
+        except (InvalidValueException, ParseException, DBException) as e:
             ns.abort(400, e.message)
-
-        return None, 200
+        id=''
+        if passwd_dict.has_key('username'):
+            id=passwd_dict['key']+'_'+passwd_dict['username']
+        else:
+            id=passwd_dict['key']
+        result={"message":"new user is created.", "id":id}
+        return result, 201
 
 @ns.route('/secrets/<string:id>')
 class SecretsResource(Resource):
@@ -160,6 +163,28 @@ class SecretsResource(Resource):
             ns.abort(400, str(e))
 
         return None, 200
+
+    @ns.expect(sec_post_resource)
+    def post(self, id):
+        """modify a passwd object"""
+        data = request.get_json()
+        try:
+
+            if not data.get('spec'):
+                raise InvalidValueException("No (spec) section to specify the resource attributes")
+            kind=id.split('_')[0]
+            username=id.split('_')[1]
+            if data.get('spec')['username'] != username :
+                raise InvalidValueException("It is not the same user.")
+
+            passwd_dict={u"key":kind}
+            passwd_dict.update(data.get('spec'))
+            update_table_entry_by_key('passwd', passwd_dict)
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+        result={"message":"Update user "+id+" successfully."}    
+        return result, 201
+
 
 def _policy_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a policy rule list"""
@@ -261,7 +286,7 @@ class PolicyRuleResource(Resource):
 
         return None, 200
 
-    @ns.expect(sec_resource)
+    @ns.expect(sec_post_resource)
     def post(self, id):
         """modify a policy rule object"""
         data = request.get_json()

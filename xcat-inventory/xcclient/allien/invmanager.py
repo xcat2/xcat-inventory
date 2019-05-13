@@ -174,6 +174,11 @@ def add_table_entry_by_key(objtype, obj_attr_dict):
     hdl.addTabEntrybykey(objtype, obj_attr_dict)
     dbsession.commit()
 
+def update_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+    hdl.updateTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
+
 def del_inventory_by_type(objtype, obj_list):
     """delete objects from data store"""
     # hdl = InventoryFactory.createHandler(objtype, dbsession, None)

@@ -271,6 +271,9 @@ class InventoryFactory(object):
     def addTabEntrybykey(self, table, obj_attr_dict):
         self.getDBInst().addtabentries(table, obj_attr_dict)
 
+    def updateTabEntrybykey(self, table, obj_attr_dict):
+        self.getDBInst().updatetabentries(table, obj_attr_dict)
+
     def deleteTabEntrybykey(self, table, obj_attr_dict):
         self.getDBInst().deltabentries(table, obj_attr_dict)
     
