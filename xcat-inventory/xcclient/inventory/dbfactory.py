@@ -351,14 +351,33 @@ class dbfactory():
             raise DBException("Error: no find table "+str(tab)+": "+str(e))
         tabkeys=tabcls.primkeys()
         try:
-            query=session.query(tabcls)
+            dbsession=self._dbsession.loadSession(tab)
+            query=dbsession.query(tabcls)
             for tabkey in tabkeys:
                 query=query.filter(getattr(tabcls,tabkey) == objdict[tabkey])
             record=query.all()
             if record:
-                raise DBException("Error: "+record+" exist")
+                raise DBException("this user exist")
             else:
-                query.update(objdict)
+                dbsession.execute(tabcls.__table__.insert(), objdict)
+        except Exception as e:
+            raise DBException("Error: "+str(tab)+": "+str(e))
+
+    
+    def updatetabentries(self,tab,objdict):
+        if hasattr(dbobject,tab):
+            tabcls=getattr(dbobject,tab)
+        else:
+            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+        tabkeys=tabcls.primkeys()
+        try:
+            dbsession=self._dbsession.loadSession(tab)
+            query=dbsession.query(tabcls)
+            wherecl=''
+            for tabkey in tabkeys:
+                query=query.filter(getattr(tabcls,tabkey) == objdict[tabkey])
+                del objdict[tabkey]
+            query.update(objdict)
         except Exception as e:
             raise DBException("Error: "+str(tab)+": "+str(e))
 
