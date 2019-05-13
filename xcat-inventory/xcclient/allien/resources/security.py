@@ -104,14 +104,14 @@ class SecretsListResource(Resource):
             if not data.get('kind'):
                 raise InvalidValueException("kind of the secret is mandatory")
 
-            passwd_dict={u"key":data.get('kind')}
+            passwd_dict={"key":data.get('kind')}
             passwd_dict.update(data.get('spec'))
             add_table_entry_by_key('passwd', passwd_dict)
         except (InvalidValueException, ParseException, DBException) as e:
             ns.abort(400, e.message)
         id=''
-        if passwd_dict.has_key('username'):
-            id=passwd_dict['key']+'_'+passwd_dict['username']
+        if 'username' in passwd_dict.keys():
+            id='%s_%s' % (passwd_dict['key'],passwd_dict['username'])
         else:
             id=passwd_dict['key']
         result={"message":"new user is created.", "id":id}
@@ -166,7 +166,7 @@ class SecretsResource(Resource):
 
     @ns.expect(sec_post_resource)
     def post(self, id):
-        """modify a passwd object"""
+        """modify a secret object"""
         data = request.get_json()
         try:
 
@@ -177,7 +177,7 @@ class SecretsResource(Resource):
             if data.get('spec')['username'] != username :
                 raise InvalidValueException("It is not the same user.")
 
-            passwd_dict={u"key":kind}
+            passwd_dict={"key":kind}
             passwd_dict.update(data.get('spec'))
             update_table_entry_by_key('passwd', passwd_dict)
         except (InvalidValueException, ParseException) as e:
