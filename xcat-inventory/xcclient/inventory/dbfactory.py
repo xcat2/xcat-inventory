@@ -1,17 +1,16 @@
 #!/usr/bin/python
 from __future__ import print_function
 import sys
+from sqlalchemy import or_
+
 try:
-    import dbobject
-    from dbobject import *
-except:
+    from . import dbobject
+    from .dbobject import *
+except Exception:
     print("Failed to connected with database...")
 
-from dbsession import DBsession
-from sqlalchemy import or_
-#from xcclient.shell import CommandException
-from exceptions import *
-import utils
+from .exceptions import *
+from . import utils
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkeys=tabcls.primkeys()
@@ -65,14 +64,14 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         for tabkey in tabkeys:
             query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
         record=query.all()
-    except Exception, e:
+    except Exception as e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
         if delrow:
             try:
                 for item in record:
                     session.delete(item)
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: delete "+key+" is failed: "+str(e))
             #else:
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
@@ -82,12 +81,12 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
                #for tabkey in tabkeys:
                #    query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
                query.update(newdict)
-           except Exception, e:
+           except Exception as e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
     elif delrow == 0:
         try:
             session.execute(tabcls.__table__.insert(), newdict)
-        except Exception, e:
+        except Exception as e:
             raise DBException("Error: import object "+key+" is failed: "+str(e)) 
 
 class matrixdbfactory():
@@ -155,8 +154,8 @@ class matrixdbfactory():
                    ret[mykey].update(dictoftab[mykey])
 
         for mykey in ret.keys():
-            if len(ret[mykey].keys())==1 and ret[mykey].keys()[0] in tabs :
-                ret[mykey]=ret[mykey][ret[mykey].keys()[0]]          
+            if len(ret[mykey].keys())==1 and list(ret[mykey].keys())[0] in tabs :
+                ret[mykey]=ret[mykey][list(ret[mykey].keys())[0]]
 
         return ret 
 
