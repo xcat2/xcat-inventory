@@ -17,6 +17,25 @@ from ..inventory.exceptions import *
 OPT_QUERY_THRESHHOLD = 18
 
 
+def get_all_nodes(ids=None):
+    """Fetches node name list and their belonged groups.
+
+    Returns:
+        A dict mapping keys to the corresponding node
+        fetched. Each row is represented as a tuple of strings. For
+        example:
+
+            {
+             'node1':{'groups':'all,my_group'},
+             'node2':{'groups':'all,my_group'}
+            }
+
+    Raises:
+        DBException: An error occurred accessing the database.
+    """
+    return dbi.getcolumns('nodelist', cols=['groups'])
+
+
 def get_nodes_list(ids=None):
 
     wants = []
