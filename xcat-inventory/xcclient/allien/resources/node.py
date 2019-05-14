@@ -38,9 +38,9 @@ actionreq = ns.model('ActionReq', {
 @ns.route('/nodes')
 class NodeListResource(Resource):
 
-    #@ns.marshal_list_with(node, skip_none=True)
+    @ns.doc('list_all_nodes')
     def get(self):
-        return get_all_nodes()
+        return get_all_nodes().keys()
 
     @ns.doc('create_node')
     def post(self):
@@ -67,6 +67,7 @@ class NodeDetailResource(Resource):
 @ns.route('/nodes/_inventory', '/nodes/<node>/_inventory')
 class NodeInventoryResource(Resource):
 
+    @ns.doc('list_nodes_inventory')
     def get(self, node=None):
 
         return get_node_inventory('node', node)
