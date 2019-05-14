@@ -445,7 +445,7 @@ class dbfactory():
             q = dbsession.query()
 
             # Add the specified columns to query
-            for c in cols:
+            for c in adjusted_cols:
                 try:
                     col = getattr(nodelist, c)
                     if type(col) is not Col_type:
