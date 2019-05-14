@@ -12,7 +12,6 @@ from flask import Flask, Blueprint
 
 from flask_caching import Cache
 # from .extensions import bcrypt, cache, db, migrate, jwt, cors
-
 from xcclient.xcatd.client import xcat_log
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from xcclient.inventory.dbsession import DBsession

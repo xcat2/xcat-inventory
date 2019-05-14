@@ -13,6 +13,10 @@ api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
           description='RESTful API of xCAT',
 )
 
+from .auth import ToLogin,ToRefresh,ToLogout
+api.add_resource(ToLogin, "/auth/login")
+api.add_resource(ToRefresh, "/auth/refresh")
+api.add_resource(ToLogout, "/auth/logout")
 
 from .inventory import ns as api_inv_ns
 api.add_namespace(api_inv_ns)

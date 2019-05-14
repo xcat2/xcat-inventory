@@ -3,6 +3,7 @@ deepdiff
 flask
 flask_caching
 flask-restplus
+uuid
 gunicorn
 cffi
 gevent

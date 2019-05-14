@@ -13,6 +13,7 @@ from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
 from ..inventory.exceptions import *
+import time
 
 OPT_QUERY_THRESHHOLD = 18
 
@@ -86,6 +87,36 @@ def get_nodes_by_range(noderange=None):
     # For nonexistence, need to check if it is a group or tag
     return nodelist.keys(), nonexistence
 
+def check_user_account(username, password, usertype='xcat'):
+    dataset = dbi.gettab(['passwd'], [usertype])
+    v = dataset[usertype]
+    if type(v) is list:
+        for entry in v:
+            if entry['passwd.username'] == username and entry['passwd.password'] == password:
+                return True
+    else:
+        if v['passwd.username'] == username and v['passwd.password'] == password:
+            return True
+    #dataset = dbi.get_entries_by_keys('passwd', {'key':usertype, 'username':username})
+    return False
+
+def check_user_token(token_string):
+    print(token_string)
+    dataset = dbi.gettab(['token'], [token_string])
+    if dataset:
+        exp = dataset[token_string]['token.expire']
+        now = time.time()
+        if now - int(exp) < 86400:
+            return 0
+        else:
+            return 1
+    return 2
+
+def insert_user_token(username, tokenid, expire):
+    dbi.addtabentries('token', {'tokenid': tokenid, 'username': username, 'expire': expire})
+
+def update_usertoken(tokenid, expire):
+    dbi.updatetabentries('token', {'expire': expire})
 
 def _check_groups_in_noderange(nodelist, noderange):
     unique_groups = set()  # unique group or tag name

@@ -395,6 +395,13 @@ class zone(Base,mixin):
     __tablename__ = 'zone'
     __table_args__ = {'autoload':True}
 ########################################################################
+class token(Base,mixin):
+    """"""
+    Base.metadata.bind = DBsession.getEngine('token')
+    __tablename__ = 'token'
+    __table_args__ = {'autoload':True}
+
+########################################################################
 class osdistro(Base,mixin):
     """"""
     Base.metadata.bind = DBsession.getEngine('osdistro')
