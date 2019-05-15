@@ -38,8 +38,9 @@ class ToLogin(Resource):
         pwd = post_data['password']
         if check_user_account(usr, pwd, usertype="xcat-user"): 
             token = uuid.uuid1()
-            insert_user_token(usr, str(token), str(time.time()))
-            return jsonify(token) 
+            expire = time.time()
+            insert_user_token(usr, str(token), str(expire))
+            return jsonify({'token':{'id': str(token), 'expire': time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(expire))}}) 
         else:
             return make_response('''
         Login Failed, try again
@@ -61,11 +62,14 @@ class ToRefresh(Resource):
             auth_token = auth_header.split(" ")[1] 
         except Exception:
             ns.abort(401)
-        update_usertoken(auth_token, str(time.time()))
+        update_user_token(auth_token, str(time.time()))
         return
 
 @ns.route('/logout')
 class ToLogout(Resource):
     @auth_request
     def post(self):
+        auth_header = request.headers.get('Authorization')
+        auth_token = auth_header.split(" ")[1] 
+        remove_user_token(auth_token)
         return 'Logged out'

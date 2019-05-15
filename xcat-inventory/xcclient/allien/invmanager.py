@@ -116,8 +116,12 @@ def insert_user_token(username, tokenid, expire):
     dbi.commit()
      
 
-def update_usertoken(tokenid, expire):
+def update_user_token(tokenid, expire):
     dbi.updatetabentries('token', {'tokenid': tokenid, 'expire': expire})
+    dbi.commit()
+
+def remove_user_token(tokenid):
+    dbi.deltabentries('token', {'tokenid': tokenid})
     dbi.commit()
 
 def _check_groups_in_noderange(nodelist, noderange):
