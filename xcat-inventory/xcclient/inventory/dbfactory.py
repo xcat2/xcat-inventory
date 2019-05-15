@@ -397,5 +397,8 @@ class dbfactory():
         except Exception as e:
             raise DBException("Error:"+str(tab)+": "+str(e))
 
+    def commit(self):
+        return self._dbsession.commit()
+
 if __name__ == "__main__":
      pass

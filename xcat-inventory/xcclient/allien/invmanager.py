@@ -106,7 +106,7 @@ def check_user_token(token_string):
     if dataset:
         exp = dataset[token_string]['token.expire']
         now = time.time()
-        if now - int(exp) < 86400:
+        if now - float(exp) < 86400:
             return 0
         else:
             return 1
@@ -114,9 +114,12 @@ def check_user_token(token_string):
 
 def insert_user_token(username, tokenid, expire):
     dbi.addtabentries('token', {'tokenid': tokenid, 'username': username, 'expire': expire})
+    dbi.commit()
+     
 
 def update_usertoken(tokenid, expire):
-    dbi.updatetabentries('token', {'expire': expire})
+    dbi.updatetabentries('token', {'tokenid': tokenid, 'expire': expire})
+    dbi.commit()
 
 def _check_groups_in_noderange(nodelist, noderange):
     unique_groups = set()  # unique group or tag name

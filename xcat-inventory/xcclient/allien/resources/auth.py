@@ -52,7 +52,7 @@ class ToLogin(Resource):
         pwd = post_data['password']
         if check_user_account(usr, pwd, usertype="xcat-user"): 
             token = uuid.uuid1()
-            insert_user_token(usr, token, time.time())
+            insert_user_token(usr, str(token), str(time.time()))
             return jsonify(token) 
         else:
             return make_response('''
@@ -75,7 +75,7 @@ class ToRefresh(Resource):
             auth_token = auth_header.split(" ")[1] 
         else:
             return make_response("Unauthorized requrest, please login first")
-        update_usertoken(auth_token, time.time())
+        update_usertoken(auth_token, str(time.time()))
         return
 
 class ToLogout(Resource):
