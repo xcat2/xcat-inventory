@@ -1,17 +1,17 @@
 #!/usr/bin/python
 from __future__ import print_function
 import sys
+from sqlalchemy import or_
+from sqlalchemy.orm.attributes import InstrumentedAttribute as Col_type
+
 try:
-    import dbobject
-    from dbobject import *
-except:
+    from . import dbobject
+    from .dbobject import *
+except Exception:
     print("Failed to connected with database...")
 
-from dbsession import DBsession
-from sqlalchemy import or_
-#from xcclient.shell import CommandException
-from exceptions import *
-import utils
+from .exceptions import *
+from . import utils
 
 def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
     tabkeys=tabcls.primkeys()
@@ -65,14 +65,14 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
         for tabkey in tabkeys:
             query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
         record=query.all()
-    except Exception, e:
+    except Exception as e:
         raise DBException("Error: query xCAT table "+tabcls.__tablename__+" failed: "+str(e))
     if record:
         if delrow:
             try:
                 for item in record:
                     session.delete(item)
-            except Exception, e:
+            except Exception as e:
                 raise DBException("Error: delete "+key+" is failed: "+str(e))
             #else:
             #    print("delete row in xCAT table "+tabcls.__tablename__+".")
@@ -82,12 +82,12 @@ def create_or_update(session,tabcls,key,newdict,ismatrixtable=True):
                #for tabkey in tabkeys:
                #    query=query.filter(getattr(tabcls,tabkey) == newdict[tabkey])
                query.update(newdict)
-           except Exception, e:
+           except Exception as e:
                raise DBException("Error: import object "+key+" is failed: "+str(e))
     elif delrow == 0:
         try:
             session.execute(tabcls.__table__.insert(), newdict)
-        except Exception, e:
+        except Exception as e:
             raise DBException("Error: import object "+key+" is failed: "+str(e)) 
 
 class matrixdbfactory():
@@ -155,8 +155,8 @@ class matrixdbfactory():
                    ret[mykey].update(dictoftab[mykey])
 
         for mykey in ret.keys():
-            if len(ret[mykey].keys())==1 and ret[mykey].keys()[0] in tabs :
-                ret[mykey]=ret[mykey][ret[mykey].keys()[0]]          
+            if len(ret[mykey].keys())==1 and list(ret[mykey].keys())[0] in tabs :
+                ret[mykey]=ret[mykey][list(ret[mykey].keys())[0]]
 
         return ret 
 
@@ -182,19 +182,20 @@ class matrixdbfactory():
                     if tabcls.isValid(key,record):
                         create_or_update(dbsession,tabcls,key,record)
 
+
 class flatdbfactory() :
     def __init__(self,dbsession):
         self._dbsession=dbsession
 
-    def gettab(self,tabs,keys=None):    
+    def gettab(self, tabs, keys=None):
         ret={}
         if keys:
-            rootkey=keys[0]  
+            rootkey=keys[0]
         else:
             rootkey='clustersite'
         ret[rootkey]={}
         for tabname in tabs:
-            dbsession=self._dbsession.loadSession(tabname);
+            dbsession=self._dbsession.loadSession(tabname)
             if hasattr(dbobject,tabname):
                 tab=getattr(dbobject,tabname)
             else:
@@ -205,9 +206,9 @@ class flatdbfactory() :
             for myobj in tabobj:
                 mydict=myobj.getdict()
                 ret[rootkey].update(mydict)
-        return  ret
+        return ret
    
-    def settab(self,tabdict=None):
+    def settab(self, tabdict=None):
         #print("======flatdbfactory:settab======")
         #print(tabdict)
         if tabdict is None:
@@ -225,7 +226,6 @@ class flatdbfactory() :
                     if tabcls.isValid(key, rowent):
                         create_or_update(dbsession,tabcls,rowent[tabkey],rowent,False)
 
-    
 
 class dbfactory():
     
@@ -348,7 +348,7 @@ class dbfactory():
         if hasattr(dbobject,tab):
             tabcls=getattr(dbobject,tab)
         else:
-            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+            raise DBException("Error: cannot find table '%s'" % tab)
         tabkeys=tabcls.primkeys()
         try:
             dbsession=self._dbsession.loadSession(tab)
@@ -363,12 +363,11 @@ class dbfactory():
         except Exception as e:
             raise DBException("Error: "+str(tab)+": "+str(e))
 
-    
     def updatetabentries(self,tab,objdict):
         if hasattr(dbobject,tab):
             tabcls=getattr(dbobject,tab)
         else:
-            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+            raise DBException("Error: cannot find table '%s'" % tab)
         tabkeys=tabcls.primkeys()
         try:
             dbsession=self._dbsession.loadSession(tab)
@@ -385,7 +384,7 @@ class dbfactory():
         if hasattr(dbobject,tab):
             tabcls=getattr(dbobject,tab)
         else:
-            raise DBException("Error: no find table "+str(tab)+": "+str(e))
+            raise DBException("Error: cannot find table '%s'" % tab)
         tabkeys=tabcls.primkeys()
         try:
             dbsession=self._dbsession.loadSession(tab)
@@ -397,8 +396,90 @@ class dbfactory():
         except Exception as e:
             raise DBException("Error:"+str(tab)+": "+str(e))
 
+    def getcolumns(self, tab, cols, keys=None):
+        """Fetches columns from table with specified keys.
+
+        Retrieves columns pertaining to the given keys from the Tables.
+
+        Args:
+            tab: table name.
+            cols: A list of columns.
+            keys: A sequence of strings representing the key of each table row
+                to fetch.
+
+        Returns:
+            A dict mapping keys to the corresponding table row data
+            fetched. Each row is represented as a tuple of strings. For
+            example:
+
+                {
+                 'node1':{'groups':'all,my_group'},
+                 'node2':{'groups':'all,my_group'}
+                }
+
+            If a key from the keys argument is missing from the dictionary,
+            then that row was not found in the table.
+
+        Raises:
+            DBException: An error occurred accessing the database.
+        """
+        if hasattr(dbobject, tab):
+            tabcls=getattr(dbobject, tab)
+        else:
+            raise DBException("Error: cannot find table '%s'" % tab)
+
+        # TODO, only support table with one primary key now
+        tabkeys = tabcls.primkeys()
+        if len(tabkeys) != 1:
+            raise DBException("Error: 'getcolumns' only support table with one primary key, while table %s has %d." % (tab, len(tabkeys)))
+
+        # adjust the primary key column into cols
+        obj_key = tabcls.getobjkey()
+        adjusted_cols = list(obj_key)
+        adjusted_cols.extend([c for c in cols if c != obj_key])
+
+        mydict=dict()
+        try:
+            # Create a query object for the table
+            dbsession = self._dbsession.loadSession(tab)
+            q = dbsession.query()
+
+            # Add the specified columns to query
+            for c in adjusted_cols:
+                try:
+                    col = getattr(nodelist, c)
+                    if type(col) is not Col_type:
+                        raise AttributeError
+
+                    q = q.add_column(col)
+                except AttributeError:
+                    raise DBException("Not found column '%s'" % c)
+
+            # Add the filter to query (1, exclude disable; 2, using primary key to limit the scope)
+            # and do the query, the result will be a tuple: [(u'node1', u'all,my_group'), (u'node2', u'all,my_group')]
+            if not keys:
+                result = q.filter(or_(tabcls.disable == None, tabcls.disable.notin_(['1','yes']))).all()
+            else:
+                result = q.filter(getattr(tabcls, tabkeys[0]).in_(keys),
+                                  or_(tabcls.disable == None, tabcls.disable.notin_(['1', 'yes']))).all()
+
+            # Convert the tuple format result to dict
+            if not result:
+                return mydict
+
+            for row in result:
+                row_d = dict()
+                for i, val in enumerate(adjusted_cols):
+                    # ignore the primary key column
+                    if not i:
+                        continue
+                    row_d[val] = row[i]
+                mydict[row[0]] = row_d
+
+            return mydict
+
+        except Exception as e:
+            raise DBException("Error: %s: %s" % (tabcls, e))
+
     def commit(self):
         return self._dbsession.commit()
-
-if __name__ == "__main__":
-     pass

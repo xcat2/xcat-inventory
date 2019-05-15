@@ -2,11 +2,12 @@
 
 from __future__ import print_function
 import deepdiff
-from utils import *
+
 import yaml
 import json
-import sys
 import re
+
+from .utils import *
 
 class format_diff_output(object):
     def __init__(self):

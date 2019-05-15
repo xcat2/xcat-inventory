@@ -12,7 +12,7 @@ from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
 from ..invmanager import InvalidValueException, ParseException
-from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes
+from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_all_nodes
 from ..srvmanager import provision
 from . import auth_request 
 
@@ -40,9 +40,9 @@ actionreq = ns.model('ActionReq', {
 class NodeListResource(Resource):
 
     @auth_request
-    @ns.marshal_list_with(node, skip_none=True)
+    @ns.doc('list_all_nodes')
     def get(self):
-        return get_nodes_list().values()
+        return get_all_nodes().keys()
 
     @ns.doc('create_node')
     def post(self):
@@ -69,6 +69,7 @@ class NodeDetailResource(Resource):
 @ns.route('/nodes/_inventory', '/nodes/<node>/_inventory')
 class NodeInventoryResource(Resource):
 
+    @ns.doc('list_nodes_inventory')
     def get(self, node=None):
 
         return get_node_inventory('node', node)
