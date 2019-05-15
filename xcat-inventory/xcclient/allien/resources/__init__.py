@@ -5,18 +5,30 @@
 # -*- coding: utf-8 -*-
 
 
-from flask import Blueprint
+from flask import Blueprint, request, abort
 from flask_restplus import Resource, Api
+from functools import wraps
+from ..invmanager import check_user_token
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
           description='RESTful API of xCAT',
 )
 
-from .auth import ToLogin,ToRefresh,ToLogout
-api.add_resource(ToLogin, "/auth/login")
-api.add_resource(ToRefresh, "/auth/refresh")
-api.add_resource(ToLogout, "/auth/logout")
+def auth_request(function):
+    @wraps(function)
+    def check_token(*args, **kwargs):
+        try:
+            auth_header = request.headers.get('Authorization')
+            auth_token = auth_header.split(" ")[1]
+        except Exception:
+            abort(401)
+        #return make_response("Unauthorized requrest, please login first", 401)
+        flag = check_user_token(auth_token)
+        if not flag == 0:
+            abort(401)
+        return function(*args, **kwargs)
+    return check_token
 
 from .inventory import ns as api_inv_ns
 api.add_namespace(api_inv_ns)
@@ -42,9 +54,10 @@ api.add_namespace(api_security_ns)
 from .service import ns as api_manager_ns
 api.add_namespace(api_manager_ns)
 
+from .auth import ns as api_manager_ns
+api.add_namespace(api_manager_ns)
+
 #from .nodehm import *
 #api.add_resource(PowerResource, '/node/<string:id>/power')
 #api.add_resource(PowerRangeResource, '/power')
-
-
 

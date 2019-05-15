@@ -5,32 +5,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import request, current_app, make_response, jsonify
-from flask_restplus import Resource
+from flask_restplus import Resource, Namespace
 import uuid
-from functools import wraps
 from exceptions import *
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import *
-"""
-These APIs is to handle user login, checking related operations.
-"""
+from . import auth_request
 
-def auth_request(function):
-    @wraps(function)
-    def check_token(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if auth_header:
-            auth_token = auth_header.split(" ")[1]
-        else:
-            return make_response("Unauthorized requrest, please login first")
-        flag = check_user_token(auth_token)
-        if flag == 2:
-            return make_response("Unauthorized requrest, please login first")
-        elif flag == 1:
-            return make_response("Expired, please refresh")
-        return function(*args, **kwargs)
-    return check_token
-
+ns = Namespace('auth', description='The Authorization section for APIs')
+@ns.route('/login')
 class ToLogin(Resource):
 
     def get(self, code=200):
@@ -42,12 +25,15 @@ class ToLogin(Resource):
         </form>
         ''', code)
     def post(self):
-        if request.headers['Content-Type'] == 'application/json':
-            post_data = request.get_json()
-        elif 'form' in request.headers['Content-Type']:
-            post_data = request.form.to_dict()
-        else:
-            return self.get(401)
+        try:
+            if request.headers['Content-Type'] == 'application/json':
+                post_data = request.get_json()
+            elif 'form' in request.headers['Content-Type']:
+                post_data = request.form.to_dict()
+            else:
+                return self.get(400)
+        except Exception:
+            return ns.abort(400)
         usr = post_data['username']
         pwd = post_data['password']
         if check_user_account(usr, pwd, usertype="xcat-user"): 
@@ -63,22 +49,23 @@ class ToLogin(Resource):
             <p><input type=submit value=Login>
         </form>
         ''', 401)
+
+@ns.route('/refresh')
 class ToRefresh(Resource):
     @auth_request
     def get(self):
-        print(request.headers.get('Authorization')) 
-        print(request)
-        pass
+        return make_response("Token verification done, succeed")
     def post(self):
-        auth_header = request.headers.get('Authorization')
-        if auth_header:
+        try:
+            auth_header = request.headers.get('Authorization')
             auth_token = auth_header.split(" ")[1] 
-        else:
-            return make_response("Unauthorized requrest, please login first")
+        except Exception:
+            ns.abort(401)
         update_usertoken(auth_token, str(time.time()))
         return
 
+@ns.route('/logout')
 class ToLogout(Resource):
-    def get(self):
-        flask_login.logout_user()
+    @auth_request
+    def post(self):
         return 'Logged out'

@@ -101,7 +101,6 @@ def check_user_account(username, password, usertype='xcat'):
     return False
 
 def check_user_token(token_string):
-    print(token_string)
     dataset = dbi.gettab(['token'], [token_string])
     if dataset:
         exp = dataset[token_string]['token.expire']
