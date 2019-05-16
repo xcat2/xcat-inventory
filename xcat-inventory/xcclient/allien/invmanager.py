@@ -106,25 +106,27 @@ def get_nodes_by_range(noderange=None):
     # For nonexistence, need to check if it is a group or tag
     return nodelist.keys(), nonexistence
 
-def check_user_account(username, password, usertype='xcat'):
-    dataset = dbi.gettab(['passwd'], [usertype])
-    v = dataset[usertype]
-    if type(v) is list:
-        for entry in v:
-            if entry['passwd.username'] == username and entry['passwd.password'] == password:
+def check_user_account(username, password):
+    usertypes = ['xcat', 'xcat-user']
+    dataset = dbi.gettab(['passwd'], usertypes)
+    for usertype in usertypes:
+        v = dataset[usertype]
+        if type(v) is list:
+            for entry in v:
+                if entry['passwd.username'] == username and entry['passwd.password'] == password:
+                    return True
+        elif v['passwd.username'] == username and v['passwd.password'] == password:
                 return True
-    else:
-        if v['passwd.username'] == username and v['passwd.password'] == password:
-            return True
-    #dataset = dbi.get_entries_by_keys('passwd', {'key':usertype, 'username':username})
     return False
 
-def check_user_token(token_string):
+def check_user_token(token_string, username=None, check_expire=True):
     dataset = dbi.gettab(['token'], [token_string])
     if dataset:
         exp = dataset[token_string]['token.expire']
-        now = time.time()
-        if now - float(exp) < 86400:
+        usr = dataset[token_string]['token.username']
+        if not username is None and usr != username:
+            return 2
+        if not check_expire or time.time() - float(exp) < 86400:
             return 0
         else:
             return 1
