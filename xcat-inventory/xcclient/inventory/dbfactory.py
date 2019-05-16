@@ -253,7 +253,7 @@ class dbfactory():
             df_matrix=matrixdbfactory(self._dbsession)
             mydict.update(df_matrix.gettab(matrixtabs,keys))
         return mydict
-    
+
     #convert db dict from format {key:{tab.col=value}} to {key:{tab:{col}}}
     def __tabtransform(self,dbdict):
         #print("__tabtransform")
@@ -363,6 +363,36 @@ class dbfactory():
         except Exception as e:
             raise DBException("Error: "+str(tab)+": "+str(e))
 
+    def getsitetabentries(self,attrslist=[]):
+        """Fetches rows from site table with specified attributes list.
+
+        Args:
+            attrslist: site table attributes list
+
+        Returns:
+            attributes values
+            example:
+                attributes key and value dict
+        Raises:
+            DBException: An error occurred accessing the database.
+        """
+        result={}
+        ret={}
+        try:
+            tabcls=getattr(dbobject,'site')
+            dbsession=self._dbsession.loadSession('site')
+            query=dbsession.query(tabcls)
+            for tkey in attrslist:
+                query=query.filter(getattr(tabcls,'key') == tkey)
+            result=query.all()
+        except Exception as e:
+            raise DBException("Error: "+str(tab)+": "+str(e))
+        if result:
+            for myobj in result:
+                mydict=myobj.getdict()
+                ret.update(mydict)
+        return ret
+
     def updatetabentries(self,tab,objdict):
         if hasattr(dbobject,tab):
             tabcls=getattr(dbobject,tab)
@@ -447,7 +477,7 @@ class dbfactory():
             # Add the specified columns to query
             for c in adjusted_cols:
                 try:
-                    col = getattr(nodelist, c)
+                    col = getattr(tabcls, c)
                     if type(col) is not Col_type:
                         raise AttributeError
 
