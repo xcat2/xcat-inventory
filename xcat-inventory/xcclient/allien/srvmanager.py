@@ -5,11 +5,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+import random
+import uuid
+
 from flask import g, current_app
 
 from xcclient.xcatd import XCATClient, XCATClientParams
 
-from .invmanager import ParseException
+from .invmanager import get_all_nodes, ParseException
 
 
 def provision(nr, action_spec=None):
@@ -34,3 +37,47 @@ def provision(nr, action_spec=None):
     cl.init(current_app.logger, param)
     result = cl.rinstall(noderange=nr, boot_state=boot_state)
     return result.output_msgs
+
+
+MOCK_FREE_POOL = get_all_nodes()
+_applied = dict()
+
+
+def apply_resource(count, criteria=None, instance=None):
+    if not instance:
+        instance = str(uuid.uuid1())
+
+    if len(MOCK_FREE_POOL) < count:
+        raise Exception("Not enough free resource.")
+
+    _applied[instance] = list()
+    for i in range(count):
+        index = random.randint(0, len(MOCK_FREE_POOL)-1)
+        node = MOCK_FREE_POOL.keys()[index]
+        _applied[instance].append(node)
+
+    for node in _applied[instance]:
+        del MOCK_FREE_POOL[node]
+
+    return {instance : ','.join(_applied[instance])}
+
+
+def free_resource(name=None, instance=None):
+    if instance:
+        del _applied[instance]
+    elif name:
+        for sid, occupied in _applied.items():
+            if name in occupied:
+                del _applied[sid]
+                break
+
+
+def get_free_resource():
+    return MOCK_FREE_POOL.keys()
+
+
+def get_occupied_resource(instance=None):
+    if not instance:
+        return _applied
+
+    return {instance : ','.join(_applied[instance])}
