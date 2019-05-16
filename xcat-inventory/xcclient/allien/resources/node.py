@@ -12,7 +12,7 @@ from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
 from ..invmanager import InvalidValueException, ParseException
-from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_all_nodes
+from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_nodes_status, transform_to_status
 from ..srvmanager import provision
 from . import auth_request 
 
@@ -42,7 +42,7 @@ class NodeListResource(Resource):
     @auth_request
     @ns.doc('list_all_nodes')
     def get(self):
-        return get_all_nodes().keys()
+        return get_nodes_list().keys()
 
     @ns.doc('create_node')
     def post(self):
@@ -53,6 +53,22 @@ class NodeListResource(Resource):
 
         result = cl.mkdef(args=['-t', 'node'])
         return result.output_msgs
+
+
+@ns.route('/nodes/<node>/_status')
+class NodeStatusResource(Resource):
+
+    @ns.doc('query node status')
+    def get(self, node):
+
+        dataset = get_nodes_status(node)
+        if node and not dataset:
+            ns.abort(400, "Node '%s' is not found" % node)
+
+        name, status = dataset.popitem()
+        spec = transform_to_status(status)
+
+        return dict(meta=dict(name=name), status=spec)
 
 
 @ns.route('/nodes/_detail', '/nodes/<node>/_detail')
