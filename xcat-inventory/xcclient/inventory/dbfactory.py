@@ -364,6 +364,18 @@ class dbfactory():
             raise DBException("Error: "+str(tab)+": "+str(e))
 
     def getsitetabentries(self,attrslist=[]):
+        """Fetches rows from site table with specified attributes list.
+
+        Args:
+            attrslist: site table attributes list
+
+        Returns:
+            attributes values
+            example:
+                attributes key and value dict
+        Raises:
+            DBException: An error occurred accessing the database.
+        """
         result={}
         ret={}
         try:
