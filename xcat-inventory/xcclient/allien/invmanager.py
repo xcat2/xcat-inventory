@@ -5,6 +5,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import collections
 from flask import g, current_app
 
 from xcclient.xcatd import XCATClient, XCATClientParams
@@ -129,21 +130,89 @@ def get_hmi_by_list(nodelist=None):
 
     return result
 
+def dict_merge(dct, merge_dct):
+    """ Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+    updating only top-level keys, dict_merge recurses down into dicts nested
+    to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+    ``dct``.
+    :param dct: dict onto which the merge is executed
+    :param merge_dct: dct merged into dct
+    :return: None
+    """
+    for k, v in merge_dct.iteritems():
+        if (k in dct and isinstance(dct[k], dict)
+                and isinstance(merge_dct[k], collections.Mapping)):
+            dict_merge(dct[k], merge_dct[k])
+        else:
+            dct[k] = merge_dct[k]
+    return dct
 
-@cache.memoize(timeout=50)
 def get_node_attributes(node):
-
+    # get hierarchicalattrs from site table
+    hierarchicalattrs = dbi.getsitetabentries(['hierarchicalattrs'])
     target_node = get_nodes_list(node)
     if not target_node:
         return None
-
     groups = target_node.values()[0].get('nodelist.groups')
-
     # combine the attribute from groups
     needs = [node]
-    needs.extend(groups.split(','))
-    return get_node_inventory('node', needs)
+    groupslist=groups.split(',')
+    needs.extend(['xcatdefaults'])
+    needs.extend(groupslist)
+    inv_data=get_node_inventory('node', needs)
+    result={}
+    if hierarchicalattrs:
+        result=groups_data_overwrite_node(hierarchicalattrs,inv_data)
+    else:
+        # default
+        result=fetch_data_from_group(inv_data,node,groupslist)
+    return result
 
+def groups_data_overwrite_node(hierarchicalattrs,inv_data={}):
+    result={}
+    result['meta']='groups_data_overwrite_node'
+    return result
+
+def merge_groups_data(inv_data,nodelist):
+    """merge different groups data"""
+    mergeddict={}
+    for k in list(set(nodelist).intersection(set(inv_data.keys()))):
+        if not mergeddict:
+            mergeddict=inv_data[k]
+        else:
+            mergeddict=dict_merge(mergeddict,inv_data[k])
+    #delete group specific attribute
+    exclude_list=['grouptype','members','wherevals']
+    if 'obj_info' in mergeddict.keys():
+        for exl in exclude_list:
+            if exl in mergeddict['obj_info'].keys():
+                del mergeddict['obj_info'][exl]
+    return mergeddict
+
+def merge_xcatdefaults(xcatdefaults_dict,nodedict):
+    nodepostscripts=''
+    scripts=['postbootscripts','postscripts']
+    for scp in scripts:
+        if scp in xcatdefaults_dict['engines']['netboot_engine']['engine_info'].keys():
+            if scp in nodedict['engines']['netboot_engine']['engine_info'].keys():
+                nodepostscripts=nodedict['engines']['netboot_engine']['engine_info'][scp]
+        nodedict['engines']['netboot_engine']['engine_info'][scp]="%s,%s" % (xcatdefaults_dict['engines']['netboot_engine']['engine_info'][scp],nodepostscripts)
+    return nodedict
+
+def fetch_data_from_group(inv_data,node,nodelist):
+    """when site.hierarchicalattrs is empty"""
+    result={}
+    mergeddict={}
+    mergeddict=merge_groups_data(inv_data,nodelist)
+    #merge node and groups data
+    mergeddict=dict_merge(mergeddict,inv_data[node])
+    if inv_data['xcatdefaults']:
+        mergeddict=merge_xcatdefaults(inv_data['xcatdefaults'],mergeddict)
+    metadict={}
+    metadict['name']=node
+    result['meta']=metadict
+    result['spec']=mergeddict
+    return result
 
 def get_node_inventory(objtype, ids=None):
     hdl = InventoryFactory.createHandler('node', dbsession, None)
