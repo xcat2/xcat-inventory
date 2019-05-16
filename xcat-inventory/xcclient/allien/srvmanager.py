@@ -67,6 +67,7 @@ def free_resource(name=None, instance=None):
         del _applied[instance]
     elif name:
         for sid, occupied in _applied.items():
+            # just drop the whole list for MOCK as terraform only apply one node
             if name in occupied:
                 del _applied[sid]
                 break

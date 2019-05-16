@@ -63,8 +63,19 @@ resreq = ns.model('ResReq', {
 class ResMgrResource(Resource):
 
     @ns.doc('get_resource')
+    @ns.param('pool', 'show free pool information')
     def get(self):
-        return dict(pool=get_free_resource())
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('pool', location='args', help='free pool')
+        args = parser.parse_args()
+        pool_flag = args.get('pool')
+
+        if pool_flag:
+            free = get_free_resource()
+            return dict(total=len(free), pool=free)
+        else:
+            return get_occupied_resource()
 
     @ns.expect(resreq)
     @ns.doc('apply_resource')
@@ -99,7 +110,7 @@ class ResInstanceResource(Resource):
     @ns.doc('get_resource_instance')
     def get(self, sid=None):
         """Fetch specified resource instance"""
-        return get_occupied_resource()
+        return get_occupied_resource(sid)
 
     @ns.expect(resreq)
     @ns.doc('apply_resource_to_instance')
