@@ -14,6 +14,7 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import InvalidValueException, ParseException
 from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_all_nodes
 from ..srvmanager import provision
+from . import auth_request 
 
 ns = Namespace('system', ordered=True, description='System Management')
 
@@ -38,6 +39,7 @@ actionreq = ns.model('ActionReq', {
 @ns.route('/nodes')
 class NodeListResource(Resource):
 
+    @auth_request
     @ns.doc('list_all_nodes')
     def get(self):
         return get_all_nodes().keys()

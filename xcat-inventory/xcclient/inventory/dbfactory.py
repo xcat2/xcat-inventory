@@ -481,3 +481,5 @@ class dbfactory():
         except Exception as e:
             raise DBException("Error: %s: %s" % (tabcls, e))
 
+    def commit(self):
+        return self._dbsession.commit()
