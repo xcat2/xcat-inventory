@@ -64,11 +64,15 @@ def apply_resource(count, criteria=None, instance=None):
 
 def free_resource(name=None, instance=None):
     if instance:
+        for node in _applied[instance]:
+            MOCK_FREE_POOL[node] = ""
         del _applied[instance]
     elif name:
         for sid, occupied in _applied.items():
             # just drop the whole list for MOCK as terraform only apply one node
             if name in occupied:
+                for node in _applied[instance]:
+                    MOCK_FREE_POOL[node] = ""
                 del _applied[sid]
                 break
 
