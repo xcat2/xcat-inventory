@@ -13,21 +13,10 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
 from ..invmanager import *
 from ..srvmanager import provision
-from . import auth_request 
+from . import auth_request
+from .inventory import resource
 
 ns = Namespace('system', ordered=True, description='System Management')
-
-node = ns.model('Node', {
-    'name': fields.String(required=True, description='The node name', attribute=lambda x: x.get('nodelist.node')),
-    'groups': fields.String(attribute=lambda x: x.get('nodelist.groups')),
-    'status': fields.String(attribute=lambda x: x.get('nodelist.status')),
-    'updated_time': fields.String(attribute=lambda x: x.get('nodelist.statustime')),
-    'sync_status': fields.String(attribute=lambda x: x.get('nodelist.updatestatus')),
-    'sync_updated_time': fields.String(attribute=lambda x: x.get('nodelist.updatestatustime')),
-    'app_status': fields.String(attribute=lambda x: x.get('nodelist.appstatus')),
-    'app_updated_time': fields.String(attribute=lambda x: x.get('nodelist.appstatustime')),
-    'description': fields.String(attribute=lambda x: x.get('nodelist.comments')),
-})
 
 actionreq = ns.model('ActionReq', {
     'action': fields.String(description='The specified operation', required=True),
@@ -44,14 +33,19 @@ class NodeListResource(Resource):
         return get_nodes_list().keys()
 
     @ns.doc('create_node')
+    @ns.expect(resource)
+    @ns.response(201, 'Node successfully created.')
     def post(self):
+        """create a node object"""
+        data = request.get_json()
 
-        param = XCATClientParams(os.environ.get('XCAT_MASTER'))
-        cl = XCATClient()
-        cl.init(current_app.logger, param)
+        try:
+            validate_resource_input_data(data)
+            upd_inventory_by_type('node', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
 
-        result = cl.mkdef(args=['-t', 'node'])
-        return result.output_msgs
+        return None, 201
 
 
 @ns.route('/nodes/<node>/_status')

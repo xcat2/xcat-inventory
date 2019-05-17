@@ -101,7 +101,7 @@ class ResMgrResource(Resource):
         args = parser.parse_args()
         node = args.get('name')
 
-        return free_resource(name=node)
+        return free_resource(name=node), 200
 
 
 @ns.route('/resmgr/<sid>')
@@ -131,4 +131,4 @@ class ResInstanceResource(Resource):
     def delete(self, sid):
         """Free resources from instance"""
 
-        return free_resource(instance=sid)
+        return free_resource(instance=sid), 200
