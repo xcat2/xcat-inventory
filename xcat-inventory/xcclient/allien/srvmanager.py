@@ -12,7 +12,7 @@ from flask import g, current_app
 
 from xcclient.xcatd import XCATClient, XCATClientParams
 
-from .invmanager import get_all_nodes, ParseException
+from .invmanager import get_nodes_list, ParseException
 
 
 def provision(nr, action_spec=None):
@@ -39,7 +39,7 @@ def provision(nr, action_spec=None):
     return result.output_msgs
 
 
-MOCK_FREE_POOL = get_all_nodes()
+MOCK_FREE_POOL = get_nodes_list()
 _applied = dict()
 
 

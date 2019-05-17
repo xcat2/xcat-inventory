@@ -19,7 +19,7 @@ import time
 OPT_QUERY_THRESHHOLD = 18
 
 
-def get_all_nodes(ids=None):
+def get_nodes_list(ids=None):
     """Fetches node name list and their belonged groups.
 
     Returns:
@@ -35,11 +35,6 @@ def get_all_nodes(ids=None):
     Raises:
         DBException: An error occurred accessing the database.
     """
-    return dbi.getcolumns('nodelist', cols=['groups'])
-
-
-def get_nodes_list(ids=None):
-
     wants = []
     if ids:
         if type(ids) is list:
@@ -47,31 +42,63 @@ def get_nodes_list(ids=None):
         else:
             wants.append(ids)
 
-    try:
-        nodes = cache.get('nodes_list_all')
-    except:
-        # Error when connection cache
-        nodes = None
+    return dbi.getcolumns('nodelist', cols=['groups'], keys=wants)
 
-    if nodes is None:
-        # get wanted records from nodelist table
-        nodes = dbi.gettab(['nodelist'], wants)
-        if not wants:
-            try:
-                cache.set('nodes_list_all', nodes, timeout=60)
-            except:
-                pass
 
-    if wants:
+def get_nodes_status(ids=None):
+    """Fetches node status with given nodes or all.
 
-        results = dict()
-        for key in wants:
-            if key in nodes:
-                results[key] = nodes.get(key)
-    else:
-        results = dict(nodes)
+    Returns:
+        A dict mapping keys to the corresponding node
+        fetched. Each row is represented as a tuple of strings. For
+        example:
 
-    return results
+            {
+             'node1':{'status':'installing', 'statustime': 'XXXX', ...},
+             'node2':{'status':'booted', 'statustime': 'XXXX', ...}
+            }
+
+    Raises:
+        DBException: An error occurred accessing the database.
+    """
+    wants = []
+    if ids:
+        if type(ids) is list:
+            wants.extend(ids)
+        else:
+            wants.append(ids)
+
+    return dbi.getcolumns('nodelist',
+                        cols=['status', 'statustime', 'updatestatus', 'updatestatustime', 'appstatus', 'appstatustime'],
+                        keys=wants)
+
+
+def transform_to_status(status_d):
+    """transform the status object model to a REST style
+
+        Args:
+            status_d: dict of status, {'status':'installing', 'statustime': 'XXXX', ...}.
+
+        Returns:
+            A dict mapping keys to the corresponding node
+            fetched. Each row is represented as a tuple of strings. For
+            example:
+
+                {
+                 'boot':{'state':'installing', 'updated_at': 'XXXX'},
+                 'sync':{'state':'installing', 'updated_at': 'XXXX'},
+                 'app':{'state':'installing', 'updated_at': 'XXXX'},
+                }
+    """
+    spec = dict()
+    if status_d.get('status'):
+        spec['boot'] = dict(state=status_d.get('status'), updated_at=status_d.get('statustime'))
+    if status_d.get('updatestatus'):
+        spec['sync'] = dict(state=status_d.get('updatestatus'), updated_at=status_d.get('updatestatustime'))
+    if status_d.get('appstatus'):
+        spec['sync'] = dict(state=status_d.get('appstatus'), updated_at=status_d.get('appstatustime'))
+
+    return spec
 
 
 @cache.cached(timeout=50, key_prefix='get_node_basic')
@@ -209,7 +236,7 @@ def get_node_attributes(node):
     target_node = get_nodes_list(node)
     if not target_node:
         return None
-    groups = target_node.values()[0].get('nodelist.groups')
+    groups = target_node.values()[0].get('groups')
     # combine the attribute from groups
     needs = [node]
     groupslist=groups.split(',')
