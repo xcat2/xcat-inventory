@@ -203,7 +203,7 @@ def get_node_attributes(node):
     groupslist=groups.split(',')
     needs.extend(['xcatdefaults'])
     needs.extend(groupslist)
-    inv_data=get_node_inventory('node', needs)
+    inv_data=get_nodes_inventory(ids=needs)
     result={}
     if hierarchicalattrs:
         result=groups_data_overwrite_node(hierarchicalattrs,inv_data)
@@ -265,6 +265,8 @@ def merge_xcatdefaults(xcatdefaults_dict,nodedict):
     """
     nodepostscripts=''
     scripts=['postbootscripts','postscripts']
+    if 'engines' not in nodedict:
+        nodedict['engines'] = dict(netboot_engine=dict(engine_info=dict()))
     for scp in scripts:
         if scp in xcatdefaults_dict['engines']['netboot_engine']['engine_info'].keys():
             if scp in nodedict['engines']['netboot_engine']['engine_info'].keys():
@@ -302,23 +304,20 @@ def fetch_data_from_group(inv_data,node,nodelist):
     result['spec']=mergeddict
     return result
 
-def get_node_inventory(objtype, ids=None):
-    hdl = InventoryFactory.createHandler('node', dbsession, None)
 
+def get_nodes_inventory(objtypes=[], ids=None):
 
-    wants = None
-    if ids:
-        if type(ids) is list:
-            wants = ids
-        else:
-            wants = [ids]
+    result = get_inventory_by_type('node', ids)
+    if objtypes:
+        not_wants = list()
+        for name, obj_d in result.items():
+            obj_type = obj_d.get('obj_type')
+            if obj_type not in objtypes:
+                not_wants.append(name)
+        for name in not_wants:
+            del result[name]
 
-    result = hdl.exportObjs(wants, None, fmt='json')
-    if not result:
-        return []
-
-    # TODO: filter by objtype
-    return result['node']
+    return result
 
 
 def get_inventory_by_type(objtype, ids=None):

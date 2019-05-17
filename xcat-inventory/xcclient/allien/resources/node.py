@@ -4,31 +4,18 @@
 
 # -*- coding: utf-8 -*-
 
-import os
 from flask import request, current_app
 from flask_restplus import Namespace, Resource, fields, reqparse
 
-from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
-from ..invmanager import InvalidValueException, ParseException
-from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_nodes_status, transform_to_status
+from ..invmanager import *
 from ..srvmanager import provision
+
 from . import auth_request, token_parser
+from .inventory import resource, patch_action
 
 ns = Namespace('system', ordered=True, description='System Management')
-
-node = ns.model('Node', {
-    'name': fields.String(required=True, description='The node name', attribute=lambda x: x.get('nodelist.node')),
-    'groups': fields.String(attribute=lambda x: x.get('nodelist.groups')),
-    'status': fields.String(attribute=lambda x: x.get('nodelist.status')),
-    'updated_time': fields.String(attribute=lambda x: x.get('nodelist.statustime')),
-    'sync_status': fields.String(attribute=lambda x: x.get('nodelist.updatestatus')),
-    'sync_updated_time': fields.String(attribute=lambda x: x.get('nodelist.updatestatustime')),
-    'app_status': fields.String(attribute=lambda x: x.get('nodelist.appstatus')),
-    'app_updated_time': fields.String(attribute=lambda x: x.get('nodelist.appstatustime')),
-    'description': fields.String(attribute=lambda x: x.get('nodelist.comments')),
-})
 
 actionreq = ns.model('ActionReq', {
     'action': fields.String(description='The specified operation', required=True),
@@ -40,20 +27,84 @@ actionreq = ns.model('ActionReq', {
 class NodeListResource(Resource):
     
     @ns.doc('list_all_nodes')
+    @ns.param('type', 'kind of content: name, inventory')
     @ns.expect(token_parser)
     @auth_request
     def get(self):
-        return get_nodes_list().keys()
+        """get nodes information"""
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('type', location='args', help='content type')
+        args = parser.parse_args()
+
+        kind = args.get('type') or 'name'
+        if kind == 'inventory':
+            return transform_from_inv(get_nodes_inventory('node'))
+        else:
+            return get_nodes_list().keys()
 
     @ns.doc('create_node')
+    @ns.expect(resource)
+    @ns.response(201, 'Node successfully created.')
     def post(self):
+        """create a node object"""
+        data = request.get_json()
 
-        param = XCATClientParams(os.environ.get('XCAT_MASTER'))
-        cl = XCATClient()
-        cl.init(current_app.logger, param)
+        try:
+            validate_resource_input_data(data)
+            upd_inventory_by_type('node', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
 
-        result = cl.mkdef(args=['-t', 'node'])
-        return result.output_msgs
+        return None, 201
+
+
+@ns.route('/nodes/<name>')
+class NodeInventoryResource(Resource):
+
+    @ns.doc('get_node_inventory')
+    def get(self, name):
+        """get specified node resource"""
+
+        result = get_nodes_inventory('node', name)
+
+        if not result:
+            ns.abort(404, "Node '%s' is not found." % name)
+
+        return transform_from_inv(result)[0]
+
+    @ns.doc('delete_node_inventory')
+    def delete(self, name):
+        """delete a node object"""
+        try:
+            del_inventory_by_type('node', [name])
+        except XCATClientError as e:
+            ns.abort(400, str(e))
+
+        return None, 200
+
+    @ns.expect(resource)
+    def put(self, name):
+        """replace a node object"""
+        data = request.get_json()
+        try:
+            validate_resource_input_data(data, name)
+            upd_inventory_by_type('node', transform_to_inv(data))
+        except (InvalidValueException, ParseException) as e:
+            ns.abort(400, e.message)
+
+        return None, 201
+
+    @ns.expect(patch_action)
+    def patch(self, name):
+        """Modify a node object"""
+        data = request.get_json()
+        try:
+            patch_inventory_by_type('node', name, data)
+        except (InvalidValueException, XCATClientError) as e:
+            ns.abort(400, str(e))
+
+        return None, 201
 
 
 @ns.route('/nodes/<node>/_status')
@@ -81,15 +132,6 @@ class NodeDetailResource(Resource):
             return get_nodes_list().values()
 
         return get_node_attributes(node)
-
-
-@ns.route('/nodes/_inventory', '/nodes/<node>/_inventory')
-class NodeInventoryResource(Resource):
-
-    @ns.doc('list_nodes_inventory')
-    def get(self, node=None):
-
-        return get_node_inventory('node', node)
 
 
 SUPPORTED_OPERATIONS = {
