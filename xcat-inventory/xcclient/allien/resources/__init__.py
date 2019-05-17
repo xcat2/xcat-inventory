@@ -8,12 +8,16 @@
 from flask import Blueprint, request, abort
 from flask_restplus import Resource, Api
 from functools import wraps
-from ..invmanager import check_user_token
+from ..authmanager import check_user_token
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
           description='RESTful API of xCAT',
 )
+
+token_parser = api.parser()
+token_parser.add_argument('Authorization', type=str, help="token \<token id\>", location='headers', required=True)
+
 
 def auth_request(function):
     @wraps(function)
