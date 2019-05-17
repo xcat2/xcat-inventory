@@ -304,6 +304,8 @@ def merge_xcatdefaults(xcatdefaults_dict,nodedict):
     """
     nodepostscripts=''
     scripts=['postbootscripts','postscripts']
+    if 'engines' not in nodedict:
+        nodedict['engines'] = dict(netboot_engine=dict(engine_info=dict()))
     for scp in scripts:
         if scp in xcatdefaults_dict['engines']['netboot_engine']['engine_info'].keys():
             if scp in nodedict['engines']['netboot_engine']['engine_info'].keys():
