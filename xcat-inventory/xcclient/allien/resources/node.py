@@ -11,8 +11,7 @@ from flask_restplus import Namespace, Resource, fields, reqparse
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
-from ..invmanager import InvalidValueException, ParseException
-from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_nodes_status, transform_to_status
+from ..invmanager import *
 from ..srvmanager import provision
 from . import auth_request 
 
@@ -87,8 +86,16 @@ class NodeInventoryResource(Resource):
 
     @ns.doc('list_nodes_inventory')
     def get(self, node=None):
+        """get specified OS image resource"""
 
-        return get_node_inventory('node', node)
+        result = get_nodes_inventory('node', node)
+        if node:
+            if not result:
+                ns.abort(404, "Node '%s' is not found." % node)
+
+            return transform_from_inv(result)[0]
+
+        return transform_from_inv(get_nodes_inventory('node', node))
 
 
 SUPPORTED_OPERATIONS = {
