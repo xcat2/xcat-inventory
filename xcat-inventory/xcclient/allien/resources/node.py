@@ -27,7 +27,7 @@ actionreq = ns.model('ActionReq', {
 class NodeListResource(Resource):
     
     @ns.doc('list_all_nodes')
-    @ns.param('type', 'kind of content: name, inventory')
+    @ns.param('type', 'kind of content: name, inventory, status')
     @ns.expect(token_parser)
     @auth_request
     def get(self):
@@ -40,6 +40,14 @@ class NodeListResource(Resource):
         kind = args.get('type') or 'name'
         if kind == 'inventory':
             return transform_from_inv(get_nodes_inventory('node'))
+        elif kind == 'status':
+            result = list()
+            dataset = get_nodes_status()
+            for name, status in dataset.items():
+                spec = transform_to_status(status)
+
+                result.append(dict(meta=dict(name=name), status=spec))
+            return result
         else:
             return get_nodes_list().keys()
 
@@ -114,7 +122,7 @@ class NodeStatusResource(Resource):
     def get(self, node):
 
         dataset = get_nodes_status(node)
-        if node and not dataset:
+        if not dataset:
             ns.abort(400, "Node '%s' is not found" % node)
 
         name, status = dataset.popitem()
