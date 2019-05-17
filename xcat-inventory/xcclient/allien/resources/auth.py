@@ -5,15 +5,19 @@
 # -*- coding: utf-8 -*-
 
 from flask import request, current_app, make_response, jsonify, g
-from flask_restplus import Resource, Namespace
+from flask_restplus import Resource, Namespace, fields
 import uuid
 from exceptions import *
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
-from ..invmanager import *
-from . import auth_request
+from ..authmanager import *
+from . import auth_request, token_parser
 
 ns = Namespace('auth', description='The Authorization section for APIs')
 
+auth_post_resource = ns.model('auth_post_Resource', {
+    'username': fields.String(description="User account name", required=True),
+    'password': fields.String(description="User account password", required=True)
+})
 
 def check_request_user(request):
     try:
@@ -63,6 +67,12 @@ def check_request_token_without_account(request):
 
 @ns.route('/login')
 class ToLogin(Resource):
+
+    @ns.expect(auth_post_resource)
+    @ns.response(200, '{ "token": { \
+    "expire: "xxx", \
+    "id": "tokenid" \
+     }}')
     def post(self):
         r, m = check_request_user(request)
         if r == 200: 
@@ -77,6 +87,8 @@ class ToLogin(Resource):
 
 @ns.route('/refresh')
 class ToRefresh(Resource):
+    @ns.expect(token_parser)
+    @ns.response(200, "Token refreshed")
     def post(self):
         r = check_request_token(request)
         if r == 200:
@@ -87,6 +99,8 @@ class ToRefresh(Resource):
 
 @ns.route('/logout')
 class ToLogout(Resource):
+    @ns.expect(token_parser)
+    @ns.response(200, "Logged out")
     def post(self):
         r = check_request_token_without_account(request)
         if r == 200:

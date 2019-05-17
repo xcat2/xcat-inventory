@@ -14,7 +14,7 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import InvalidValueException, ParseException
 from ..invmanager import get_nodes_list, get_node_inventory, get_node_attributes, get_all_nodes
 from ..srvmanager import provision
-from . import auth_request 
+from . import auth_request, token_parser
 
 ns = Namespace('system', ordered=True, description='System Management')
 
@@ -38,9 +38,10 @@ actionreq = ns.model('ActionReq', {
 
 @ns.route('/nodes')
 class NodeListResource(Resource):
-
-    @auth_request
+    
     @ns.doc('list_all_nodes')
+    @ns.expect(token_parser)
+    @auth_request
     def get(self):
         return get_all_nodes().keys()
 
@@ -83,8 +84,10 @@ SUPPORTED_OPERATIONS = {
 @ns.route('/nodes/<node>/_operation')
 class NodeOperationResource(Resource):
 
+    @ns.expect(token_parser)
     @ns.expect(actionreq)
     @ns.doc('operate_node')
+    @auth_request
     def post(self, node):
         """Operate a node with specified action"""
 
