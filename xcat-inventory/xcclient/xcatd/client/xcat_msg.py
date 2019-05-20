@@ -116,6 +116,37 @@ class XCATTableRowParser(object):
 
         return to_return
 
+class XCATRpowerRecordParser(object):
+
+    def parse(self, elem):
+        """Parses a single <node> element returned by xCAT rpower command
+
+           Params:
+              An object representing a <node> element:
+              <node>
+                  <data>
+                      <contents>on</contents>
+                  </data>
+                  <errorcode>0</errorcode>
+                  <name>byrh08</name>
+              </node>
+           Returns:  XCATRpowerRecord
+        """
+
+        to_return = XCATRpowerRecord()
+        for child_elem in elem:
+            if child_elem.tag == 'data':
+                for content_elem in child_elem:
+                    if content_elem.tag == 'contents':
+                        to_return.state = content_elem.text
+            if child_elem.tag == 'error':
+                to_return.error = child_elem.text
+            if child_elem.tag == 'errorcode':
+                to_return.errorcode = child_elem.text
+            if child_elem.tag == 'name':
+                to_return.name = child_elem.text
+
+        return to_return
 
 class XCATNodesetRecordParser(object):
 
@@ -354,6 +385,60 @@ class XCATTableCmdResultParser(XCATGenericCmdResultParser):
                 
         return to_return
 
+class XCATRpowerCmdResultParser(XCATGenericCmdResultParser):
+    """Parses the results of xCAT rpower command"""
+
+    def __init__(self, req, raw_stream):
+        """Initialize the parser
+           Params:
+                req:        XMLRequest object
+                raw_stream: Stream from which we read the XML response
+        """
+        XCATGenericCmdResultParser.__init__(self, req, raw_stream)
+        self._rpower_rec_parser = XCATRpowerRecordParser()
+
+    def parse(self):
+        """Used to parse the XML response of xCAT rpower command.  Each
+           node tag is parsed into an XCATRpowerRecord object.
+           All objects are returned as part of XCATNodeCmdResult
+           object.
+
+           Returns:  XCATNodeCmdResult
+           Exceptions:
+                SyntaxError if XML parsing error occurs
+                socket.error if fail to read from socket stream
+        """
+
+        to_return = XCATNodeCmdResult()
+        to_return.req = self._req
+
+        try:
+            context = etree.iterparse(self._stream, events=('end',))
+            for action, elem in context:
+                # Process <node> tag
+                if elem.tag == 'node':
+                    node = self._rpower_rec_parser.parse(elem)
+                    to_return.node_dict[node.name] = node
+                    if node.error:
+                        to_return.failed_nodes.append(node.name)
+                    else:
+                        to_return.success_nodes.append(node.name)
+
+                    elem.clear()
+
+                elif elem.tag == 'xcatresponse':
+                    error = self._parse_error(elem)
+                    if error:
+                        to_return.errors.append(error)
+
+                    elem.clear()
+
+        except ExpatError as e:
+            raise SyntaxError(str(e))
+        except SyntaxError:
+            raise
+
+        return to_return
 
 class XCATNodesetCmdResultParser(XCATGenericCmdResultParser):
     """Parses the results of xCAT nodeset command"""

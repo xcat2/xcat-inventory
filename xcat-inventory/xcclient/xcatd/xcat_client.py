@@ -528,11 +528,11 @@ class XCATClient(XCATClientBase):
     # hardware commands
     #
 
-    def rpower(self, noderange, args=[]):
+    def rpower(self, noderange, action):
         """Remote power control of nodes
         Params:
             noderange: xCAT noderange expression (str)
-            args:      Cmd-line args (list)
+            action:      Cmd-line action
         Returns:
             XCATGenericCmdResult  (see client/xcat_data.py)
         Exceptions:
@@ -541,9 +541,7 @@ class XCATClient(XCATClientBase):
         try:
             self._logger.trace('Entering')
             t = Timer().start_timer()
-            # TODO: 
-            raise Exception('TBI')
-            #return self._run_command(RpowerHelper(noderange, args))
+            return self._run_command(RpowerHelper(noderange,action))
         finally:
             t.stop_timer()
             self._logger.perf('%s msec' % t.get_elapsed_in_msec())
