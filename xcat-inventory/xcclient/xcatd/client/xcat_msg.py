@@ -139,6 +139,7 @@ class XCATRpowerRecordParser(object):
                 for content_elem in child_elem:
                     if content_elem.tag == 'contents':
                         to_return.state = content_elem.text
+                        break
             if child_elem.tag == 'error':
                 to_return.error = child_elem.text
             if child_elem.tag == 'errorcode':

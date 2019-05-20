@@ -7,12 +7,12 @@
 import os
 from flask import current_app, request
 from flask_restplus import Resource, reqparse
-from .node import ns, actionreq
-from .service import ns as ns1
-from .service import srvreq
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import InvalidValueException
+from .node import ns, actionreq
+from .service import ns as ns1
+from .service import srvreq
 
 POWER_ACTION=["on","off","state"]
 
