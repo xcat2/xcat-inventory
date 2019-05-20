@@ -35,6 +35,7 @@ def provision(nr, action_spec=None):
     param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
+    cl.makedns(noderange=nr)
     result = cl.rinstall(noderange=nr, boot_state=boot_state)
     return result.output_msgs
 
