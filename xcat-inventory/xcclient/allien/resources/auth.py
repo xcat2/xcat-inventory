@@ -4,13 +4,15 @@
 
 # -*- coding: utf-8 -*-
 
-from flask import request, current_app, make_response, jsonify, g
-from flask_restplus import Resource, Namespace, fields
 import uuid
-from exceptions import *
-from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
+from flask import request, current_app, jsonify, g
+from flask_restplus import Resource, Namespace, fields
+
+#from exceptions import *
+
 from ..authmanager import *
-from . import auth_request, token_parser
+from . import token_parser
 
 ns = Namespace('auth', description='The Authorization section for APIs')
 
@@ -18,6 +20,7 @@ auth_post_resource = ns.model('auth_post_Resource', {
     'username': fields.String(description="User account name", required=True),
     'password': fields.String(description="User account password", required=True)
 })
+
 
 def check_request_user(request):
     try:
@@ -36,7 +39,9 @@ def check_request_user(request):
         else:
             return 401, None
     except Exception:
-        return 401, None 
+        return 401, None
+
+
 def check_request_token(request):
     try:
         auth_header = request.headers.get('Authorization')
@@ -53,6 +58,7 @@ def check_request_token(request):
         return 401
     return 200
 
+
 def check_request_token_without_account(request):
     try:
         auth_header = request.headers.get('Authorization')
@@ -64,6 +70,7 @@ def check_request_token_without_account(request):
     if flag == 2:
         return 401
     return 200
+
 
 @ns.route('/login')
 class ToLogin(Resource):
@@ -85,6 +92,7 @@ class ToLogin(Resource):
         else:
             ns.abort(r)
 
+
 @ns.route('/refresh')
 class ToRefresh(Resource):
     @ns.expect(token_parser)
@@ -96,6 +104,7 @@ class ToRefresh(Resource):
             return "Token refreshed"
         else:
             ns.abort(r)
+
 
 @ns.route('/logout')
 class ToLogout(Resource):

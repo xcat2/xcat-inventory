@@ -134,6 +134,7 @@ def get_nodes_by_range(noderange=None):
     # For nonexistence, need to check if it is a group or tag
     return nodelist.keys(), nonexistence
 
+
 def _check_groups_in_noderange(nodelist, noderange):
     unique_groups = set()  # unique group or tag name
 
@@ -157,6 +158,7 @@ def get_hmi_by_list(nodelist=None):
 
     return result
 
+
 def dict_merge(dct, merge_dct):
     """Recursive dict merge
 
@@ -176,6 +178,7 @@ def dict_merge(dct, merge_dct):
         else:
             dct[k] = merge_dct[k]
     return dct
+
 
 def get_node_attributes(node):
     """Get node attbributes.
@@ -212,11 +215,13 @@ def get_node_attributes(node):
         result=fetch_data_from_group(inv_data,node,groupslist)
     return result
 
+
 def groups_data_overwrite_node(hierarchicalattrs,inv_data={}):
     """TODO"""
     result={}
     result['meta']='groups_data_overwrite_node'
     return result
+
 
 def merge_groups_data(inv_data,nodelist):
     """merge different groups data into dict
@@ -249,6 +254,7 @@ def merge_groups_data(inv_data,nodelist):
                 del mergeddict['obj_info'][exl]
     return mergeddict
 
+
 def merge_xcatdefaults(xcatdefaults_dict,nodedict):
     """merge xcatdefaults group into nodedict.
 
@@ -273,6 +279,7 @@ def merge_xcatdefaults(xcatdefaults_dict,nodedict):
                 nodepostscripts=nodedict['engines']['netboot_engine']['engine_info'][scp]
         nodedict['engines']['netboot_engine']['engine_info'][scp]="%s,%s" % (xcatdefaults_dict['engines']['netboot_engine']['engine_info'][scp],nodepostscripts)
     return nodedict
+
 
 def fetch_data_from_group(inv_data,node,nodelist):
     """when site.hierarchicalattrs is empty
@@ -332,27 +339,13 @@ def get_inventory_by_type(objtype, ids=None):
 
     return hdl.exportObjs(wants, None, fmt='json').get(objtype)
 
+
 def upd_inventory_by_type(objtype, obj_attr_dict, clean=False):
     hdl = InventoryFactory.createHandler(objtype, dbsession, None)
 
     hdl.importObjs(obj_attr_dict.keys(), obj_attr_dict, update=not clean, envar={})
     dbsession.commit()
 
-def del_table_entry_by_key(objtype, obj_attr_dict):
-    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
-
-    hdl.deleteTabEntrybykey(objtype, obj_attr_dict)
-    dbsession.commit()
-
-def add_table_entry_by_key(objtype, obj_attr_dict):
-    hdl = InventoryFactory.createHandler(objtype, dbsession, None) 
-    hdl.addTabEntrybykey(objtype, obj_attr_dict)
-    dbsession.commit()
-
-def update_table_entry_by_key(objtype, obj_attr_dict):
-    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
-    hdl.updateTabEntrybykey(objtype, obj_attr_dict)
-    dbsession.commit()
 
 def del_inventory_by_type(objtype, obj_list):
     """delete objects from data store"""
@@ -387,8 +380,27 @@ def patch_inventory_by_type(objtype, obj_name, obj_d):
     cl = XCATClient()
     cl.init(current_app.logger, param)
     result = cl.chdef(args=['-t', objtype, '-o', obj_name, kv_pair])
-    
+
     return dict(outputs=result.output_msgs)
+
+
+def del_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+
+    hdl.deleteTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
+
+
+def add_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+    hdl.addTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
+
+
+def update_table_entry_by_key(objtype, obj_attr_dict):
+    hdl = InventoryFactory.createHandler(objtype, dbsession, None)
+    hdl.updateTabEntrybykey(objtype, obj_attr_dict)
+    dbsession.commit()
 
 
 def transform_from_inv(obj_d):
