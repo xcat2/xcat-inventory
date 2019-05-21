@@ -104,5 +104,5 @@ class ResMgrResource(Resource):
         args = parser.parse_args()
         node = args.get('name')
 
-        return free_resource(name=node), 200
+        return free_resource(names=node), 200
 
