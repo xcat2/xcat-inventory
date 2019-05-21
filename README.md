@@ -67,7 +67,7 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 ### Python virtualenv
 
 ```
-# yum install -y yum install -y -q gcc python-devel python-virtualenv postgresql-devel
+# yum install -y -q gcc python-devel python-virtualenv postgresql-devel libffi-devel
 # git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
 # cd xcat-inventory/xcat-inventory
 # virtualenv venv
