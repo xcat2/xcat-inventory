@@ -4,8 +4,8 @@
 
 # -*- coding: utf-8 -*-
 
-
-from flask import Blueprint, request, abort
+import os
+from flask import Blueprint, request, abort,current_app
 from flask_restplus import Resource, Api
 from functools import wraps
 from ..authmanager import check_user_token
@@ -18,10 +18,16 @@ api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
 token_parser = api.parser()
 token_parser.add_argument('Authorization', type=str, help="token \<token id\>", location='headers', required=True)
 
+disable_auth=False
+auth_param = os.environ.get('DISABLE_AUTH_FOR_DEBUG')
+if auth_param in ['1', 'yes', 'true']:
+    disable_auth=True
 
 def auth_request(function):
     @wraps(function)
     def check_token(*args, **kwargs):
+        if current_app.debug and disable_auth:
+            return function(*args, **kwargs)
         try:
             auth_header = request.headers.get('Authorization')
             auth_token = auth_header.split(" ")[1]
