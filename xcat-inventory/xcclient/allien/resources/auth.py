@@ -49,13 +49,14 @@ def check_request_token(request):
     except Exception:
         return 401
     g.auth_token = auth_token
-    flag = check_user_token(auth_token)
+    flag, user = check_user_token(auth_token)
     if flag == 1:
         r, m = check_request_user(request)
-        if not r == 200 or check_user_token(auth_token, username=g.username, check_expire=False) != 0:
+        if not r == 200 or check_user_token(auth_token, username=g.username, check_expire=False)[0] != 0:
             return 401
     elif flag == 2:
         return 401
+    g.username = user
     return 200
 
 
@@ -66,7 +67,7 @@ def check_request_token_without_account(request):
     except Exception:
         return 401
     g.auth_token = auth_token
-    flag = check_user_token(auth_token)
+    flag, user = check_user_token(auth_token)
     if flag == 2:
         return 401
     return 200
