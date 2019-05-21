@@ -28,8 +28,8 @@ srvreq = ns.model('SvrReq', {
 class ProvisionResource(Resource):
 
     @auth_request
-    @ns.expect(token_parser)
     @ns.expect(srvreq)
+    @ns.param('Authorization', type=str, help="token \<token id\>", location='headers', required=True)
     @ns.doc('create_provision')
     def post(self):
         """Create a provision task for nodes"""
@@ -61,8 +61,8 @@ class ResMgrResource(Resource):
 
     @auth_request
     @ns.expect(token_parser)
-    @ns.doc('get_resource')
     @ns.param('pool', 'show free pool information')
+    @ns.doc('get_resource')
     def get(self):
 
         parser = reqparse.RequestParser()
@@ -77,8 +77,8 @@ class ResMgrResource(Resource):
             return get_occupied_resource()
 
     @auth_request
-    @ns.expect(token_parser)
     @ns.expect(resreq)
+    @ns.param('Authorization', 'token <token id>')
     @ns.doc('apply_resource')
     def post(self):
         """Apply resources"""

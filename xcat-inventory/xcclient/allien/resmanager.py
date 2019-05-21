@@ -54,7 +54,7 @@ def apply_resource(count, criteria=None, instance=None):
 
     # Make the selection
     selected = filter_resource(count, criteria)
-    occupy_nodes(selected, g.user)
+    occupy_nodes(selected, g.username)
 
     return {instance : ','.join(selected)}
 
@@ -131,7 +131,7 @@ def free_resource(names=None):
         # TODO: get the whole occupied node by this user
         raise NotImplementedError("You must specify some nodes to be free.")
 
-    release_nodes(selected, g.user)
+    release_nodes(selected, g.username)
 
 
 def _parse_lsdef_output(output):
@@ -147,7 +147,7 @@ def get_free_resource(selector=None):
     param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
-    args = ['-t', 'node', '__TFPOOL-FREE' % g.user, '-s']
+    args = ['-t', 'node', '__TFPOOL-FREE', '-s']
     if selector:
         args.extend(selector)
 
@@ -163,7 +163,7 @@ def get_occupied_resource():
     param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
-    args = ['-t', 'node', '__TFPOOL-%s' % g.user, '-s']
+    args = ['-t', 'node', '__TFPOOL-%s' % g.username, '-s']
 
     result = cl.lsdef(args)
     if not result.succeeded():
