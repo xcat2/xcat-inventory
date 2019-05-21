@@ -51,11 +51,11 @@ Resolving deltas: 100% (1072/1072), done.
 
 ```
 # cd xcat-inventory
-# git checkout master
-Already on 'master'
-# git pull upstream master --tags
+# git checkout api-server
+Already on 'api-server'
+# git pull upstream api-server --tags
 From github.com:xcat2/xcat-inventory
- * branch            master     -> FETCH_HEAD
+ * branch            api-server     -> FETCH_HEAD
 Already up-to-date.
 # ./makepythonrpm xcat-inventory
 ...
@@ -67,7 +67,7 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 ### Python virtualenv
 
 ```
-# yum install -y yum install -y -q gcc python-devel python-virtualenv postgresql-devel
+# yum install -y -q gcc python-devel python-virtualenv postgresql-devel libffi-devel
 # git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
 # cd xcat-inventory/xcat-inventory
 # virtualenv venv
