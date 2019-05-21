@@ -12,6 +12,7 @@ from flask import g, current_app
 from pyparsing import Word, Combine
 
 from xcclient.xcatd import XCATClient, XCATClientParams
+from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 
 from .invmanager import get_nodes_list, ParseException
 
@@ -151,11 +152,14 @@ def get_free_resource(selector=None):
     if selector:
         args.extend(selector)
 
-    result = cl.lsdef(args)
-    if not result.succeeded():
-        return []
+    try:
+        result = cl.lsdef(args)
 
-    return _parse_lsdef_output(result)
+        return _parse_lsdef_output(result)
+    except XCATClientError as e:
+        if str(e).startswith("Could not find an object named"):
+            return []
+        raise
 
 
 def get_occupied_resource():
@@ -165,8 +169,11 @@ def get_occupied_resource():
     cl.init(current_app.logger, param)
     args = ['-t', 'node', '__TFPOOL-%s' % g.username, '-s']
 
-    result = cl.lsdef(args)
-    if not result.succeeded():
-        return []
+    try:
+        result = cl.lsdef(args)
 
-    return _parse_lsdef_output(result)
+        return _parse_lsdef_output(result)
+    except XCATClientError as e:
+        if str(e).startswith("Could not find an object named"):
+            return []
+        raise

@@ -61,7 +61,7 @@ class ResMgrResource(Resource):
 
     @auth_request
     @ns.expect(token_parser)
-    @ns.param('pool', 'show free pool information')
+    @ns.param('pool', 'show pool information')
     @ns.doc('get_resource')
     def get(self):
 
