@@ -63,6 +63,25 @@ class XCATNodesetRecord(object):
                self.data == other.data and self.destiny == other.destiny and \
                self.error == other.error and self.errorcode == other.errorcode
 
+class XCATRpowerRecord(object):
+    """Stores one node record returned by xCAT rpower command"""
+
+    def __init__(self, name='', state='',
+                 error='', errorcode=''):
+        self.name = name
+        self.state = state
+        self.error = error
+        self.errorcode = errorcode
+
+    def __str__(self):
+        return 'rpower: name=%s, state=%s, error=%s, errorcode=%s' % \
+               (str(self.name), str(self.state),
+                str(self.error), str(self.errorcode))
+
+    def __eq__(self, other):
+        return self.name == other.name and \
+               self.state == other.state and \
+               self.error == other.error and self.errorcode == other.errorcode
 
 class XCATErrorRecord(object):
     """Stores error info returned by an xCAT command"""
@@ -150,6 +169,63 @@ class XCATTableCmdResult(XCATGenericCmdResult):
     def __str__(self):
         return 'table_result: table=%s, rows=%s' % \
                (str(self.table), len(self.rows))
+
+class XCATNodeCmdResult(XCATGenericCmdResult):
+    """Stores results of xCAT node related command."""
+
+    def __init__(self):
+        XCATGenericCmdResult.__init__(self)
+
+        # Dictionary of XCATNodeRecord objects
+        # Key = nodename
+        self.node_dict = {}
+
+        # List of nodenames for which node related command succeeded
+        self.success_nodes = []
+
+        # List of nodenames for which node related command failed
+        self.failed_nodes = []
+
+    def succeeded(self):
+        return len(self.errors) == 0 and len(self.failed_nodes) == 0
+
+    def failed(self):
+        return len(self.errors) > 0 or len(self.failed_nodes) > 0
+
+    def get_error_msg(self):
+        """Generate an error message for command failure"""
+        error_msg = XCATGenericCmdResult.get_error_msg(self)
+        if error_msg:
+            return error_msg
+
+        if len(self.failed_nodes) == 1:
+            # One node failed
+            failed_node = self.failed_nodes[0]
+            error = self.node_dict[failed_node].error
+            errorcode = self.node_dict[failed_node].errorcode
+            error_msg = 'Failed to run %s on %s due to: %s (code=%s)' % \
+                        (self.req.command, failed_node, str(error).rstrip(), errorcode)
+
+        elif len(self.failed_nodes) > 1:
+            # Multiple nodes failed
+            num_nodes = len(self.failed_nodes)
+            unique_errors = \
+                set([self.node_dict[n].error for n in self.failed_nodes])
+
+            if len(unique_errors) == 1:
+                error = self.node_dict.values()[0].error
+                errorcode = self.node_dict.values()[0].errorcode
+                error_msg = 'Failed to run %s on %s nodes due to: %s (code=%s)' % \
+                            (self.req.command, num_nodes, str(error).rstrip(), errorcode)
+            else:
+                error_msg = 'Failed to run %s on %s nodes due to: multiple errors' % \
+                            (self.req.command, num_nodes)
+
+        return error_msg
+
+    def __str__(self):
+        return 'result: success_nodes=%s, failed_nodes=%s' % \
+               (len(self.success_nodes), len(self.failed_nodes))
 
 
 class XCATNodesetCmdResult(XCATGenericCmdResult):

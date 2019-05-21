@@ -206,6 +206,28 @@ class CopycdsHelper(GenericCmdHelper):
         parser = XCATGenericCmdResultParser(req, ssl_client, output_msg_tags=['info'])
         return parser.parse()
 
+class RpowerHelper(GenericCmdHelper):
+    """Helper class fo rpower command"""
+
+    def __init__(self, noderange, action):
+        self.command = 'rpower'
+        self.noderange = noderange
+        self.action = action
+
+    def __str__(self):
+        return '%s: noderange=%s, action=%s' % \
+            (self.command, self.noderange, self.action)
+
+    def get_request(self):
+        return XCATRequest(command=self.command,
+                           noderange=self.noderange,
+                           args=[self.action])
+
+    def parse_response(self, ssl_client):
+        req = self.get_request()
+        parser = XCATRpowerCmdResultParser(req, ssl_client)
+        return parser.parse()
+
 #
 # make* commands
 #
