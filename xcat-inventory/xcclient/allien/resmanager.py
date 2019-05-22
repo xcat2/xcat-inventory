@@ -33,6 +33,7 @@ SELECTOR_OP_MAP = {
     "room": None,
     "arch": None,
 }
+XCAT_RES_TAG_STR = r"tags:\[(.*)\]"
 
 SELECTOR_ATTR_MAP = {
     "machinetype": 'mtm',
@@ -84,6 +85,7 @@ def _build_query_args(criteria):
     for key, val in criteria.items():
         if key == 'tags':
             tags = val
+            continue
         elif key not in SELECTOR_OP_MAP:
             current_app.logger.warn("Not supported criteria type: %s." % key)
             # not report error at this time, but if user specify wrong attribute, it will cause unexcepted 500 error
@@ -98,12 +100,12 @@ def _build_query_args(criteria):
 def _parse_node_tags(tagstr):
 
     if not tagstr:
-        return
+        return []
 
-    matched = re.search(r"tags=\[(.*)\]", tagstr)
+    matched = re.search(XCAT_RES_TAG_STR, tagstr)
 
     if not matched:
-        return
+        return []
 
     return matched.groups()[0].split(',')
 
@@ -159,7 +161,7 @@ def _match_with_tags(tags, rules):
             return False
 
         # must have the tag rule
-        elif rr not in tags:
+        elif rr and rule not in tags:
             return False
 
     return True

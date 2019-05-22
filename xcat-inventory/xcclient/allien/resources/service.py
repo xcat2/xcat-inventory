@@ -7,7 +7,7 @@
 import os
 import time
 
-from flask import request, current_app
+from flask import request, current_app, g
 from flask_restplus import Namespace, Resource, reqparse, fields
 
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
@@ -74,7 +74,7 @@ class ResMgrResource(Resource):
             free = get_free_resource()
             return dict(total=len(free), pool=free)
         else:
-            return get_occupied_resource()
+            return get_occupied_resource(g.username)
 
     @auth_request
     @ns.expect(resreq)
