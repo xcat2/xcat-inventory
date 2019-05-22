@@ -85,7 +85,8 @@ class ToLogin(Resource):
         r, m = check_request_user(request)
         if r == 200: 
             token = uuid.uuid1()
-            expire = time.time()
+            t = time.time()
+            expire = time.time() + 86400
             insert_user_token(g.username, str(token), str(expire))
             return jsonify({'token':{'id': str(token), 'expire': time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(expire))}}) 
         elif not m is None:
@@ -101,7 +102,7 @@ class ToRefresh(Resource):
     def post(self):
         r = check_request_token(request)
         if r == 200:
-            update_user_token(g.auth_token, str(time.time()))
+            update_user_token(g.auth_token, str(time.time() + 86400))
             return "Token refreshed"
         else:
             ns.abort(r)
