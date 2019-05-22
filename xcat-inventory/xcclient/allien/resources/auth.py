@@ -89,8 +89,8 @@ class ToLogin(Resource):
             expire = time.time() + 86400
             insert_user_token(g.username, str(token), str(expire))
             return jsonify({'token':{'id': str(token), 'expire': time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(expire))}}) 
-        elif not m is None:
-            ns.abort(r, {'message': m})
+        elif m is not None:
+            ns.abort(r, m)
         else:
             ns.abort(r)
 
