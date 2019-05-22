@@ -29,7 +29,7 @@ def check_user_token(token_string, username=None, check_expire=True):
         usr = dataset[token_string]['token.username']
         if not username is None and usr != username:
             return 2
-        if not check_expire or time.time() - float(exp) < 86400:
+        if not check_expire or time.time() >= float(exp):
             return 0
         else:
             return 1
