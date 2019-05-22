@@ -6,7 +6,7 @@
 
 from flask import request, current_app
 from flask_restplus import Resource, Namespace, fields, reqparse
-from exceptions import *
+
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import *
 from .inventory import ns, inv_resource, patch_action

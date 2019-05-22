@@ -5,14 +5,23 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import Blueprint, request, abort,current_app
+from flask import Blueprint, request, abort,current_app, g
+
 from flask_restplus import Resource, Api
 from functools import wraps
 from ..authmanager import check_user_token
 
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization'
+    }
+}
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
           description='RESTful API of xCAT',
+          authorizations=authorizations
 )
 
 token_parser = api.parser()
@@ -34,11 +43,12 @@ def auth_request(function):
         except Exception:
             abort(401)
         #return make_response("Unauthorized requrest, please login first", 401)
-        flag = check_user_token(auth_token)
+        flag, user = check_user_token(auth_token)
         if flag == 1:
-            abort(401, {'message': 'Token expired, pleased refresh or Login again'})
+            abort(401, 'Token expired, pleased refresh or Login again')
         elif flag == 2:
             abort(401)
+        g.username = user
         return function(*args, **kwargs)
     return check_token
 
