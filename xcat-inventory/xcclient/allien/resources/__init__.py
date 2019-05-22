@@ -11,9 +11,17 @@ from flask_restplus import Resource, Api
 from functools import wraps
 from ..authmanager import check_user_token
 
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization'
+    }
+}
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp, version='2.0', title='xCAT API v2', prefix="/v2",
           description='RESTful API of xCAT',
+          authorizations=authorizations
 )
 
 token_parser = api.parser()

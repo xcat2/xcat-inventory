@@ -15,7 +15,7 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..srvmanager import provision
 from ..resmanager import apply_resource, free_resource, get_occupied_resource, get_free_resource
 
-from . import auth_request, token_parser
+from . import auth_request
 
 ns = Namespace('manager', description='Manage services and tasks')
 srvreq = ns.model('SvrReq', {
@@ -29,7 +29,7 @@ class ProvisionResource(Resource):
 
     @auth_request
     @ns.expect(srvreq)
-    @ns.param('Authorization', type=str, help="token \<token id\>", location='headers', required=True)
+    @ns.doc(security='apikey')
     @ns.doc('create_provision')
     def post(self):
         """Create a provision task for nodes"""
@@ -60,7 +60,7 @@ resreq = ns.model('ResReq', {
 class ResMgrResource(Resource):
 
     @auth_request
-    @ns.expect(token_parser)
+    @ns.doc(security='apikey')
     @ns.param('pool', 'show pool information')
     @ns.doc('get_resource')
     def get(self):
@@ -78,7 +78,7 @@ class ResMgrResource(Resource):
 
     @auth_request
     @ns.expect(resreq)
-    @ns.param('Authorization', 'token <token id>')
+    @ns.doc(security='apikey')
     @ns.doc('apply_resource')
     def post(self):
         """Apply resources"""
@@ -90,11 +90,10 @@ class ResMgrResource(Resource):
 
         # TODO: parse criteria and choose nodes from the free pool
 
-        # Just return mock data now
         return apply_resource(data.get('capacity', 1), criteria=criteria)
 
     @auth_request
-    @ns.expect(token_parser)
+    @ns.doc(security='apikey')
     @ns.doc('free_resource')
     @ns.param('names', 'resource names')
     def delete(self):

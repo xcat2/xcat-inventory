@@ -38,10 +38,6 @@ SELECTOR_ATTR_MAP = {
 }
 
 
-class NotEnoughResourceError(Exception):
-    pass
-
-
 def apply_resource(count, criteria=None, instance=None):
 
     # Need to lock first
@@ -98,7 +94,7 @@ def _build_query_args(criteria):
                 args.append("usercomment%s%s" % (op, tag))
 
         elif key not in SELECTOR_OP_MAP:
-            raise NotEnoughResourceError("Not supported criteria type: %s." % key)
+            raise BadRequest("Not supported criteria type: %s." % key)
 
         args.append('-w')
         args.append("%s==%s" % (key, val))
@@ -111,11 +107,11 @@ def filter_resource(count=1, criteria=None):
     if criteria:
         args = _build_query_args(criteria)
     else:
-        args =[]
+        args = []
 
     selecting = get_free_resource(args)
     if len(selecting) < count:
-        raise NotEnoughResourceError("Not enough free resource matched with the specified criteria.")
+        raise BadRequest("Not enough free resource matched with the specified criteria.")
 
     rv = list()
     for i in range(count):
