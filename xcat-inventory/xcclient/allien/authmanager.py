@@ -18,7 +18,7 @@ def check_user_account(username, password):
                 if entry['passwd.username'] == username and entry['passwd.password'] == password:
                     return True
         elif v['passwd.username'] == username and v['passwd.password'] == password:
-                return True
+            return True
     return False
 
 
@@ -27,9 +27,9 @@ def check_user_token(token_string, username=None, check_expire=True):
     if dataset:
         exp = dataset[token_string]['token.expire']
         usr = dataset[token_string]['token.username']
-        if not username is None and usr != username:
+        if username is not None and usr != username:
             return 2, None
-        if not check_expire or time.time() >= float(exp):
+        if not check_expire or time.time() < float(exp):
             return 0, usr
         else:
             return 1, None
