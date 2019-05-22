@@ -9,7 +9,7 @@ import random
 import uuid
 
 from flask import g, current_app
-from pyparsing import Word, Combine
+from werkzeug.exceptions import BadRequest
 
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
@@ -130,7 +130,13 @@ def free_resource(names=None):
         selected = names.split(',')
     else:
         # TODO: get the whole occupied node by this user
-        raise NotImplementedError("You must specify some nodes to be free.")
+        raise BadRequest("You must specify some nodes to be free.")
+    occupied = get_occupied_resource(g.username)
+
+    # the occupied would be a small list, not considering the performance
+    not_owned = [item for item in selected if item not in occupied]
+    if not_owned:
+        raise BadRequest("Nodes are not owned by user: %s, no permission to free: %s." % (g.username, ','.join(not_owned)))
 
     release_nodes(selected, g.username)
 
@@ -162,12 +168,12 @@ def get_free_resource(selector=None):
         raise
 
 
-def get_occupied_resource():
+def get_occupied_resource(user):
 
     param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
     cl = XCATClient()
     cl.init(current_app.logger, param)
-    args = ['-t', 'node', '__TFPOOL-%s' % g.username, '-s']
+    args = ['-t', 'node', '__TFPOOL-%s' % user, '-s']
 
     try:
         result = cl.lsdef(args)

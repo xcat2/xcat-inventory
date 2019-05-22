@@ -96,13 +96,13 @@ class ResMgrResource(Resource):
     @auth_request
     @ns.expect(token_parser)
     @ns.doc('free_resource')
-    @ns.param('name', 'resource name')
+    @ns.param('names', 'resource names')
     def delete(self):
         """Free resources"""
         parser = reqparse.RequestParser()
-        parser.add_argument('name', location='args', help='resource name')
+        parser.add_argument('names', location='args', help='resource names')
         args = parser.parse_args()
-        node = args.get('name')
+        nodes = args.get('names')
 
-        return free_resource(names=node), 200
+        return free_resource(names=nodes), 200
 
