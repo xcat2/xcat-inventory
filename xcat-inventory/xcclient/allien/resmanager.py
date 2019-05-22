@@ -6,6 +6,7 @@
 
 import os
 import random
+import re
 import uuid
 
 from flask import g, current_app
@@ -45,10 +46,6 @@ def apply_resource(count, criteria=None, instance=None):
     if not instance:
         instance = str(uuid.uuid1())
 
-    #free_nodes = get_free_resource()
-    #if len(free_nodes) < count:
-    #    raise NotEnoughResourceError("Not enough free resource.")
-
     # Make the selection
     selected = filter_resource(count, criteria)
     occupy_nodes(selected, g.username)
@@ -83,42 +80,127 @@ def release_nodes(selected, user):
 def _build_query_args(criteria):
 
     args = list()
-    for key, val in criteria.items:
+    tags = None
+    for key, val in criteria.items():
         if key == 'tags':
-            for tag in val.split(','):
-                op = '=~'
-                if tag[0] == '-':
-                    tag = tag[1:]
-                    op = '!~'
-                args.append('-w')
-                args.append("usercomment%s%s" % (op, tag))
-
+            tags = val
         elif key not in SELECTOR_OP_MAP:
-            raise BadRequest("Not supported criteria type: %s." % key)
+            current_app.logger.warn("Not supported criteria type: %s." % key)
+            # not report error at this time, but if user specify wrong attribute, it will cause unexcepted 500 error
+            # raise BadRequest("Not supported criteria type: %s." % key)
 
         args.append('-w')
-        args.append("%s==%s" % (key, val))
+        args.append("%s==%s" % (SELECTOR_ATTR_MAP.get(key, key), val))
 
-    return args
+    return args, tags
+
+
+def _parse_node_tags(tagstr):
+
+    if not tagstr:
+        return
+
+    matched = re.search(r"tags=\[(.*)\]", tagstr)
+
+    if not matched:
+        return
+
+    return matched.groups()[0].split(',')
+
+
+def _parse_rule_dict(rulestr):
+    """parse rule string for tag to a dict with tag -> rule
+
+    Args:
+        rulestr: comma separated rule string (a,b,-c,-d)
+
+    Returns:
+        A dict mapping tags to the corresponding rule.
+        For example:
+
+            {
+             'tag1':True,
+             'tag2':False
+            }
+
+    Note: if a tag in both allow and forbid rule, then it last order will take effective
+    """
+    rv = dict()
+
+    rulestr = rulestr.strip()
+    if not rulestr:
+        return rv
+    rules = rulestr.split(',')
+
+    for rule in rules:
+        if rule.startswith('-'):
+            rule = rule[1:]
+            rv[rule] = False
+        else:
+            rv[rule] = True
+    return rv
+
+
+def _match_with_tags(tags, rules):
+    """Determine if the node tags matching with the rule
+
+    Args:
+        tags:  comma separated rule string (a,b,-c,-d)
+        rules: rule dict
+
+    Returns:
+        True or False
+
+    """
+    for rule in rules.keys():
+        rr = rules[rule]
+        # not to have the tag rule
+        if not rr and rule in tags:
+            return False
+
+        # must have the tag rule
+        elif rr not in tags:
+            return False
+
+    return True
+
+
+def _filter_with_tag(nodelist, count, rule):
+
+    pool = get_nodes_list(nodelist)
+
+    selected = list()
+    rules = _parse_rule_dict(rule)
+    for i in range(count):
+        node = random.sample(pool.keys(), 1)[0]
+        tags = _parse_node_tags(pool[node]['comments'])
+
+        # Select the node when no rules or pass the rules
+        if not len(rules) or _match_with_tags(tags, rules):
+            selected.append(node)
+        del pool[node]
+
+    return selected
 
 
 def filter_resource(count=1, criteria=None):
 
     if criteria:
-        args = _build_query_args(criteria)
+        args, tags = _build_query_args(criteria)
     else:
         args = []
+        tags = ''
 
     selecting = get_free_resource(args)
     if len(selecting) < count:
-        raise BadRequest("Not enough free resource matched with the specified criteria.")
+        raise BadRequest("Not enough free resource matched with the specified attributes.")
 
-    rv = list()
-    for i in range(count):
-        index = random.randint(0, len(selecting)-1)
-        rv.append(selecting[index])
+    tags = tags or ''
+    selected = _filter_with_tag(selecting, count, tags)
+    if len(selected) < count:
+        raise BadRequest("Not enough free resource matched with the specified tags.")
 
-    return rv
+    return selected
 
 
 def free_resource(names=None):
@@ -140,8 +222,9 @@ def free_resource(names=None):
 def _parse_lsdef_output(output):
     nodelist = list()
     for item in output.output_msgs:
-        if item.endswith("(node)"):
-            nodelist.append(item.split()[0])
+        for line in item.split('\n'):
+            if line.endswith("(node)"):
+                nodelist.append(line.split()[0])
     return nodelist
 
 

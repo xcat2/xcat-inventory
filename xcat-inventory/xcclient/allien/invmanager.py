@@ -42,7 +42,7 @@ def get_nodes_list(ids=None):
         else:
             wants.append(ids)
 
-    return dbi.getcolumns('nodelist', cols=['groups'], keys=wants)
+    return dbi.getcolumns('nodelist', cols=['groups','comments'], keys=wants)
 
 
 def get_nodes_status(ids=None):
