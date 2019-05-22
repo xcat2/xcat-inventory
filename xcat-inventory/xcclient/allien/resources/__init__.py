@@ -45,7 +45,7 @@ def auth_request(function):
         #return make_response("Unauthorized requrest, please login first", 401)
         flag, user = check_user_token(auth_token)
         if flag == 1:
-            abort(401, {'message': 'Token expired, pleased refresh or Login again'})
+            abort(401, 'Token expired, pleased refresh or Login again')
         elif flag == 2:
             abort(401)
         g.username = user
