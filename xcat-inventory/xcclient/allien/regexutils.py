@@ -32,6 +32,7 @@ def extract_bracketed(input_str):
                 if loop is 1:
                     cur += ch
                     ch=''
+                    loop=0
         if sign is 1:
             cur += ch
         elif sign is 2 and ch:
@@ -42,6 +43,17 @@ def extract_bracketed(input_str):
     result['curr']=cur
     result['next']=nxt
     return result
+
+def is_regexp(attr):
+    pattern=re.match('^\/[^\/]*\/[^\/]*\/$',attr) 
+    if pattern:
+        return 1
+
+    pattern = re.match('^\|.*\|$', attr)
+    if pattern:
+        return 2
+
+    return 0
 
 def trans_regex_attrs(node,attr):
     """Transform the regular expression attribute to the target value
@@ -56,14 +68,13 @@ def trans_regex_attrs(node,attr):
             Attribute value
     """
     retval=attr
-    simplere=re.match('^\/[^\/]*\/[^\/]*\/$',attr)
-    if simplere:
+    is_reg=is_regexp(attr)
+    if is_reg is 1:
         exp=attr[0]
         parts=attr[1:-1].split(exp)
         retval=re.sub(parts[0], parts[1], node)
 
-    normalre=re.match('^\|.*\|$',attr)
-    if normalre:
+    if is_reg is 2:
         exp=attr[0]
         parts=attr[1:-1].split(exp)
         partslen=len(parts)
@@ -91,5 +102,5 @@ def trans_regex_attrs(node,attr):
             curr=extractbracket['curr']
             prev=extractbracket['prev']
             nextt=extractbracket['next']
-
+        
     return retval

@@ -14,7 +14,7 @@ from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
 from ..inventory.exceptions import *
-from .regexutils import is_regex, trans_regex_attrs
+from .regexutils import is_regexp, trans_regex_attrs
 import time
 
 OPT_QUERY_THRESHHOLD = 18
@@ -226,32 +226,20 @@ def get_node_attributes(node):
     else:
         # default
         result=fetch_data_from_group(inv_data,node,groupslist)
-    regex_dict={}
-    node_dict={}
-    regex_dict=get_node_regex(result) 
-    node_dict=update_regex_dict(result,regex_dict)
-    return node_dict
+    replace_node_regex(result,node)
+    return result
 
-def update_regex_dict(nodedict,regex_dict):
-    """update regex dict into nodedict"""
-    #TODO: update nodedict regular expression
-    return nodedict
-        
-
-def get_node_regex(nodedict):
-    """get node regex attibutes into a dict"""
-    expa_dict={}
-    for nodeattr in dict_generator(nodedict):
-        if isinstance(nodeattr[-1], list):
-            for val in nodeattr[-1]:
-                if is_regex(val):
-                    expa_dict['.'.join(nodeattr[0:-1])]=nodeattr[-1]
-                    break
-        else:
-            if is_regex(nodeattr[-1]):
-                expa_dict['.'.join(nodeattr[0:-1])]=nodeattr[-1]
-
-    return expa_dict
+def replace_node_regex(node_json,node):
+    """replace regular expression"""
+    if isinstance(node_json,dict):
+        for key,value in node_json.items():
+            if isinstance(value,unicode) or isinstance(value,str):
+                if is_regexp(value):
+                    import pdb
+                    pdb.set_trace()
+                    node_json[key] = trans_regex_attrs(node,value) 
+            elif isinstance(node_json[key],dict):
+                replace_node_regex(node_json[key],node)
 
 def groups_data_overwrite_node(hierarchicalattrs,inv_data={}):
     """TODO"""
