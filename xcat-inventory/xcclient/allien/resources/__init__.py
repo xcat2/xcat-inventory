@@ -79,7 +79,7 @@ api.add_namespace(api_manager_ns)
 from .auth import ns as api_manager_ns
 api.add_namespace(api_manager_ns)
 
-#from .nodehm import *
-#api.add_resource(PowerResource, '/node/<string:id>/power')
+from .nodehm import *
+api.add_resource(PowerResource, '/nodes/<node>/power')
 #api.add_resource(PowerRangeResource, '/power')
 
