@@ -14,7 +14,7 @@ from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
 from ..inventory.exceptions import *
-from .regexutils import is_regexp, trans_regex_attrs
+from .regexutils import is_regexp_attr, trans_regex_attr
 import time
 
 OPT_QUERY_THRESHHOLD = 18
@@ -180,21 +180,6 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
     return dct
 
-def dict_generator(indict, pre=None):
-    pre = pre[:] if pre else []
-    if isinstance(indict, dict):
-        for key, value in indict.items():
-            if isinstance(value, dict):
-                if len(value) == 0:
-                    yield pre+[key, '{}']
-                else:
-                    for d in dict_generator(value, pre + [key]):
-                        yield d
-            else:
-                yield pre + [key, value]
-    else:
-        yield indict
-
 def get_node_attributes(node):
     """Get node attbributes.
 
@@ -236,10 +221,8 @@ def replace_node_regex(node_json,node):
     if isinstance(node_json,dict):
         for key,value in node_json.items():
             if isinstance(value,unicode) or isinstance(value,str):
-                if is_regexp(value):
-                    import pdb
-                    pdb.set_trace()
-                    node_json[key] = trans_regex_attrs(node,value) 
+                if is_regexp_attr(value):
+                    node_json[key] = trans_regex_attr(node,value) 
             elif isinstance(node_json[key],dict):
                 replace_node_regex(node_json[key],node)
 

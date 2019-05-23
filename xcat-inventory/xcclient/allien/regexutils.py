@@ -16,35 +16,32 @@ def extract_bracketed(input_str):
         }
 
     """
-    result = {}
-    pre=''
-    cur=''
-    nxt=''
-    sign = 0
-    loop=0
+    result={}
+    paren_level = 0
+    sign=0
+    start=0
+    end=0
+    num=0
     for ch in input_str:
-        if sign is not 2:
-            if ch == '(':
+        if ch == '(':
+            paren_level=paren_level+1
+            if not sign:
+                start=num
                 sign=1
-            elif (ch == ')'):
-                sign=2
-                loop+=1
-                if loop is 1:
-                    cur += ch
-                    ch=''
-                    loop=0
-        if sign is 1:
-            cur += ch
-        elif sign is 2 and ch:
-            nxt += ch
-        elif sign is 0:
-            pre += ch
-    result['prev']=pre
-    result['curr']=cur
-    result['next']=nxt
+        elif (ch == ')') and paren_level:
+            paren_level=paren_level-1
+        if not paren_level and sign is 1:
+            end=num+1
+            break
+        num=num+1
+
+    result['prev']=input_str[:start]
+    result['curr']=input_str[start:end]
+    result['next']=input_str[end:]
+
     return result
 
-def is_regexp(attr):
+def is_regexp_attr(attr):
     pattern=re.match('^\/[^\/]*\/[^\/]*\/$',attr) 
     if pattern:
         return 1
@@ -56,13 +53,13 @@ def is_regexp(attr):
     return 0
 
 def multiple_replace(dict, text):
-  # Create a regular expression  from the dictionary keys
-  regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+    # Create a regular expression  from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
 
-  # For each match, look-up corresponding value in dictionary
-  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
 
-def trans_regex_attrs(node,attr):
+def trans_regex_attr(node,attr):
     """Transform the regular expression attribute to the target value
        based on the node name.
 
@@ -75,7 +72,7 @@ def trans_regex_attrs(node,attr):
             Attribute value
     """
     retval=attr
-    is_reg=is_regexp(attr)
+    is_reg=is_regexp_attr(attr)
     if is_reg is 1:
         exp=attr[0]
         parts=attr[1:-1].split(exp)
