@@ -2,17 +2,17 @@
 
 [**xcat-inventory**](https://github.com/xcat2/xcat-inventory/wiki/xcat-inventory--Wiki) is an inventory tool for the cluster managed by [**xCAT**](http://xcat.org), the features include:
 
-- a object based view of the cluster inventory, which is flexible, extensible and well formatted
+- an object based view of the cluster inventory, which is flexible, extensible and well formatted
 
 - interfaces to export/import the cluster inventory data in yaml/json format
 
-- inventory templates for typical clusters, which help user to define a cluster easily
+- inventory templates for typical clusters, which help users to define a cluster easily
 
-- native ability to manage cluster configuration under source control(see [Cookbook](https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F))
+- native ability to manage cluster configuration under source control (see [Cookbook](https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F))
 
-- automatic cluster deployment according to the cluster definition(Comming soon)
+- automatic cluster deployment according to the cluster definition (Coming soon)
 
-- ability to intergrate with Ansible(Comming soon)
+- ability to integrate with Ansible (Coming soon)
 
 The typical workflow:
 
