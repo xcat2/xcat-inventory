@@ -55,6 +55,13 @@ def is_regexp(attr):
 
     return 0
 
+def multiple_replace(dict, text):
+  # Create a regular expression  from the dictionary keys
+  regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+
+  # For each match, look-up corresponding value in dictionary
+  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+
 def trans_regex_attrs(node,attr):
     """Transform the regular expression attribute to the target value
        based on the node name.
@@ -88,15 +95,21 @@ def trans_regex_attrs(node,attr):
         matchvalue=re.search(parts[0],node)
         #handle replace expression
         retval=parts[1]
+        map_dict={}
+        count=1
+        while count <=len(matchvalue.groups()):
+            tmpkey="$%s" % (count)
+            map_dict[tmpkey]=matchvalue.group(count)
+            count=count+1
+
+        retval=multiple_replace(map_dict, retval)
         extractbracket=extract_bracketed(retval)
         #first replace expression
         curr=extractbracket['curr']
         prev=extractbracket['prev']
         nextt=extractbracket['next']
         while curr:
-            tmpexp=re.sub(r'(\$\d+)', r'int(matchvalue.group(\1))', curr)
-            validexp=re.sub(r'(\$)', '', tmpexp)
-            value=eval(validexp)
+            value=eval(curr)
             retval="%s%s%s" % (prev,value,nextt)
             extractbracket=extract_bracketed(retval)
             curr=extractbracket['curr']
