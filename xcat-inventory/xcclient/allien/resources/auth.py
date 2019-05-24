@@ -9,8 +9,6 @@ import uuid
 from flask import request, current_app, jsonify, g
 from flask_restplus import Resource, Namespace, fields
 
-#from exceptions import *
-
 from ..authmanager import *
 from . import token_parser
 
@@ -96,8 +94,9 @@ class ToLogin(Resource):
 
 
 @ns.route('/refresh')
+@ns.doc(security='apikey')
 class ToRefresh(Resource):
-    @ns.expect(token_parser)
+
     @ns.response(200, "Token refreshed")
     def post(self):
         r = check_request_token(request)
@@ -109,8 +108,9 @@ class ToRefresh(Resource):
 
 
 @ns.route('/logout')
+@ns.doc(security='apikey')
 class ToLogout(Resource):
-    @ns.expect(token_parser)
+
     @ns.response(200, "Logged out")
     def post(self):
         r = check_request_token_without_account(request)

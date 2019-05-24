@@ -13,6 +13,7 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data, patch_inventory_by_type
 from ..invmanager import InvalidValueException, ParseException
 from .inventory import ns, resource, patch_action
+from . import auth_request
 
 """
 These APIs is to handle Image related resources: osimage, osdistro,.
@@ -20,8 +21,10 @@ These APIs is to handle Image related resources: osimage, osdistro,.
 
 
 @ns.route('/osimages')
+@ns.doc(security='apikey')
 class OSimageListResource(Resource):
 
+    @auth_request
     def get(self):
         """get OS image list defined in store"""
         return transform_from_inv(get_inventory_by_type('osimage'))
@@ -29,6 +32,7 @@ class OSimageListResource(Resource):
     @ns.doc('create_osimage')
     @ns.expect(resource)
     @ns.response(201, 'OSimage successfully created.')
+    @auth_request
     def post(self):
         """create an OS image object"""
         data = request.get_json()
@@ -44,9 +48,11 @@ class OSimageListResource(Resource):
 
 
 @ns.route('/osimages/<string:name>')
+@ns.doc(security='apikey')
 @ns.response(404, 'OSimage not found.')
 class OSimageResource(Resource):
 
+    @auth_request
     def get(self, name):
         """get specified OS image resource"""
         result = get_inventory_by_type('osimage', [name])
@@ -55,6 +61,7 @@ class OSimageResource(Resource):
 
         return transform_from_inv(result)[-1]
 
+    @auth_request
     def delete(self, name):
         """delete an OS image object"""
         try:
@@ -65,6 +72,7 @@ class OSimageResource(Resource):
         return None, 200
 
     @ns.expect(resource)
+    @auth_request
     def put(self, name):
         """replace an OS image object"""
         data = request.get_json()
@@ -77,6 +85,7 @@ class OSimageResource(Resource):
         return None, 201
 
     @ns.expect(patch_action)
+    @auth_request
     def patch(self, name):
         """Modify an OS image object"""
         data = request.get_json()
@@ -89,8 +98,10 @@ class OSimageResource(Resource):
 
 
 @ns.route('/distros')
+@ns.doc(security='apikey')
 class DistroListResource(Resource):
 
+    @auth_request
     def get(self):
         """get distro list defined in store"""
         return transform_from_inv(get_inventory_by_type('osdistro'))
@@ -98,6 +109,7 @@ class DistroListResource(Resource):
     @ns.doc('create_distro')
     @ns.param('Image paths', 'Image names')
     @ns.response(201, 'Distro successfully created.')
+    @auth_request
     def post(self):
         """create a distro object"""
         try:
@@ -121,9 +133,11 @@ class DistroListResource(Resource):
 
 
 @ns.route('/distros/<string:name>')
+@ns.doc(security='apikey')
 @ns.response(404, 'Distro not found.')
 class DistroResource(Resource):
 
+    @auth_request
     def get(self, name):
         """get specified distro resource"""
         result = get_inventory_by_type('osdistro', [name])
@@ -132,6 +146,7 @@ class DistroResource(Resource):
 
         return transform_from_inv(result)[-1]
 
+    @auth_request
     def delete(self, name):
         """delete a distro object"""
         # TODO, need to trigger xcatd to clean the ISO directory

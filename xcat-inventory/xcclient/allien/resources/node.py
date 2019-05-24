@@ -24,6 +24,7 @@ actionreq = ns.model('ActionReq', {
 
 
 @ns.route('/nodes')
+@ns.doc(security='apikey')
 class NodeListResource(Resource):
     
     @ns.doc('list_all_nodes')
@@ -54,6 +55,7 @@ class NodeListResource(Resource):
     @ns.doc('create_node')
     @ns.expect(resource)
     @ns.response(201, 'Node successfully created.')
+    @auth_request
     def post(self):
         """create a node object"""
         data = request.get_json()
@@ -68,9 +70,11 @@ class NodeListResource(Resource):
 
 
 @ns.route('/nodes/<name>')
+@ns.doc(security='apikey')
 class NodeInventoryResource(Resource):
 
     @ns.doc('get_node_inventory')
+    @auth_request
     def get(self, name):
         """get specified node resource"""
 
@@ -82,6 +86,7 @@ class NodeInventoryResource(Resource):
         return transform_from_inv(result)[0]
 
     @ns.doc('delete_node_inventory')
+    @auth_request
     def delete(self, name):
         """delete a node object"""
         try:
@@ -92,6 +97,7 @@ class NodeInventoryResource(Resource):
         return None, 200
 
     @ns.expect(resource)
+    @auth_request
     def put(self, name):
         """replace a node object"""
         data = request.get_json()
@@ -104,6 +110,7 @@ class NodeInventoryResource(Resource):
         return None, 201
 
     @ns.expect(patch_action)
+    @auth_request
     def patch(self, name):
         """Modify a node object"""
         data = request.get_json()
@@ -116,9 +123,11 @@ class NodeInventoryResource(Resource):
 
 
 @ns.route('/nodes/<node>/_status')
+@ns.doc(security='apikey')
 class NodeStatusResource(Resource):
 
     @ns.doc('query node status')
+    @auth_request
     def get(self, node):
 
         dataset = get_nodes_status(node)
@@ -132,8 +141,10 @@ class NodeStatusResource(Resource):
 
 
 @ns.route('/nodes/_detail', '/nodes/<node>/_detail')
+@ns.doc(security='apikey')
 class NodeDetailResource(Resource):
 
+    @auth_request
     def get(self, node=None):
 
         if not node:
@@ -148,6 +159,7 @@ SUPPORTED_OPERATIONS = {
 
 
 @ns.route('/nodes/<node>/_operation')
+@ns.doc(security='apikey')
 class NodeOperationResource(Resource):
 
     @ns.expect(token_parser)

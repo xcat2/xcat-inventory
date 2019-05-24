@@ -7,26 +7,32 @@
 import os
 from flask import current_app, request
 from flask_restplus import Resource, reqparse
+
 from xcclient.xcatd import XCATClient, XCATClientParams
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
+
 from ..invmanager import InvalidValueException
+
 from .node import ns, actionreq
 from .service import ns as ns1
-from .service import srvreq
+from . import auth_request
 
-POWER_ACTION=["on","off","state"]
+POWER_ACTION = ["on", "off", "state"]
+
 
 @ns.route('/nodes/<node>/power')
+@ns.doc(security='apikey')
 class PowerResource(Resource):
     """power hardware control operation"""
 
     @ns.expect(actionreq)
     @ns.doc('power_node')
+    @auth_request
     def post(self, node):
         "power a node with specified action"""
         data = request.get_json()
         action = data.get('action')
-        res={}
+        res = {}
         if action not in POWER_ACTION:
             ns.abort(400, 'Not supported operation: %s' % action)
 
@@ -34,15 +40,16 @@ class PowerResource(Resource):
             param = XCATClientParams(xcatmaster=os.environ.get('XCAT_SERVER'))
             cl = XCATClient()
             cl.init(current_app.logger, param)
-            result = cl.rpower(node,action)
+            result = cl.rpower(node, action)
         except (InvalidValueException, XCATClientError) as e:
             ns.abort(400, str(e))
 
-        res['powerstate']=result.node_dict[node].state
+        res['powerstate'] = result.node_dict[node].state
         return res, 200
 
     def _validator(self, args):
         current_app.logger.info(args)
+
 
 @ns1.route('/power')
 class PowerRangeResource(Resource):

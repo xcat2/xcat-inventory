@@ -12,6 +12,7 @@ from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, del_inventory_by_type, transform_from_inv, transform_to_inv, validate_resource_input_data, patch_inventory_by_type
 from ..invmanager import InvalidValueException, ParseException
 from .inventory import ns, resource, patch_action
+from . import auth_request
 
 """
 These APIs is to handle networking related resources: subnet, route.
@@ -19,8 +20,10 @@ These APIs is to handle networking related resources: subnet, route.
 
 
 @ns.route('/subnets')
+@ns.doc(security='apikey')
 class NetworkListResource(Resource):
 
+    @auth_request
     def get(self):
         """get all the networks defined in store"""
         return transform_from_inv(get_inventory_by_type('network'))
@@ -28,6 +31,7 @@ class NetworkListResource(Resource):
     @ns.doc('create_subnet')
     @ns.expect(resource)
     @ns.response(201, 'Subnet successfully created.')
+    @auth_request
     def post(self):
         """create a network object"""
         data = request.get_json()
@@ -42,9 +46,11 @@ class NetworkListResource(Resource):
 
 
 @ns.route('/subnets/<string:name>')
+@ns.doc(security='apikey')
 @ns.response(404, 'network not found.')
 class NetworkResource(Resource):
 
+    @auth_request
     def get(self, name):
         """get a specified network resource"""
         result = get_inventory_by_type('network', [name])
@@ -53,6 +59,7 @@ class NetworkResource(Resource):
 
         return transform_from_inv(result)[-1]
 
+    @auth_request
     def delete(self, name):
         """delete a specified network resource"""
         try:
@@ -63,6 +70,7 @@ class NetworkResource(Resource):
         return None, 200
 
     @ns.expect(resource)
+    @auth_request
     def put(self, name):
         """replace a specified network resource"""
         data = request.get_json()
@@ -76,6 +84,7 @@ class NetworkResource(Resource):
         return None, 200
 
     @ns.expect(patch_action)
+    @auth_request
     def patch(self, name):
         """Modify a specified network resources"""
         data = request.get_json()
@@ -88,14 +97,17 @@ class NetworkResource(Resource):
 
 
 @ns.route('/routes')
+@ns.doc(security='apikey')
 class RoutesListResource(Resource):
 
+    @auth_request
     def get(self):
         """get all the routes defined in store"""
         return transform_from_inv(get_inventory_by_type('route'))
 
     @ns.expect(resource)
     @ns.response(201, 'Route successfully created.')
+    @auth_request
     def post(self):
         """create a static route """
         data = request.get_json()
@@ -112,6 +124,7 @@ class RoutesListResource(Resource):
 @ns.response(404, 'Route not found.')
 class RouteResource(Resource):
 
+    @auth_request
     def get(self, name):
         """get a specified route in store"""
         result = get_inventory_by_type('route', [name])
@@ -120,6 +133,7 @@ class RouteResource(Resource):
 
         return transform_from_inv(result)[-1]
 
+    @auth_request
     def delete(self, name):
         """delete a specified route """
         try:
@@ -130,6 +144,7 @@ class RouteResource(Resource):
         return None, 200
 
     @ns.expect(resource)
+    @auth_request
     def put(self, name):
         """replace a specified route """
         data = request.get_json()
@@ -142,6 +157,7 @@ class RouteResource(Resource):
         return None, 200
 
     @ns.expect(patch_action)
+    @auth_request
     def patch(self, name):
         """Modify a specified route """
         data = request.get_json()

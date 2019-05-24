@@ -9,7 +9,8 @@ from flask_restplus import Resource, Namespace, fields, reqparse
 
 from xcclient.xcatd.client.xcat_exceptions import XCATClientError
 from ..invmanager import *
-from .inventory import ns, inv_resource, patch_action
+
+from . import auth_request
 
 """
 These APIs is to handle security related resources: Password, Policy, Zone, Credential.
@@ -27,6 +28,7 @@ sec_post_resource = ns.model('sec_post_Resource', {
     'kind': fields.String(description='The kind of Secrets', required=True),
     'spec': fields.Raw(description='The specification of resource', required=True)
 })
+
 
 def _passwd_from_inv(obj_d):
     """transform the inventory object model(dict for collection) to a passwd list"""
@@ -56,6 +58,7 @@ def _passwd_from_inv(obj_d):
 
     return results
 
+
 def _passwd_to_inv(obj_d):
     """transform the REST object(list or dict) to passwd inventory object model(dict for collection)"""
     assert obj_d is not None
@@ -79,9 +82,12 @@ def _passwd_to_inv(obj_d):
             result[n] = v
     return result
 
+
 @ns.route('/secrets')
+@ns.doc(security='apikey')
 class SecretsListResource(Resource):
 
+    @auth_request
     def get(self):
         """get specified user resource"""
         result = get_inventory_by_type('passwd')
@@ -92,6 +98,7 @@ class SecretsListResource(Resource):
     @ns.doc('create_secret')
     @ns.response(201, 'Secret successfully created.')
     @ns.expect(sec_post_resource)
+    @auth_request
     def post(self):
         """create a new secret object"""
         data = request.get_json()
@@ -117,9 +124,12 @@ class SecretsListResource(Resource):
         result={"message":"new user is created.", "id":id}
         return result, 201
 
+
+@ns.doc(security='apikey')
 @ns.route('/secrets/<string:id>')
 class SecretsResource(Resource):
 
+    @auth_request
     def get(self, id):
         """get specified user secret"""
         _count=id.count('_')
@@ -134,7 +144,7 @@ class SecretsResource(Resource):
             raise InvalidValueException("Input data format is wrong.")
         result = get_inventory_by_type('passwd', [key])[key]
         res=[]
-        #this kind has multple users
+        # this kind has multiple users
         if type(result) is list:
             ite=len(result)
             for n in range(ite,0,-1):
@@ -143,7 +153,7 @@ class SecretsResource(Resource):
                     rd = dict(id=id, kind=key, spec=item)
                     res.append(rd)
                     break
-        #this kind has one user 
+        # this kind has one user
         elif type(result) is dict:
             if (not user and 'username' not in result.keys()) or (user in result.values()):
                 rd = dict(id=id, kind=key, spec=result)
@@ -152,6 +162,7 @@ class SecretsResource(Resource):
             ns.abort(404)
         return res
 
+    @auth_request
     def delete(self, id):
         """delete a passwd object"""
         try:
@@ -165,6 +176,7 @@ class SecretsResource(Resource):
         return None, 200
 
     @ns.expect(sec_post_resource)
+    @auth_request
     def post(self, id):
         """modify a secret object"""
         data = request.get_json()
@@ -200,6 +212,7 @@ def _policy_from_inv(obj_d):
 
     return results
 
+
 def _policy_to_inv(obj_d):
     """transform the REST object(list or dict) to policy inventory object model(dict for collection)"""
     assert obj_d is not None
@@ -227,11 +240,14 @@ def _policy_to_inv(obj_d):
             result[n] = v
     return result
 
+
 @ns.route('/policy')
+@ns.doc(security='apikey')
 class PolicyResource(Resource):
 
     @ns.doc('list_policy_rules')
     @ns.param('id', 'Policy rule ids')
+    @auth_request
     def get(self):
         """get policy rules"""
         parser = reqparse.RequestParser()
@@ -243,6 +259,7 @@ class PolicyResource(Resource):
     @ns.doc('create_policy_rule')
     @ns.response(201, 'Policy rule successfully created.')
     @ns.expect(sec_resource)
+    @auth_request
     def post(self):
         """create or modify a policy object"""
         data = request.get_json()
@@ -266,9 +283,12 @@ class PolicyResource(Resource):
 
         return None, 200
 
+
+@ns.doc(security='apikey')
 @ns.route('/policy/<string:id>')
 class PolicyRuleResource(Resource):
 
+    @auth_request
     def get(self, id):
         """get specified policy rule"""
 
@@ -277,6 +297,7 @@ class PolicyRuleResource(Resource):
             ns.abort(404)
         return _policy_from_inv(result)[-1]
 
+    @auth_request
     def delete(self, id):
         """delete a policy object"""
         try:
@@ -287,6 +308,7 @@ class PolicyRuleResource(Resource):
         return None, 200
 
     @ns.expect(sec_post_resource)
+    @auth_request
     def post(self, id):
         """modify a policy rule object"""
         data = request.get_json()
