@@ -485,7 +485,7 @@ def split_inventory_types(types):
     exclude = ['credential']
 
     # get the include and exclude
-    for rt in types:
+    for rt in types or []:
         rt = rt.strip()
         if not rt:
             raise InvalidValueException("Invalid inventory type name: (%s)" % rt)
