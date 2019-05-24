@@ -427,16 +427,12 @@ class XCATRpowerCmdResultParser(XCATGenericCmdResultParser):
 
                     elem.clear()
                 elif elem.tag == 'info':
-                    node = self._rpower_rec_parser.parse(elem)
+                    node = XCATRpowerRecordParser()
                     match=re.match('(\S+):\s+(\S+)',elem.text)
                     if match:
                         node.name=match.group(1)
                         node.state=match.group(2)
                         to_return.node_dict[node.name]=node
-                    if node.error:
-                        to_return.failed_nodes.append(node.name)
-                    else:
-                        to_return.success_nodes.append(node.name)
                     elem.clear()
                 elif elem.tag == 'xcatresponse':
                     error = self._parse_error(elem)
