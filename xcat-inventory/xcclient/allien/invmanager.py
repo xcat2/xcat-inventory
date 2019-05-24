@@ -14,6 +14,7 @@ from .app import dbi, dbsession, cache
 from .noderange import NodeRange
 from ..inventory.manager import InventoryFactory
 from ..inventory.exceptions import *
+from .regexutils import is_regexp_attr, trans_regex_attr
 import time
 
 OPT_QUERY_THRESHHOLD = 18
@@ -179,7 +180,6 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
     return dct
 
-
 def get_node_attributes(node):
     """Get node attbributes.
 
@@ -213,7 +213,18 @@ def get_node_attributes(node):
     else:
         # default
         result=fetch_data_from_group(inv_data,node,groupslist)
+    replace_node_regex(result,node)
     return result
+
+def replace_node_regex(node_json,node):
+    """replace regular expression"""
+    if isinstance(node_json,dict):
+        for key,value in node_json.items():
+            if isinstance(value,unicode) or isinstance(value,str):
+                if is_regexp_attr(value):
+                    node_json[key] = trans_regex_attr(node,value) 
+            elif isinstance(node_json[key],dict):
+                replace_node_regex(node_json[key],node)
 
 
 def groups_data_overwrite_node(hierarchicalattrs,inv_data={}):
