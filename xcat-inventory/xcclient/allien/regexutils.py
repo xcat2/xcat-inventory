@@ -16,7 +16,6 @@ def extract_bracketed(input_str):
         }
 
     """
-    result={}
     paren_level = 0
     sign=0
     start=0
@@ -30,16 +29,12 @@ def extract_bracketed(input_str):
                 sign=1
         elif (ch == ')') and paren_level:
             paren_level=paren_level-1
-        if not paren_level and sign is 1:
+        if not paren_level and sign == 1:
             end=num+1
             break
         num=num+1
 
-    result['prev']=input_str[:start]
-    result['curr']=input_str[start:end]
-    result['next']=input_str[end:]
-
-    return result
+    return input_str[:start],input_str[start:end],input_str[end:]
 
 def is_regexp_attr(attr):
     pattern=re.match('^\/[^\/]*\/[^\/]*\/$',attr) 
@@ -73,21 +68,23 @@ def trans_regex_attr(node,attr):
     """
     retval=attr
     is_reg=is_regexp_attr(attr)
-    if is_reg is 1:
+    if is_reg == 1:
         exp=attr[0]
         parts=attr[1:-1].split(exp)
         retval=re.sub(parts[0], parts[1], node)
 
-    if is_reg is 2:
+    if is_reg == 2:
         exp=attr[0]
         parts=attr[1:-1].split(exp)
         partslen=len(parts)
+
         #easy regx, generate lhs from node
         if partslen < 2:
             numbers=re.search('[\D0]*(\d+)',node)
             lhs='[\D0]*(\d+)'*len(numbers)
             lhs+='.*$'
             parts.append(lhs)
+
         #find all matched value
         matchvalue=re.search(parts[0],node)
         #handle replace expression
@@ -98,19 +95,13 @@ def trans_regex_attr(node,attr):
             tmpkey="$%s" % (count)
             map_dict[tmpkey]=matchvalue.group(count)
             count=count+1
-
+        #replace all '$\d+' in retval with real value
         retval=multiple_replace(map_dict, retval)
-        extractbracket=extract_bracketed(retval)
-        #first replace expression
-        curr=extractbracket['curr']
-        prev=extractbracket['prev']
-        nextt=extractbracket['next']
+        prev,curr,nextt=extract_bracketed(retval)
+        #caculate the () string with expressions in parts[1]
         while curr:
             value=eval(curr)
             retval="%s%s%s" % (prev,value,nextt)
-            extractbracket=extract_bracketed(retval)
-            curr=extractbracket['curr']
-            prev=extractbracket['prev']
-            nextt=extractbracket['next']
-        
+            prev,curr,nextt=extract_bracketed(retval)
+ 
     return retval
