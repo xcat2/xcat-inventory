@@ -13,23 +13,30 @@ from xcclient.xcatd import XCATClient, XCATClientParams
 from ..invmanager import get_inventory_by_type, upd_inventory_by_type, transform_from_inv, transform_to_inv
 from ..invmanager import InvalidValueException, ParseException
 from .inventory import resource
+from . import auth_request
 
 ns = Namespace('globalconf', description='System Level Settings')
 
+
 @ns.route('/sites')
+@ns.doc(security='apikey')
 class SitesResource(Resource):
 
     @ns.doc('list_sites')
+    @auth_request
     def get(self):
         """List all site contexts"""
         return transform_from_inv(get_inventory_by_type('site'))
 
+
 @ns.route('/sites/<string:context>')
+@ns.doc(security='apikey')
 @ns.response(404, 'Context not found')
 class SiteResource(Resource):
 
     @ns.doc('get_site')
     @ns.param('attrs', 'Site attribute names')
+    @auth_request
     def get(self, context):
         """Get the attributes of specified context ( only 'clustersite' allowed now )"""
 
@@ -52,6 +59,7 @@ class SiteResource(Resource):
         return {'meta': {'name':context}, 'spec':temp_spec}
 
     @ns.expect(resource)
+    @auth_request
     def put(self, context):
         """Replace site context with all attributes"""
 
@@ -65,6 +73,7 @@ class SiteResource(Resource):
 
         return None, 201
 
+    @auth_request
     def patch(self, context):
         """Modify attributes of a site context"""
 
@@ -80,12 +89,14 @@ class SiteResource(Resource):
 
 
 @ns.route('/sites/<context>/<attr>')
+@ns.doc(security='apikey')
 @ns.param('context', 'The site context name')
 @ns.param('attr', 'The site attribute name')
 @ns.response(404, 'Attribute not found')
 class SiteAttrResource(Resource):
 
     @ns.doc('get_site_attr')
+    @auth_request
     def get(self, context, attr):
         """Fetch a site attribute by the given name"""
 
@@ -102,6 +113,7 @@ class SiteAttrResource(Resource):
     @ns.doc('set_site_attr')
     @ns.param('value', 'Value set to the attribute')
     @ns.response(400, 'Must specify the value in query parameter.')
+    @auth_request
     def post(self, context, attr):
         """Set a site attribute by the given name"""
 
@@ -123,6 +135,7 @@ class SiteAttrResource(Resource):
         return dict(outputs=result.output_msgs)
 
     @ns.doc('delete_site_attr')
+    @auth_request
     def delete(self, context, attr):
         """Delete a site attribute by the given name"""
 

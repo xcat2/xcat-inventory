@@ -12,6 +12,7 @@ from flask_restplus import Resource, Namespace, fields, inputs, reqparse
 from xcclient.inventory.manager import export_by_type, importobj
 
 from ..invmanager import InvalidValueException, split_inventory_types
+from . import auth_request
 
 ns = Namespace('inventory', ordered=True, description='Inventory Management')
 
@@ -26,11 +27,14 @@ patch_action = ns.model('modify', {
     'modify': fields.Raw(description='The update attr and value info of resource', required=True)
 })
 
+
 @ns.route('/')
+@ns.doc(security='apikey')
 class InventoryResource(Resource):
 
     @ns.doc('export_inventory')
     @ns.param('types', 'inventory types for exporting')
+    @auth_request
     def get(self):
         """get all inventory defined in store"""
 
@@ -55,6 +59,7 @@ class InventoryResource(Resource):
     @ns.param('clean', 'clean mode. IF specified, all objects other than the ones to import will be removed.')
     @ns.expect(inv_resource)
     @ns.response(201, 'Inventory successfully imported.')
+    @auth_request
     def post(self):
         """import inventory objects"""
 
