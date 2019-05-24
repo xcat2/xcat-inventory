@@ -63,6 +63,7 @@ def trans_regex_attr(node,attr):
             Attribute value (may have regular expression):
             example1: '/txtxtx/1.1.1.1/'
             example2: '|\D+(\d+)|10.0.0.($1+10)|
+            example3: '|\D+(\d+)|'
     Return:
             Attribute value
     """
@@ -103,5 +104,8 @@ def trans_regex_attr(node,attr):
             value=eval(curr)
             retval="%s%s%s" % (prev,value,nextt)
             prev,curr,nextt=extract_bracketed(retval)
+
+    if not retval:
+        retval=attr
  
     return retval
