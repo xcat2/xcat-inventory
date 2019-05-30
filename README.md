@@ -77,6 +77,10 @@ Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
 # FLASK_DEBUG=1 python main.py
 ```
 
+Note: 
+You can setup the above virtualenv DEV environment in a xCAT container on your MAC, run the xCAT container on your MAC as below:
+`docker run -d --name xcatmn-api --hostname xcatmn -p 5000:5000 -p 2200:2200 --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro xcat/xcat2`
+
 ### Docker container
 ```
 # git clone https://github.com/xcat2/xcat-inventory.git [ -b <tag|branch> ]
