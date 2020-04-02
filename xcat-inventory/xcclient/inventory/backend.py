@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
 from __future__ import print_function
 import configparser
