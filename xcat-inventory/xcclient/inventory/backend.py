@@ -1,13 +1,13 @@
 #!/usr/bin/env python2
 # IBM(c) 2007 EPL license http://www.eclipse.org/legal/epl-v10.html
 from __future__ import print_function
-import configparser
 import os
 import shutil
 import re
 import pickle
 import hashlib
 
+from six.moves import configparser
 from .exceptions import *
 from . import manager
 from . import utils
