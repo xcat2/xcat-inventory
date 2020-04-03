@@ -11,7 +11,11 @@ Vendor: IBM Corp.
 Distribution: %{?_distribution:%{_distribution}}%{!?_distribution:%{_vendor}}
 Prefix: /opt/xcat
 BuildRoot: /var/tmp/%{name}-%{version}-%{release}-root
+%if 0%{?rhel} >= 8
+Requires: python2-psycopg2 python2-sqlalchemy >= 0.8.0 python2-PyMySQL python2-pyyaml python2-six python2-jinja2 git
+%else
 Requires: python-psycopg2 python-sqlalchemy >= 0.8.0 MySQL-python PyYAML python-six python-jinja2 git
+%endif
 
 %ifos linux
 BuildArch: noarch
