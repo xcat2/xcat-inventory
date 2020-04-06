@@ -15,7 +15,7 @@ from . import utils
 try:
     import sh
 except:
-    raise InternalException("cannot find module \"sh\", please install it with \"pip install sh\"")
+    raise InternalException("cannot find module \"sh\", please install it with \"pip install sh\" or \"yum install python2-sh\" from rhels epel repository")
 
 
 class Invbackend(object):
