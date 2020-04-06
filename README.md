@@ -34,7 +34,7 @@ The typical workflow:
 
 ## Installing
 
-Download "xcat-inventory" package from [xcat-inventory](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.6/xcat-inventory-0.1.6-c0.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
+Download "xcat-inventory" package from [xcat-inventory on rhels7](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.7/xcat-inventory-0.1.7-el7.noarch.rpm) or [xcat-inventory on rhels8] (https://github.com/xcat2/xcat-inventory/releases/download/v0.1.7/xcat-inventory-0.1.7-el8.noarch.rpm) to xCAT management node, and run `yum install xcat-inventory.rpm` to install it
 
 ## Building
 
@@ -58,8 +58,8 @@ From github.com:xcat2/xcat-inventory
 Already up-to-date.
 [root@boston01 xcat-inventory]# ./makepythonrpm xcat-inventory
 ...
-Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4*.noarch.rpm ...
-/root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.4-c10.noarch.rpm
+Building /root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.7*.noarch.rpm ...
+/root/rpmbuild/RPMS/noarch/xcat-inventory-0.1.7-el8.noarch.rpm
 ```
 
 ## Dependency
@@ -91,7 +91,7 @@ The `xcat-inventory` is arch independent, i.e, you can install it on xCAT manage
 
 Currently, only rpm package is shipped, which can be installed on Linux distributions like Redhat 7.x, CentOS 7.x and SuSE. 
 
-The installation and function verification is finished on rhels7.x. 
+The installation and function verification is finished on rhels7.x and rhels8.1. 
 
 For other Linux distributions, you might need to handle the dependency issue by yourself. 
 
