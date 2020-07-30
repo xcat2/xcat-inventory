@@ -203,7 +203,7 @@ class InventoryFactory(object):
        
           
     def importObjs(self, objlist, obj_attr_dict,update=True,envar=None,rootdir=None):
-        print("start to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
+        print("starting to import \"%s\" type objects"%(self.objtype),file=sys.stdout)
         print(" preprocessing \"%s\" type objects"%(self.objtype),file=sys.stdout)
         myclass = InventoryFactory.__InventoryClass__[self.objtype]
         myclass.loadschema(self.schemapath)
@@ -520,7 +520,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
     envar=vardict
     if dbsession is None: 
         dbsession=DBsession()
-    print("loading inventory date in \"%s\""%(location),file=sys.stdout)
+    print("loading inventory data from \"%s\""%(location),file=sys.stdout)
     try:
 
         obj_attr_dict = json.loads(contents)
@@ -584,7 +584,7 @@ def importfromfile(objtypelist,objlist,filepath,dryrun=None,version=None,update=
         except Exception as e:
             raise DBException("Error on commit DB transactions: "+str(e))
         else:
-            print('Inventory import successfully!',file=sys.stdout)
+            print('Inventory imported successfully',file=sys.stdout)
     else:
         print("Dry run mode, nothing will be written to database!",file=sys.stdout)
     dbsession.close()
