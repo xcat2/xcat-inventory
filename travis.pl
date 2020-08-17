@@ -242,7 +242,7 @@ sub run_inventory_cases {
     chomp($hostname);
     print "hostname = $hostname\n";
     my $conf_file = "$ENV{'PWD'}/inventory.conf";
-    my $dstip = `hostname -i`;
+    my $dstip = `hostname -i | cut -d" " -f1`;
     chomp($dstip);
     my $cmd = "echo '[System]' > $conf_file; echo 'MN=$hostname' >> $conf_file; echo 'DSTMN'=$dstip >> $conf_file; echo '[Table_site]' >> $conf_file; echo 'key=domain' >>$conf_file; echo 'value=pok.stglabs.ibm.com' >> $conf_file";
     my @output = runcmd("$cmd");
