@@ -43,51 +43,54 @@ class Invbackend(object):
         if not os.path.exists(cfgpath):
             raise InvalidFileException("The configuration file %s does not exist!\n"%(cfgpath))    
 
-        config = configparser.ConfigParser()
-        config.read(cfgpath)
+        configP = configparser.ConfigParser()
+        configP.read(cfgpath)
         #if not config:
         #    raise ParseException("Unable to parse configuration file %s"%(cfgpath))
-        if 'backend' not in config.sections():
-            raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'backend')) 
-        if 'InfraRepo' not in config.sections():
-            raise ParseException("invalid configuration in %s: section \"[%s]\" not found! "%(cfgpath,'InfraRepo')) 
+        if 'backend' not in configP.sections():
+            raise ParseException("%s: expected section \"[%s]\" not found! "%(cfgpath,'backend')) 
+        if 'InfraRepo' not in configP.sections():
+            raise ParseException("%s: expected section \"[%s]\" not found! "%(cfgpath,'InfraRepo')) 
 
-        if 'type' in config['backend'].keys():
-            self.bkendcfg['type']=utils.stripquotes(config['backend']['type'])
+        config = dict(configP.items('backend'))
+
+        if 'type' in config.keys():
+            self.bkendcfg['type']=utils.stripquotes(config['type'])
         else:
             self.bkendcfg['type']='git'
 
-        if 'workspace' in config['backend'].keys():
-            self.bkendcfg['workspace']=utils.stripquotes(config['backend']['workspace'])
+        if 'workspace' in config.keys():
+            self.bkendcfg['workspace']=utils.stripquotes(config['workspace'])
         else:
             self.bkendcfg['workspace']=''
 
-        if 'user' in config['backend'].keys():
-            self.bkendcfg['user']=utils.stripquotes(config['backend']['user'])
+        if 'user' in config.keys():
+            self.bkendcfg['user']=utils.stripquotes(config['user'])
         else:
             self.bkendcfg['user']="xcat"
 
-        if 'email' in config['backend'].keys():
-            self.bkendcfg['email']=utils.stripquotes(config['backend']['email'])
+        if 'email' in config.keys():
+            self.bkendcfg['email']=utils.stripquotes(config['email'])
         else: 
             self.bkendcfg['email']="xcat@xcat.org"
 
         self.bkendcfg['InfraRepo']={}
-        if 'InfraRepo' in config.keys():
-            if 'remote_repo' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['remote_repo']=utils.stripquotes(config['InfraRepo']['remote_repo'])
-            else:
-                self.bkendcfg['InfraRepo']['remote_repo']=""
 
-            if 'local_repo' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['local_repo']=utils.stripquotes(config['InfraRepo']['local_repo'])
-            else:
-                self.bkendcfg['InfraRepo']['local_repo']=utils.gethome()
+        config = dict(configP.items('InfraRepo'))
+        if 'remote_repo' in config.keys(): 
+            self.bkendcfg['InfraRepo']['remote_repo']=utils.stripquotes(config['remote_repo'])
+        else:
+            self.bkendcfg['InfraRepo']['remote_repo']=""
 
-            if 'working_dir' in config['InfraRepo'].keys(): 
-                self.bkendcfg['InfraRepo']['working_dir']=utils.stripquotes(config['InfraRepo']['working_dir'])
-            else:
-                self.bkendcfg['InfraRepo']['working_dir']='.'
+        if 'local_repo' in config.keys(): 
+            self.bkendcfg['InfraRepo']['local_repo']=utils.stripquotes(config['local_repo'])
+        else:
+            self.bkendcfg['InfraRepo']['local_repo']=utils.gethome()
+
+        if 'working_dir' in config.keys(): 
+            self.bkendcfg['InfraRepo']['working_dir']=utils.stripquotes(config['working_dir'])
+        else:
+            self.bkendcfg['InfraRepo']['working_dir']='.'
              
 
 

@@ -391,7 +391,7 @@ mark_time("install_inventory");
 print GREEN "\n------Running xcat-inventory CI cases------\n";
 $rst = run_inventory_cases();
 if($rst){
-    print RED "Run inventory cases failed\n";
+    print RED "Run xcat-inventory testcases failed\n";
     exit $rst;
 }
 mark_time("run_inventory_cases");
