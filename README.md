@@ -10,10 +10,6 @@
 
 - native ability to manage cluster configuration under source control (see [Cookbook](https://github.com/xcat2/xcat-inventory/wiki/How-to-source-control-xCAT-Cluster-configuration-with-%22xcat-inventory%22%3F))
 
-- automatic cluster deployment according to the cluster definition (Coming soon)
-
-- ability to integrate with Ansible (Coming soon)
-
 The typical workflow:
 
 ![alt text](https://github.com/xcat2/xcat-inventory/blob/master/workflow.jpg)
