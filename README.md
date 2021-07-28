@@ -30,7 +30,7 @@ The typical workflow:
 
 ## Installing
 
-Download the "xcat-inventory" package from [xcat-inventory for RHEL 7](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.7/xcat-inventory-0.1.7-1.el7.noarch.rpm) or [xcat-inventory for RHEL 8](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.7/xcat-inventory-0.1.7-1.el8.noarch.rpm) to the xCAT management node, and run `yum install xcat-inventory.rpm` to install it.
+Download the "xcat-inventory" package from [xcat-inventory for RHEL 7](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.8/xcat-inventory-0.1.8-1.el7.noarch.rpm) or [xcat-inventory for RHEL 8](https://github.com/xcat2/xcat-inventory/releases/download/v0.1.8/xcat-inventory-0.1.8-1.el8.noarch.rpm) to the xCAT management node, and run `yum install xcat-inventory.rpm` to install it.
 
 ## Building
 
