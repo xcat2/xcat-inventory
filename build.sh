@@ -20,7 +20,7 @@ cur_path=$(dirname "$0")
 cd $cur_path
 
 case "${XCAT_BUILD_DISTRO}" in
-"centos"|"fedora"|"rhel"|"sles")
+"centos"|"fedora"|"rhel"|"sles"|"rockylinux"|"almalinux")
     buildcmd="./makepythonrpm $pkgname"
     dftpath="/root/rpmbuild/RPMS/noarch"
     pkgtype="rpm"
